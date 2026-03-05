@@ -849,7 +849,7 @@ function renderArray(params: {
           ${showLabel ? html`<span class="cfg-array__label">${label}</span>` : nothing}
           ${renderTags(tags)}
         </div>
-        <span class="cfg-array__count">${arr.length} item${arr.length !== 1 ? "s" : ""}</span>
+        <span class="cfg-array__count">${arr.length !== 1 ? t("configFormExtra.itemCountPlural", { count: String(arr.length) }) : t("configFormExtra.itemCount", { count: String(arr.length) })}</span>
         <button
           type="button"
           class="cfg-array__add"
@@ -1031,7 +1031,7 @@ function renderMapField(params: {
                       ? html`
                         <textarea
                           class="cfg-textarea cfg-textarea--sm"
-                          placeholder="JSON value"
+                          placeholder=${t("configFormExtra.jsonValuePlaceholder")}
                           rows="2"
                           .value=${fallback}
                           ?disabled=${disabled}

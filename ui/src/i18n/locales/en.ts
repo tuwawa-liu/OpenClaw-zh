@@ -105,6 +105,43 @@ export const en: TranslationMap = {
       hint: "This page is HTTP, so the browser blocks device identity. Use HTTPS (Tailscale Serve) or open {url} on the gateway host.",
       stayHttp: "If you must stay on HTTP, set {config} (token-only).",
     },
+    quickLinks: "Quick links",
+    documentation: "Documentation",
+    github: "GitHub",
+    discord: "Discord",
+    gettingStarted: "Getting started",
+    docs: {
+      devicePairing: "Docs: Device pairing",
+      devicePairingTitle: "Device pairing docs (opens in new tab)",
+      controlUiAuth: "Docs: Control UI auth",
+      controlUiAuthTitle: "Control UI auth docs (opens in new tab)",
+      tailscaleServe: "Docs: Tailscale Serve",
+      tailscaleServeTitle: "Tailscale Serve docs (opens in new tab)",
+      insecureHttp: "Docs: Insecure HTTP",
+      insecureHttpTitle: "Insecure HTTP docs (opens in new tab)",
+    },
+    authHints: {
+      tokenizedUrl: "tokenized URL",
+      setToken: "set token",
+    },
+    placeholders: {
+      wsUrl: "ws://100.x.y.z:18789",
+      password: "system or shared password",
+    },
+  },
+  configSections: {
+    env: "Environment",
+    update: "Updates",
+    agents: "Agents",
+    auth: "Authentication",
+    channels: "Channels",
+    messages: "Messages",
+    commands: "Commands",
+    hooks: "Hooks",
+    skills: "Skills",
+    tools: "Tools",
+    gateway: "Gateway",
+    wizard: "Setup Wizard",
   },
   chat: {
     disconnected: "Disconnected from gateway.",
@@ -327,6 +364,8 @@ export const en: TranslationMap = {
       prompt: "Prompt",
       delivery: "Delivery",
       agent: "Agent",
+      wakeNow: "now",
+      wakeNextHeartbeat: "next-heartbeat",
     },
     jobState: {
       status: "Status",
@@ -1158,5 +1197,64 @@ export const en: TranslationMap = {
   },
   usageExtra: {
     tokenUsage: "Token Usage",
+  },
+  skills: {
+    bundled: "bundled",
+    eligible: "eligible",
+    blocked: "blocked",
+    disabled: "disabled",
+    blockedByAllowlist: "blocked by allowlist",
+  },
+  agents: {
+    currentModel: "Current ({current})",
+    noConfiguredModels: "No configured models",
+  },
+  usageSort: {
+    tokens: "Tokens",
+  },
+  cronExtra: {
+    runIfDue: "Run if due",
+    totalTokens: "{count} tokens",
+    tokensInOut: "{input} in / {output} out",
+  },
+  instancesExtra: {
+    lastInput: "{seconds}s ago",
+  },
+  debugExtra: {
+    runCommandForDetails: "Run {command} for details.",
+  },
+  configFormExtra: {
+    itemCount: "{count} item",
+    itemCountPlural: "{count} items",
+    jsonValuePlaceholder: "JSON value",
+  },
+  chatExtra: {
+    assistant: "Assistant",
+    you: "You",
+  },
+  appRenderExtra: {
+    opensInNewTab: "(opens in new tab)",
+  },
+  sessionKeys: {
+    mainSession: "Main Session",
+    subagent: "Subagent:",
+    cronJob: "Cron Job:",
+    channelDirect: "{channel} · {identifier}",
+    channelGroup: "{channel} Group",
+    channelSession: "{channel} Session",
+  },
+  presenterExtra: {
+    na: "n/a",
+    next: "next",
+    last: "last",
+    atTime: "At {time}",
+    every: "Every {duration}",
+    cronExpr: "Cron {expr}",
+    systemPrefix: "System: {text}",
+    agentPrefix: "Agent: {message}",
+  },
+  formatExtra: {
+    na: "n/a",
+    none: "none",
   },
 };

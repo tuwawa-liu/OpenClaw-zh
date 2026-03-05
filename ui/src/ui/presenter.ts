@@ -1,5 +1,6 @@
 import { formatRelativeTimestamp, formatDurationHuman, formatMs } from "./format.ts";
 import type { CronJob, GatewaySessionRow, PresenceEntry } from "./types.ts";
+import { t } from "../i18n/index.ts";
 
 export function formatPresenceSummary(entry: PresenceEntry): string {
   const host = entry.host ?? "unknown";
@@ -11,12 +12,12 @@ export function formatPresenceSummary(entry: PresenceEntry): string {
 
 export function formatPresenceAge(entry: PresenceEntry): string {
   const ts = entry.ts ?? null;
-  return ts ? formatRelativeTimestamp(ts) : "n/a";
+  return ts ? formatRelativeTimestamp(ts) : t("presenterExtra.na");
 }
 
 export function formatNextRun(ms?: number | null) {
   if (!ms) {
-    return "n/a";
+    return t("presenterExtra.na");
   }
   const weekday = new Date(ms).toLocaleDateString(undefined, { weekday: "short" });
   return `${weekday}, ${formatMs(ms)} (${formatRelativeTimestamp(ms)})`;
@@ -24,7 +25,7 @@ export function formatNextRun(ms?: number | null) {
 
 export function formatSessionTokens(row: GatewaySessionRow) {
   if (row.totalTokens == null) {
-    return "n/a";
+    return t("presenterExtra.na");
   }
   const total = row.totalTokens ?? 0;
   const ctx = row.contextTokens ?? 0;
@@ -45,30 +46,30 @@ export function formatEventPayload(payload: unknown): string {
 
 export function formatCronState(job: CronJob) {
   const state = job.state ?? {};
-  const next = state.nextRunAtMs ? formatMs(state.nextRunAtMs) : "n/a";
-  const last = state.lastRunAtMs ? formatMs(state.lastRunAtMs) : "n/a";
-  const status = state.lastStatus ?? "n/a";
-  return `${status} · next ${next} · last ${last}`;
+  const next = state.nextRunAtMs ? formatMs(state.nextRunAtMs) : t("presenterExtra.na");
+  const last = state.lastRunAtMs ? formatMs(state.lastRunAtMs) : t("presenterExtra.na");
+  const status = state.lastStatus ?? t("presenterExtra.na");
+  return `${status} · ${t("presenterExtra.next")} ${next} · ${t("presenterExtra.last")} ${last}`;
 }
 
 export function formatCronSchedule(job: CronJob) {
   const s = job.schedule;
   if (s.kind === "at") {
     const atMs = Date.parse(s.at);
-    return Number.isFinite(atMs) ? `At ${formatMs(atMs)}` : `At ${s.at}`;
+    return Number.isFinite(atMs) ? t("presenterExtra.atTime", { time: formatMs(atMs) }) : t("presenterExtra.atTime", { time: s.at });
   }
   if (s.kind === "every") {
-    return `Every ${formatDurationHuman(s.everyMs)}`;
+    return t("presenterExtra.every", { duration: formatDurationHuman(s.everyMs) });
   }
-  return `Cron ${s.expr}${s.tz ? ` (${s.tz})` : ""}`;
+  return t("presenterExtra.cronExpr", { expr: `${s.expr}${s.tz ? ` (${s.tz})` : ""}` });
 }
 
 export function formatCronPayload(job: CronJob) {
   const p = job.payload;
   if (p.kind === "systemEvent") {
-    return `System: ${p.text}`;
+    return t("presenterExtra.systemPrefix", { text: p.text });
   }
-  const base = `Agent: ${p.message}`;
+  const base = t("presenterExtra.agentPrefix", { message: p.message });
   const delivery = job.delivery;
   if (delivery && delivery.mode !== "none") {
     const target =

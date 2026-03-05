@@ -346,17 +346,17 @@ export function parseSessionKey(key: string): SessionKeyInfo {
 
   // ── Main session ─────────────────────────────────
   if (key === "main" || key === "agent:main:main") {
-    return { prefix: "", fallbackName: "Main Session" };
+    return { prefix: "", fallbackName: t("sessionKeys.mainSession") };
   }
 
   // ── Subagent ─────────────────────────────────────
   if (key.includes(":subagent:")) {
-    return { prefix: "Subagent:", fallbackName: "Subagent:" };
+    return { prefix: t("sessionKeys.subagent"), fallbackName: t("sessionKeys.subagent") };
   }
 
   // ── Cron job ─────────────────────────────────────
   if (normalized.startsWith("cron:") || key.includes(":cron:")) {
-    return { prefix: "Cron:", fallbackName: "Cron Job:" };
+    return { prefix: "Cron:", fallbackName: t("sessionKeys.cronJob") };
   }
 
   // ── Direct chat  (agent:<x>:<channel>:direct:<id>) ──
@@ -365,7 +365,7 @@ export function parseSessionKey(key: string): SessionKeyInfo {
     const channel = directMatch[1];
     const identifier = directMatch[2];
     const channelLabel = CHANNEL_LABELS[channel] ?? capitalize(channel);
-    return { prefix: "", fallbackName: `${channelLabel} · ${identifier}` };
+    return { prefix: "", fallbackName: t("sessionKeys.channelDirect", { channel: channelLabel, identifier }) };
   }
 
   // ── Group chat  (agent:<x>:<channel>:group:<id>) ────
@@ -373,13 +373,13 @@ export function parseSessionKey(key: string): SessionKeyInfo {
   if (groupMatch) {
     const channel = groupMatch[1];
     const channelLabel = CHANNEL_LABELS[channel] ?? capitalize(channel);
-    return { prefix: "", fallbackName: `${channelLabel} Group` };
+    return { prefix: "", fallbackName: t("sessionKeys.channelGroup", { channel: channelLabel }) };
   }
 
   // ── Channel-prefixed legacy keys (e.g. "bluebubbles:g-…") ──
   for (const ch of KNOWN_CHANNEL_KEYS) {
     if (key === ch || key.startsWith(`${ch}:`)) {
-      return { prefix: "", fallbackName: `${CHANNEL_LABELS[ch]} Session` };
+      return { prefix: "", fallbackName: t("sessionKeys.channelSession", { channel: CHANNEL_LABELS[ch] }) };
     }
   }
 

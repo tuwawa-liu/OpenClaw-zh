@@ -104,6 +104,43 @@ export const zh_CN: TranslationMap = {
       hint: "此页面为 HTTP，因此浏览器阻止设备标识。请使用 HTTPS (Tailscale Serve) 或在网关主机上打开 {url}。",
       stayHttp: "如果您必须保持 HTTP，请设置 {config} (仅限令牌)。",
     },
+    quickLinks: "快速链接",
+    documentation: "文档",
+    github: "GitHub",
+    discord: "Discord",
+    gettingStarted: "快速入门",
+    docs: {
+      devicePairing: "文档：设备配对",
+      devicePairingTitle: "设备配对文档（在新标签页中打开）",
+      controlUiAuth: "文档：控制台认证",
+      controlUiAuthTitle: "控制台认证文档（在新标签页中打开）",
+      tailscaleServe: "文档：Tailscale Serve",
+      tailscaleServeTitle: "Tailscale Serve 文档（在新标签页中打开）",
+      insecureHttp: "文档：不安全 HTTP",
+      insecureHttpTitle: "不安全 HTTP 文档（在新标签页中打开）",
+    },
+    authHints: {
+      tokenizedUrl: "令牌化 URL",
+      setToken: "设置令牌",
+    },
+    placeholders: {
+      wsUrl: "ws://100.x.y.z:18789",
+      password: "系统或共享密码",
+    },
+  },
+  configSections: {
+    env: "环境变量",
+    update: "更新",
+    agents: "智能体",
+    auth: "认证",
+    channels: "频道",
+    messages: "消息",
+    commands: "命令",
+    hooks: "钩子",
+    skills: "技能",
+    tools: "工具",
+    gateway: "网关",
+    wizard: "设置向导",
   },
   chat: {
     disconnected: "已断开与网关的连接。",
@@ -323,6 +360,8 @@ export const zh_CN: TranslationMap = {
       prompt: "提示",
       delivery: "投递",
       agent: "代理",
+      wakeNow: "立即",
+      wakeNextHeartbeat: "下次心跳",
     },
     jobState: {
       status: "状态",
@@ -1154,5 +1193,64 @@ export const zh_CN: TranslationMap = {
   },
   usageExtra: {
     tokenUsage: "令牌使用量",
+  },
+  skills: {
+    bundled: "内置",
+    eligible: "可用",
+    blocked: "已阻止",
+    disabled: "已禁用",
+    blockedByAllowlist: "被白名单阻止",
+  },
+  agents: {
+    currentModel: "当前 ({current})",
+    noConfiguredModels: "没有已配置的模型",
+  },
+  usageSort: {
+    tokens: "令牌数",
+  },
+  cronExtra: {
+    runIfDue: "到期运行",
+    totalTokens: "{count} 令牌",
+    tokensInOut: "{input} 输入 / {output} 输出",
+  },
+  instancesExtra: {
+    lastInput: "{seconds}秒前",
+  },
+  debugExtra: {
+    runCommandForDetails: "运行 {command} 查看详情。",
+  },
+  configFormExtra: {
+    itemCount: "{count} 项",
+    itemCountPlural: "{count} 项",
+    jsonValuePlaceholder: "JSON 值",
+  },
+  chatExtra: {
+    assistant: "助手",
+    you: "你",
+  },
+  appRenderExtra: {
+    opensInNewTab: "（在新标签页中打开）",
+  },
+  sessionKeys: {
+    mainSession: "主会话",
+    subagent: "子智能体：",
+    cronJob: "定时任务：",
+    channelDirect: "{channel} · {identifier}",
+    channelGroup: "{channel} 群组",
+    channelSession: "{channel} 会话",
+  },
+  presenterExtra: {
+    na: "不适用",
+    next: "下次",
+    last: "上次",
+    atTime: "在 {time}",
+    every: "每 {duration}",
+    cronExpr: "Cron {expr}",
+    systemPrefix: "系统：{text}",
+    agentPrefix: "智能体：{message}",
+  },
+  formatExtra: {
+    na: "不适用",
+    none: "无",
   },
 };

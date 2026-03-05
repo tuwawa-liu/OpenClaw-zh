@@ -51,8 +51,8 @@ export function renderDebug(props: DebugProps) {
             ${
               securitySummary
                 ? html`<div class="callout ${securityTone}" style="margin-top: 8px;">
-                  ${t("debug.securityAudit")} ${securityLabel}${info > 0 ? ` · ${t("debug.info", { count: String(info) })}` : ""}. Run
-                  <span class="mono">openclaw security audit --deep</span> for details.
+                  ${t("debug.securityAudit")} ${securityLabel}${info > 0 ? ` · ${t("debug.info", { count: String(info) })}` : ""}. ${t("debugExtra.runCommandForDetails", { command: "openclaw security audit --deep" })}
+                  
                 </div>`
                 : nothing
             }

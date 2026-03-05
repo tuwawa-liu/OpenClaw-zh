@@ -726,7 +726,7 @@ function renderSessionsCard(
             <option value="errors" ?selected=${sessionSort === "errors"}>${t("usageOverview.errors")}</option>
             <option value="messages" ?selected=${sessionSort === "messages"}>${t("usageOverview.messages")}</option>
             <option value="recent" ?selected=${sessionSort === "recent"}>${t("usageOverview.recent")}</option>
-            <option value="tokens" ?selected=${sessionSort === "tokens"}>Tokens</option>
+            <option value="tokens" ?selected=${sessionSort === "tokens"}>${t("usageSort.tokens")}</option>
           </select>
         </label>
         <button

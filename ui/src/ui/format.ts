@@ -1,19 +1,20 @@
 import { formatDurationHuman } from "../../../src/infra/format-time/format-duration.ts";
 import { formatRelativeTimestamp } from "../../../src/infra/format-time/format-relative.ts";
 import { stripAssistantInternalScaffolding } from "../../../src/shared/text/assistant-visible-text.js";
+import { t } from "../i18n/index.ts";
 
 export { formatRelativeTimestamp, formatDurationHuman };
 
 export function formatMs(ms?: number | null): string {
   if (!ms && ms !== 0) {
-    return "n/a";
+    return t("formatExtra.na");
   }
   return new Date(ms).toLocaleString();
 }
 
 export function formatList(values?: Array<string | null | undefined>): string {
   if (!values || values.length === 0) {
-    return "none";
+    return t("formatExtra.none");
   }
   return values.filter((v): v is string => Boolean(v && v.trim())).join(", ");
 }

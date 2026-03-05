@@ -1511,7 +1511,7 @@ function renderJob(job: CronJob, props: CronProps) {
             ${job.enabled ? t("cron.jobList.enabled") : t("cron.jobList.disabled")}
           </span>
           <span class="chip">${job.sessionTarget}</span>
-          <span class="chip">${job.wakeMode}</span>
+          <span class="chip">${job.wakeMode === "now" ? t("cron.jobDetail.wakeNow") : t("cron.jobDetail.wakeNextHeartbeat")}</span>
         </div>
         <div class="row cron-job-actions">
           <button
@@ -1562,7 +1562,7 @@ function renderJob(job: CronJob, props: CronProps) {
               selectAnd(() => props.onRun(job, "due"));
             }}
           >
-            Run if due
+            ${t("cronExtra.runIfDue")}
           </button>
           <button
             class="btn"
@@ -1717,9 +1717,9 @@ function renderRun(entry: CronRunLogEntry, basePath: string) {
   const usage = entry.usage;
   const usageSummary =
     usage && typeof usage.total_tokens === "number"
-      ? `${usage.total_tokens} tokens`
+      ? t("cronExtra.totalTokens", { count: String(usage.total_tokens) })
       : usage && typeof usage.input_tokens === "number" && typeof usage.output_tokens === "number"
-        ? `${usage.input_tokens} in / ${usage.output_tokens} out`
+        ? t("cronExtra.tokensInOut", { input: String(usage.input_tokens), output: String(usage.output_tokens) })
         : null;
   return html`
     <div class="list-item cron-run-entry">
