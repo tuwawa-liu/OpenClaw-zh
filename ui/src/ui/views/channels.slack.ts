@@ -1,4 +1,5 @@
 import { html, nothing } from "lit";
+import { t } from "../../i18n/index.ts";
 import { formatRelativeTimestamp } from "../format.ts";
 import type { SlackStatus } from "../types.ts";
 import { renderChannelConfigSection } from "./channels.config.ts";
@@ -14,25 +15,25 @@ export function renderSlackCard(params: {
   return html`
     <div class="card">
       <div class="card-title">Slack</div>
-      <div class="card-sub">Socket mode status and channel configuration.</div>
+      <div class="card-sub">${t("channelSlack.subtitle")}</div>
       ${accountCountLabel}
 
       <div class="status-list" style="margin-top: 16px;">
         <div>
-          <span class="label">Configured</span>
-          <span>${slack?.configured ? "Yes" : "No"}</span>
+          <span class="label">${t("channelCommon.configured")}</span>
+          <span>${slack?.configured ? t("channelCommon.yes") : t("channelCommon.no")}</span>
         </div>
         <div>
-          <span class="label">Running</span>
-          <span>${slack?.running ? "Yes" : "No"}</span>
+          <span class="label">${t("channelCommon.running")}</span>
+          <span>${slack?.running ? t("channelCommon.yes") : t("channelCommon.no")}</span>
         </div>
         <div>
-          <span class="label">Last start</span>
-          <span>${slack?.lastStartAt ? formatRelativeTimestamp(slack.lastStartAt) : "n/a"}</span>
+          <span class="label">${t("channelCommon.lastStart")}</span>
+          <span>${slack?.lastStartAt ? formatRelativeTimestamp(slack.lastStartAt) : t("channelCommon.na")}</span>
         </div>
         <div>
-          <span class="label">Last probe</span>
-          <span>${slack?.lastProbeAt ? formatRelativeTimestamp(slack.lastProbeAt) : "n/a"}</span>
+          <span class="label">${t("channelCommon.lastProbe")}</span>
+          <span>${slack?.lastProbeAt ? formatRelativeTimestamp(slack.lastProbeAt) : t("channelCommon.na")}</span>
         </div>
       </div>
 
@@ -47,7 +48,7 @@ export function renderSlackCard(params: {
       ${
         slack?.probe
           ? html`<div class="callout" style="margin-top: 12px;">
-            Probe ${slack.probe.ok ? "ok" : "failed"} ·
+            Probe ${slack.probe.ok ? t("channelCommon.probeOk") : t("channelCommon.probeFailed")} ·
             ${slack.probe.status ?? ""} ${slack.probe.error ?? ""}
           </div>`
           : nothing
@@ -57,7 +58,7 @@ export function renderSlackCard(params: {
 
       <div class="row" style="margin-top: 12px;">
         <button class="btn" @click=${() => props.onRefresh(true)}>
-          Probe
+          ${t("channelCommon.probe")}
         </button>
       </div>
     </div>

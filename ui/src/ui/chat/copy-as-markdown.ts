@@ -1,11 +1,12 @@
 import { html, type TemplateResult } from "lit";
+import { t } from "../../i18n/index.ts";
 import { icons } from "../icons.ts";
 
 const COPIED_FOR_MS = 1500;
 const ERROR_FOR_MS = 2000;
-const COPY_LABEL = "Copy as markdown";
-const COPIED_LABEL = "Copied";
-const ERROR_LABEL = "Copy failed";
+const COPY_LABEL = t("copyMarkdown.copy");
+const COPIED_LABEL = t("copyMarkdown.copied");
+const ERROR_LABEL = t("copyMarkdown.error");
 
 type CopyButtonOptions = {
   text: () => string;

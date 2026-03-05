@@ -242,7 +242,7 @@ export function renderApp(state: AppViewState) {
             </div>
             <div class="brand-text">
               <div class="brand-title">OPENCLAW</div>
-              <div class="brand-sub">Gateway Dashboard</div>
+              <div class="brand-sub">${t("appRender.gatewayDashboard")}</div>
             </div>
           </div>
         </div>
@@ -309,13 +309,13 @@ export function renderApp(state: AppViewState) {
         ${
           availableUpdate
             ? html`<div class="update-banner callout danger" role="alert">
-              <strong>Update available:</strong> v${availableUpdate.latestVersion}
-              (running v${availableUpdate.currentVersion}).
+              <strong>${t("appRender.updateAvailable")}</strong> v${availableUpdate.latestVersion}
+              (${t("appRender.runningVersion")} v${availableUpdate.currentVersion}).
               <button
                 class="btn btn--sm update-banner__btn"
                 ?disabled=${state.updateRunning || !state.connected}
                 @click=${() => runUpdate(state)}
-              >${state.updateRunning ? "Updating…" : "Update now"}</button>
+              >${state.updateRunning ? t("appRender.updating") : t("appRender.updateNow")}</button>
             </div>`
             : nothing
         }

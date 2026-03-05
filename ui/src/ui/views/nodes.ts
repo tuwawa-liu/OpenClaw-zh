@@ -291,7 +291,7 @@ function renderBindings(state: BindingState) {
         state.formMode === "raw"
           ? html`
               <div class="callout warn" style="margin-top: 12px">
-                Switch the Config tab to <strong>Form</strong> mode to edit bindings here.
+                ${t("nodesExtra.switchToConfig")}
               </div>
             `
           : nothing
@@ -300,7 +300,7 @@ function renderBindings(state: BindingState) {
       ${
         !state.ready
           ? html`<div class="row" style="margin-top: 12px; gap: 12px;">
-            <div class="muted">Load config to edit bindings.</div>
+            <div class="muted">${t("nodesExtra.loadConfig")}</div>
             <button class="btn" ?disabled=${state.configLoading} @click=${state.onLoadConfig}>
               ${state.configLoading ? t("nodes.loading") : t("nodes.loadConfig")}
             </button>

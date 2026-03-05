@@ -5,6 +5,7 @@
  */
 
 import { html, nothing, type TemplateResult } from "lit";
+import { t } from "../../i18n/index.ts";
 import type { NostrProfile as NostrProfileType } from "../types.ts";
 
 // ============================================================================
@@ -148,7 +149,7 @@ export function renderNostrProfileForm(params: {
       <div style="margin-bottom: 12px;">
         <img
           src=${picture}
-          alt="Profile picture preview"
+          alt=${t("channelNostr.profilePreview")}
           style="max-width: 80px; max-height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color);"
           @error=${(e: Event) => {
             const img = e.target as HTMLImageElement;
@@ -166,8 +167,8 @@ export function renderNostrProfileForm(params: {
   return html`
     <div class="nostr-profile-form" style="padding: 16px; background: var(--bg-secondary); border-radius: 8px; margin-top: 12px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <div style="font-weight: 600; font-size: 16px;">Edit Profile</div>
-        <div style="font-size: 12px; color: var(--text-muted);">Account: ${accountId}</div>
+        <div style="font-weight: 600; font-size: 16px;">${t("channelNostr.editProfile")}</div>
+        <div style="font-size: 12px; color: var(--text-muted);">${t("channelNostr.account")} ${accountId}</div>
       </div>
 
       ${
@@ -184,57 +185,57 @@ export function renderNostrProfileForm(params: {
 
       ${renderPicturePreview()}
 
-      ${renderField("name", "Username", {
-        placeholder: "satoshi",
+      ${renderField("name", t("channelNostr.username"), {
+        placeholder: t("channelNostr.usernamePlaceholder"),
         maxLength: 256,
-        help: "Short username (e.g., satoshi)",
+        help: t("channelNostr.usernameHelp"),
       })}
 
-      ${renderField("displayName", "Display Name", {
-        placeholder: "Satoshi Nakamoto",
+      ${renderField("displayName", t("channelNostr.displayName"), {
+        placeholder: t("channelNostr.displayNamePlaceholder"),
         maxLength: 256,
-        help: "Your full display name",
+        help: t("channelNostr.displayNameHelp"),
       })}
 
-      ${renderField("about", "Bio", {
+      ${renderField("about", t("channelNostr.bio"), {
         type: "textarea",
-        placeholder: "Tell people about yourself...",
+        placeholder: t("channelNostr.bioPlaceholder"),
         maxLength: 2000,
-        help: "A brief bio or description",
+        help: t("channelNostr.bioHelp"),
       })}
 
-      ${renderField("picture", "Avatar URL", {
+      ${renderField("picture", t("channelNostr.avatarUrl"), {
         type: "url",
         placeholder: "https://example.com/avatar.jpg",
-        help: "HTTPS URL to your profile picture",
+        help: t("channelNostr.avatarUrlHelp"),
       })}
 
       ${
         state.showAdvanced
           ? html`
             <div style="border-top: 1px solid var(--border-color); padding-top: 12px; margin-top: 12px;">
-              <div style="font-weight: 500; margin-bottom: 12px; color: var(--text-muted);">Advanced</div>
+              <div style="font-weight: 500; margin-bottom: 12px; color: var(--text-muted);">${t("channelNostr.advanced")}</div>
 
-              ${renderField("banner", "Banner URL", {
+              ${renderField("banner", t("channelNostr.bannerUrl"), {
                 type: "url",
                 placeholder: "https://example.com/banner.jpg",
-                help: "HTTPS URL to a banner image",
+                help: t("channelNostr.bannerUrlHelp"),
               })}
 
-              ${renderField("website", "Website", {
+              ${renderField("website", t("channelNostr.website"), {
                 type: "url",
                 placeholder: "https://example.com",
-                help: "Your personal website",
+                help: t("channelNostr.websiteHelp"),
               })}
 
-              ${renderField("nip05", "NIP-05 Identifier", {
+              ${renderField("nip05", t("channelNostr.nip05Id"), {
                 placeholder: "you@example.com",
-                help: "Verifiable identifier (e.g., you@domain.com)",
+                help: t("channelNostr.nip05Help"),
               })}
 
-              ${renderField("lud16", "Lightning Address", {
+              ${renderField("lud16", t("channelNostr.lightningAddress"), {
                 placeholder: "you@getalby.com",
-                help: "Lightning address for tips (LUD-16)",
+                help: t("channelNostr.lightningHelp"),
               })}
             </div>
           `
@@ -247,7 +248,7 @@ export function renderNostrProfileForm(params: {
           @click=${callbacks.onSave}
           ?disabled=${state.saving || !isDirty}
         >
-          ${state.saving ? "Saving..." : "Save & Publish"}
+          ${state.saving ? t("channelNostr.savingProfile") : t("channelNostr.savePublish")}
         </button>
 
         <button
@@ -255,14 +256,14 @@ export function renderNostrProfileForm(params: {
           @click=${callbacks.onImport}
           ?disabled=${state.importing || state.saving}
         >
-          ${state.importing ? "Importing..." : "Import from Relays"}
+          ${state.importing ? t("channelNostr.importing") : t("channelNostr.importRelays")}
         </button>
 
         <button
           class="btn"
           @click=${callbacks.onToggleAdvanced}
         >
-          ${state.showAdvanced ? "Hide Advanced" : "Show Advanced"}
+          ${state.showAdvanced ? t("channelNostr.hideAdvanced") : t("channelNostr.showAdvanced")}
         </button>
 
         <button
@@ -270,7 +271,7 @@ export function renderNostrProfileForm(params: {
           @click=${callbacks.onCancel}
           ?disabled=${state.saving}
         >
-          Cancel
+          ${t("channelNostr.cancelBtn")}
         </button>
       </div>
 
@@ -278,7 +279,7 @@ export function renderNostrProfileForm(params: {
         isDirty
           ? html`
               <div style="font-size: 12px; color: var(--warning-color); margin-top: 8px">
-                You have unsaved changes
+                ${t("channelNostr.unsavedChanges")}
               </div>
             `
           : nothing
