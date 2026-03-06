@@ -422,12 +422,12 @@ function renderUsageInsights(
     .map(({ rate: _rate, ...rest }) => rest);
 
   const topModels = aggregates.byModel.slice(0, 5).map((entry) => ({
-    label: entry.model ?? "unknown",
+    label: entry.model ?? t("usageExtra2.unknown"),
     value: formatCost(entry.totals.totalCost),
     sub: `${formatTokens(entry.totals.totalTokens)} · ${entry.count} ${t("usageDetailsExtra.msgs")}`,
   }));
   const topProviders = aggregates.byProvider.slice(0, 5).map((entry) => ({
-    label: entry.provider ?? "unknown",
+    label: entry.provider ?? t("usageExtra2.unknown"),
     value: formatCost(entry.totals.totalCost),
     sub: `${formatTokens(entry.totals.totalTokens)} · ${entry.count} ${t("usageDetailsExtra.msgs")}`,
   }));

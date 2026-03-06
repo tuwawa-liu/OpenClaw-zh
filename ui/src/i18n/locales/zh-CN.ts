@@ -834,6 +834,7 @@ export const zh_CN: TranslationMap = {
     audience: "受众",
   },
   channelIMessage: {
+    title: "iMessage",
     subtitle: "macOS 桥接状态和频道配置。",
   },
   channelNostr: {
@@ -949,6 +950,10 @@ export const zh_CN: TranslationMap = {
     never: "从未",
     pattern: "模式",
     remove: "移除",
+    selectNodeLoad: "请先选择一个节点再加载执行审批。",
+    hashMissing: "执行审批哈希缺失，请重新加载后重试。",
+    selectNodeSave: "请先选择一个节点再保存执行审批。",
+    failed: "执行审批失败：{error}",
   },
   configForm: {
     schemaUnavailable: "架构不可用。请使用原始模式。",
@@ -1232,6 +1237,7 @@ export const zh_CN: TranslationMap = {
   sessionKeys: {
     mainSession: "主会话",
     subagent: "子智能体：",
+    cron: "定时任务：",
     cronJob: "定时任务：",
     channelDirect: "{channel} · {identifier}",
     channelGroup: "{channel} 群组",
@@ -1335,5 +1341,68 @@ export const zh_CN: TranslationMap = {
   appToolStream: {
     httpError: "HTTP {status}",
     error: "错误",
+  },
+  nostrProfile: {
+    updateFailed: "个人资料更新失败 ({status})",
+    publishFailedAll: "个人资料发布到所有中继均失败。",
+    publishSuccess: "个人资料已发布到中继。",
+    updateError: "个人资料更新失败：{error}",
+    importFailed: "个人资料导入失败 ({status})",
+    importedSaved: "已从中继导入个人资料。请检查并发布。",
+    importedUnsaved: "个人资料已导入。请检查并发布。",
+    importError: "个人资料导入失败：{error}",
+  },
+  presenceStatus: {
+    noInstances: "暂无实例。",
+    noPayload: "无在线状态数据。",
+  },
+  cronValidation: {
+    alertThreshold: "失败警报阈值必须大于 0。",
+    cooldownMin: "冷却时间必须为 0 或更大。",
+    defaultJob: "任务",
+    copySuffix: "{base} 副本",
+    copySuffixN: "{base} 副本 {index}",
+  },
+  chatErrors: {
+    errorPrefix: "错误：{error}",
+  },
+  usageExtra2: {
+    tokens: "令牌",
+    unknown: "未知",
+    ofCount: "{filtered} / {total}",
+    timelineFiltered: "（时间线已筛选）",
+    unknownFilter: "未知筛选器：{key}",
+    missingValue: "缺少 {key} 的值",
+    unknownHas: "未知的 has:{value}",
+    invalidNumber: "{key} 的数字无效",
+  },
+  sessionKind: {
+    direct: "直接",
+    group: "群组",
+    global: "全局",
+    unknown: "未知",
+  },
+  thinkLevels: {
+    off: "关闭",
+    minimal: "最少",
+    low: "低",
+    medium: "中",
+    high: "高",
+    xhigh: "极高",
+    on: "开启",
+  },
+  reasoningLevels: {
+    off: "关闭",
+    on: "开启",
+    stream: "流式",
+  },
+  deliveryLabels: {
+    last: "上次使用",
+    webhook: "Webhook",
+    announce: "通知",
+    none: "无",
+  },
+  cronPlaceholder: {
+    phoneOrChatId: "+1555... 或聊天 ID",
   },
 };

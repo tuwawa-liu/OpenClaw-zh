@@ -43,6 +43,46 @@ const VERBOSE_LEVELS = [
 ] as const;
 const REASONING_LEVELS = ["", "off", "on", "stream"] as const;
 
+const THINK_LEVEL_KEYS: Record<string, string> = {
+  off: "thinkLevels.off",
+  minimal: "thinkLevels.minimal",
+  low: "thinkLevels.low",
+  medium: "thinkLevels.medium",
+  high: "thinkLevels.high",
+  xhigh: "thinkLevels.xhigh",
+  on: "thinkLevels.on",
+};
+
+const REASONING_LEVEL_KEYS: Record<string, string> = {
+  off: "reasoningLevels.off",
+  on: "reasoningLevels.on",
+  stream: "reasoningLevels.stream",
+};
+
+const SESSION_KIND_KEYS: Record<string, string> = {
+  direct: "sessionKind.direct",
+  group: "sessionKind.group",
+  global: "sessionKind.global",
+  unknown: "sessionKind.unknown",
+};
+
+function translateThinkLevel(level: string): string {
+  if (!level) return t("sessions.inherit");
+  const key = THINK_LEVEL_KEYS[level];
+  return key ? t(key) : level;
+}
+
+function translateReasoningLevel(level: string): string {
+  if (!level) return t("sessions.inherit");
+  const key = REASONING_LEVEL_KEYS[level];
+  return key ? t(key) : level;
+}
+
+function translateSessionKind(kind: string): string {
+  const key = SESSION_KIND_KEYS[kind];
+  return key ? t(key) : kind;
+}
+
 function normalizeProviderId(provider?: string | null): string {
   if (!provider) {
     return "";
@@ -259,7 +299,7 @@ function renderRow(
           }}
         />
       </div>
-      <div>${row.kind}</div>
+      <div>${translateSessionKind(row.kind)}</div>
       <div>${updated}</div>
       <div>${formatSessionTokens(row)}</div>
       <div>
@@ -275,7 +315,7 @@ function renderRow(
           ${thinkLevels.map(
             (level) =>
               html`<option value=${level} ?selected=${thinking === level}>
-                ${level || t("sessions.inherit")}
+                ${translateThinkLevel(level)}
               </option>`,
           )}
         </select>
@@ -307,7 +347,7 @@ function renderRow(
           ${reasoningLevels.map(
             (level) =>
               html`<option value=${level} ?selected=${reasoning === level}>
-                ${level || t("sessions.inherit")}
+                ${translateReasoningLevel(level)}
               </option>`,
           )}
         </select>

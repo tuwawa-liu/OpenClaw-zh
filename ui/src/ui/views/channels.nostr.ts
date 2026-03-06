@@ -15,7 +15,7 @@ import type { ChannelsProps } from "./channels.types.ts";
  */
 function truncatePubkey(pubkey: string | null | undefined): string {
   if (!pubkey) {
-    return "n/a";
+    return t("common.na");
   }
   if (pubkey.length <= 20) {
     return pubkey;

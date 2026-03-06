@@ -8,6 +8,7 @@ import {
 import { loadConfig, saveConfig } from "./controllers/config.ts";
 import type { NostrProfile } from "./types.ts";
 import { createNostrProfileFormState } from "./views/channels.nostr-profile-form.ts";
+import { t } from "../i18n/index.ts";
 
 export async function handleWhatsAppStart(host: OpenClawApp, force: boolean) {
   await startWhatsAppLogin(host, force);
@@ -166,7 +167,7 @@ export async function handleNostrProfileSave(host: OpenClawApp) {
     } | null;
 
     if (!response.ok || data?.ok === false || !data) {
-      const errorMessage = data?.error ?? `Profile update failed (${response.status})`;
+      const errorMessage = data?.error ?? t("nostrProfile.updateFailed", { status: String(response.status) });
       host.nostrProfileFormState = {
         ...state,
         saving: false,
@@ -181,7 +182,7 @@ export async function handleNostrProfileSave(host: OpenClawApp) {
       host.nostrProfileFormState = {
         ...state,
         saving: false,
-        error: "Profile publish failed on all relays.",
+        error: t("nostrProfile.publishFailedAll"),
         success: null,
       };
       return;
@@ -191,7 +192,7 @@ export async function handleNostrProfileSave(host: OpenClawApp) {
       ...state,
       saving: false,
       error: null,
-      success: "Profile published to relays.",
+      success: t("nostrProfile.publishSuccess"),
       fieldErrors: {},
       original: { ...state.values },
     };
@@ -200,7 +201,7 @@ export async function handleNostrProfileSave(host: OpenClawApp) {
     host.nostrProfileFormState = {
       ...state,
       saving: false,
-      error: `Profile update failed: ${String(err)}`,
+      error: t("nostrProfile.updateError", { error: String(err) }),
       success: null,
     };
   }
@@ -238,7 +239,7 @@ export async function handleNostrProfileImport(host: OpenClawApp) {
     } | null;
 
     if (!response.ok || data?.ok === false || !data) {
-      const errorMessage = data?.error ?? `Profile import failed (${response.status})`;
+      const errorMessage = data?.error ?? t("nostrProfile.importFailed", { status: String(response.status) });
       host.nostrProfileFormState = {
         ...state,
         importing: false,
@@ -260,8 +261,8 @@ export async function handleNostrProfileImport(host: OpenClawApp) {
       values: nextValues,
       error: null,
       success: data.saved
-        ? "Profile imported from relays. Review and publish."
-        : "Profile imported. Review and publish.",
+        ? t("nostrProfile.importedSaved")
+        : t("nostrProfile.importedUnsaved"),
       showAdvanced,
     };
 
@@ -272,7 +273,7 @@ export async function handleNostrProfileImport(host: OpenClawApp) {
     host.nostrProfileFormState = {
       ...state,
       importing: false,
-      error: `Profile import failed: ${String(err)}`,
+      error: t("nostrProfile.importError", { error: String(err) }),
       success: null,
     };
   }

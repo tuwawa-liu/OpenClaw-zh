@@ -14,7 +14,7 @@ export function renderIMessageCard(params: {
 
   return html`
     <div class="card">
-      <div class="card-title">iMessage</div>
+      <div class="card-title">${t("channelIMessage.title")}</div>
       <div class="card-sub">${t("channelIMessage.subtitle")}</div>
       ${accountCountLabel}
 

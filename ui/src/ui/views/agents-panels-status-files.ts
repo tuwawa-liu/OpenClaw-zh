@@ -253,7 +253,7 @@ export function renderAgentCron(params: {
           </div>
           <div class="stat">
             <div class="stat-label">${t("agentPanels.jobs")}</div>
-            <div class="stat-value">${params.status?.jobs ?? "n/a"}</div>
+            <div class="stat-value">${params.status?.jobs ?? t("common.na")}</div>
           </div>
           <div class="stat">
             <div class="stat-label">${t("agentPanels.nextWake")}</div>

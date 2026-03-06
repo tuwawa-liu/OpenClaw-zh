@@ -113,7 +113,7 @@ function renderSessionSummary(
   }
   const modelItems =
     usage.modelUsage?.slice(0, 6).map((entry) => ({
-      label: entry.model ?? "unknown",
+      label: entry.model ?? t("usageExtra2.unknown"),
       value: formatCost(entry.totals.totalCost),
       sub: formatTokens(entry.totals.totalTokens),
     })) ?? [];
@@ -269,7 +269,7 @@ function renderSessionDetailPanel(
           ${
             usage
               ? html`
-            <span><strong>${formatTokens(headerStats.totalTokens)}</strong> tokens${cursorIndicator}</span>
+            <span><strong>${formatTokens(headerStats.totalTokens)}</strong> ${t("usageExtra2.tokens")}${cursorIndicator}</span>
             <span><strong>${formatCost(headerStats.totalCost)}</strong>${cursorIndicator}</span>
           `
               : nothing
@@ -962,7 +962,7 @@ function renderSessionLogsCompact(
   const hasCursorFilter = cursorStart != null && cursorEnd != null;
   const displayedCount =
     hasActiveFilters || hasCursorFilter
-      ? `${filteredEntries.length} of ${logs.length} ${hasCursorFilter ? "(timeline filtered)" : ""}`
+      ? `${t("usageExtra2.ofCount", { filtered: String(filteredEntries.length), total: String(logs.length) })} ${hasCursorFilter ? t("usageExtra2.timelineFiltered") : ""}`
       : `${logs.length}`;
 
   const roleSelected = new Set(filters.roles);

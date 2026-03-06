@@ -3,7 +3,7 @@ import type { CronJob, GatewaySessionRow, PresenceEntry } from "./types.ts";
 import { t } from "../i18n/index.ts";
 
 export function formatPresenceSummary(entry: PresenceEntry): string {
-  const host = entry.host ?? "unknown";
+  const host = entry.host ?? t("usageExtra2.unknown");
   const ip = entry.ip ? `(${entry.ip})` : "";
   const mode = entry.mode ?? "";
   const version = entry.version ?? "";
@@ -78,9 +78,9 @@ export function formatCronPayload(job: CronJob) {
           ? ` (${delivery.to})`
           : ""
         : delivery.channel || delivery.to
-          ? ` (${delivery.channel ?? "last"}${delivery.to ? ` -> ${delivery.to}` : ""})`
+          ? ` (${delivery.channel ?? t("deliveryLabels.last")}${delivery.to ? ` -> ${delivery.to}` : ""})`
           : "";
-    return `${base} · ${delivery.mode}${target}`;
+    return `${base} · ${t(`deliveryLabels.${delivery.mode}`) || delivery.mode}${target}`;
   }
   return base;
 }

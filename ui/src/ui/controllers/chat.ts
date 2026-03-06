@@ -2,6 +2,7 @@ import { extractText } from "../chat/message-extract.ts";
 import type { GatewayBrowserClient } from "../gateway.ts";
 import type { ChatAttachment } from "../ui-types.ts";
 import { generateUUID } from "../uuid.ts";
+import { t } from "../../i18n/index.ts";
 
 const SILENT_REPLY_PATTERN = /^\s*NO_REPLY\s*$/;
 
@@ -214,7 +215,7 @@ export async function sendChatMessage(
       ...state.chatMessages,
       {
         role: "assistant",
-        content: [{ type: "text", text: "Error: " + error }],
+        content: [{ type: "text", text: t("chatErrors.errorPrefix", { error }) }],
         timestamp: Date.now(),
       },
     ];

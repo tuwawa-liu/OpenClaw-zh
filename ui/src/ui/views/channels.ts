@@ -74,7 +74,7 @@ export function renderChannels(props: ChannelsProps) {
           <div class="card-title">${t("channels.healthTitle")}</div>
           <div class="card-sub">${t("channels.healthSubtitle")}</div>
         </div>
-        <div class="muted">${props.lastSuccessAt ? formatRelativeTimestamp(props.lastSuccessAt) : "n/a"}</div>
+        <div class="muted">${props.lastSuccessAt ? formatRelativeTimestamp(props.lastSuccessAt) : t("common.na")}</div>
       </div>
       ${
         props.lastError
@@ -307,7 +307,7 @@ function renderGenericAccount(account: ChannelAccountSnapshot) {
         </div>
         <div>
           <span class="label">${t("channels.lastInbound")}</span>
-          <span>${account.lastInboundAt ? formatRelativeTimestamp(account.lastInboundAt) : "n/a"}</span>
+          <span>${account.lastInboundAt ? formatRelativeTimestamp(account.lastInboundAt) : t("common.na")}</span>
         </div>
         ${
           account.lastError

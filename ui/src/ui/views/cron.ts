@@ -148,7 +148,7 @@ function buildChannelOptions(props: CronProps): string[] {
 
 function resolveChannelLabel(props: CronProps, channel: string): string {
   if (channel === "last") {
-    return "last";
+    return t("deliveryLabels.last");
   }
   const meta = props.channelMeta?.find((entry) => entry.id === channel);
   if (meta?.label) {
@@ -1273,7 +1273,7 @@ export function renderCron(props: CronProps) {
                                     props.onFormChange({
                                       failureAlertTo: (e.target as HTMLInputElement).value,
                                     })}
-                                  placeholder="+1555... or chat id"
+                                  placeholder=${t("cronPlaceholder.phoneOrChatId")}
                                 />
                                 <div class="cron-help">
                                   ${t("cronExtra.alertToHelp")}
@@ -1605,7 +1605,7 @@ function renderJobPayload(job: CronJob) {
         ? ` (${delivery.to})`
         : ""
       : delivery?.channel || delivery?.to
-        ? ` (${delivery.channel ?? "last"}${delivery.to ? ` -> ${delivery.to}` : ""})`
+        ? ` (${delivery.channel ?? t("deliveryLabels.last")}${delivery.to ? ` -> ${delivery.to}` : ""})`
         : "";
 
   return html`
@@ -1617,7 +1617,7 @@ function renderJobPayload(job: CronJob) {
       delivery
         ? html`<div class="cron-job-detail">
             <span class="cron-job-detail-label">${t("cron.jobDetail.delivery")}</span>
-            <span class="muted cron-job-detail-value">${delivery.mode}${deliveryTarget}</span>
+            <span class="muted cron-job-detail-value">${t(`deliveryLabels.${delivery.mode}`) || delivery.mode}${deliveryTarget}</span>
           </div>`
         : nothing
     }

@@ -356,7 +356,7 @@ export function parseSessionKey(key: string): SessionKeyInfo {
 
   // ── Cron job ─────────────────────────────────────
   if (normalized.startsWith("cron:") || key.includes(":cron:")) {
-    return { prefix: "Cron:", fallbackName: t("sessionKeys.cronJob") };
+    return { prefix: t("sessionKeys.cron"), fallbackName: t("sessionKeys.cronJob") };
   }
 
   // ── Direct chat  (agent:<x>:<channel>:direct:<id>) ──

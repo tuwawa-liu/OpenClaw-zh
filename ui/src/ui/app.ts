@@ -1,6 +1,6 @@
 import { LitElement } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { i18n, I18nController, isSupportedLocale } from "../i18n/index.ts";
+import { i18n, I18nController, isSupportedLocale, t } from "../i18n/index.ts";
 import {
   handleChannelConfigReload as handleChannelConfigReloadInternal,
   handleChannelConfigSave as handleChannelConfigSaveInternal,
@@ -561,7 +561,7 @@ export class OpenClawApp extends LitElement {
       });
       this.execApprovalQueue = this.execApprovalQueue.filter((entry) => entry.id !== active.id);
     } catch (err) {
-      this.execApprovalError = `Exec approval failed: ${String(err)}`;
+      this.execApprovalError = t("execApprovals.failed", { error: String(err) });
     } finally {
       this.execApprovalBusy = false;
     }

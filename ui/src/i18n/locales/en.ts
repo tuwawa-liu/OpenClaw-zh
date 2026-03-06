@@ -836,6 +836,7 @@ export const en: TranslationMap = {
     audience: "Audience",
   },
   channelIMessage: {
+    title: "iMessage",
     subtitle: "macOS bridge status and channel configuration.",
   },
   channelNostr: {
@@ -951,6 +952,10 @@ export const en: TranslationMap = {
     never: "never",
     pattern: "Pattern",
     remove: "Remove",
+    selectNodeLoad: "Select a node before loading exec approvals.",
+    hashMissing: "Exec approvals hash missing; reload and retry.",
+    selectNodeSave: "Select a node before saving exec approvals.",
+    failed: "Exec approval failed: {error}",
   },
   configForm: {
     schemaUnavailable: "Schema unavailable. Use Raw.",
@@ -1234,6 +1239,7 @@ export const en: TranslationMap = {
   sessionKeys: {
     mainSession: "Main Session",
     subagent: "Subagent:",
+    cron: "Cron:",
     cronJob: "Cron Job:",
     channelDirect: "{channel} · {identifier}",
     channelGroup: "{channel} Group",
@@ -1337,5 +1343,68 @@ export const en: TranslationMap = {
   appToolStream: {
     httpError: "HTTP {status}",
     error: "error",
+  },
+  nostrProfile: {
+    updateFailed: "Profile update failed ({status})",
+    publishFailedAll: "Profile publish failed on all relays.",
+    publishSuccess: "Profile published to relays.",
+    updateError: "Profile update failed: {error}",
+    importFailed: "Profile import failed ({status})",
+    importedSaved: "Profile imported from relays. Review and publish.",
+    importedUnsaved: "Profile imported. Review and publish.",
+    importError: "Profile import failed: {error}",
+  },
+  presenceStatus: {
+    noInstances: "No instances yet.",
+    noPayload: "No presence payload.",
+  },
+  cronValidation: {
+    alertThreshold: "Failure alert threshold must be greater than 0.",
+    cooldownMin: "Cooldown must be 0 or greater.",
+    defaultJob: "Job",
+    copySuffix: "{base} copy",
+    copySuffixN: "{base} copy {index}",
+  },
+  chatErrors: {
+    errorPrefix: "Error: {error}",
+  },
+  usageExtra2: {
+    tokens: "tokens",
+    unknown: "unknown",
+    ofCount: "{filtered} of {total}",
+    timelineFiltered: "(timeline filtered)",
+    unknownFilter: "Unknown filter: {key}",
+    missingValue: "Missing value for {key}",
+    unknownHas: "Unknown has:{value}",
+    invalidNumber: "Invalid number for {key}",
+  },
+  sessionKind: {
+    direct: "direct",
+    group: "group",
+    global: "global",
+    unknown: "unknown",
+  },
+  thinkLevels: {
+    off: "off",
+    minimal: "minimal",
+    low: "low",
+    medium: "medium",
+    high: "high",
+    xhigh: "xhigh",
+    on: "on",
+  },
+  reasoningLevels: {
+    off: "off",
+    on: "on",
+    stream: "stream",
+  },
+  deliveryLabels: {
+    last: "last",
+    webhook: "webhook",
+    announce: "announce",
+    none: "none",
+  },
+  cronPlaceholder: {
+    phoneOrChatId: "+1555... or chat id",
   },
 };

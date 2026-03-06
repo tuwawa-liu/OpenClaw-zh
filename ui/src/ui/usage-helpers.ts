@@ -3,6 +3,7 @@ export type UsageQueryTerm = {
   value: string;
   raw: string;
 };
+import { t } from "../i18n/index.ts";
 
 export type UsageQueryResult<TSession> = {
   sessions: TSession[];
@@ -260,16 +261,16 @@ export const filterSessionsByQuery = <TSession extends UsageSessionQueryTarget>(
     }
     const normalizedKey = normalizeQueryText(term.key);
     if (!QUERY_KEYS.has(normalizedKey)) {
-      warnings.push(`Unknown filter: ${term.key}`);
+      warnings.push(t("usageExtra2.unknownFilter", { key: term.key }));
       continue;
     }
     if (term.value === "") {
-      warnings.push(`Missing value for ${term.key}`);
+      warnings.push(t("usageExtra2.missingValue", { key: term.key }));
     }
     if (normalizedKey === "has") {
       const allowed = new Set(["tools", "errors", "context", "usage", "model", "provider"]);
       if (term.value && !allowed.has(normalizeQueryText(term.value))) {
-        warnings.push(`Unknown has:${term.value}`);
+        warnings.push(t("usageExtra2.unknownHas", { value: term.value }));
       }
     }
     if (
@@ -278,7 +279,7 @@ export const filterSessionsByQuery = <TSession extends UsageSessionQueryTarget>(
       )
     ) {
       if (term.value && parseQueryNumber(term.value) === null) {
-        warnings.push(`Invalid number for ${term.key}`);
+        warnings.push(t("usageExtra2.invalidNumber", { key: term.key }));
       }
     }
   }
