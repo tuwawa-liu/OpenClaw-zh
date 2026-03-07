@@ -167,12 +167,30 @@ async function promptWebToolsConfig(
 ): Promise<OpenClawConfig> {
   const existingSearch = nextConfig.tools?.web?.search;
   const existingFetch = nextConfig.tools?.web?.fetch;
-  const existingProvider = existingSearch?.provider ?? "brave";
-  const hasPerplexityKey = Boolean(
-    existingSearch?.perplexity?.apiKey || process.env.PERPLEXITY_API_KEY,
-  );
-  const hasBraveKey = Boolean(existingSearch?.apiKey || process.env.BRAVE_API_KEY);
-  const hasSearchKey = existingProvider === "perplexity" ? hasPerplexityKey : hasBraveKey;
+  const {
+    SEARCH_PROVIDER_OPTIONS,
+    resolveExistingKey,
+    hasExistingKey,
+    applySearchKey,
+    hasKeyInEnv,
+  } = await import("./onboard-search.js");
+  type SP = (typeof SEARCH_PROVIDER_OPTIONS)[number]["value"];
+
+  const hasKeyForProvider = (provider: string): boolean => {
+    const entry = SEARCH_PROVIDER_OPTIONS.find((e) => e.value === provider);
+    if (!entry) {
+      return false;
+    }
+    return hasExistingKey(nextConfig, provider as SP) || hasKeyInEnv(entry);
+  };
+
+  const existingProvider: string = (() => {
+    const stored = existingSearch?.provider;
+    if (stored && SEARCH_PROVIDER_OPTIONS.some((e) => e.value === stored)) {
+      return stored;
+    }
+    return SEARCH_PROVIDER_OPTIONS.find((e) => hasKeyForProvider(e.value))?.value ?? "perplexity";
+  })();
 
   note(
     t("commands.configWiz.webSearchNote"),
@@ -182,30 +200,31 @@ async function promptWebToolsConfig(
   const enableSearch = guardCancel(
     await confirm({
       message: t("commands.configWiz.enableWebSearch"),
-      initialValue: existingSearch?.enabled ?? hasSearchKey,
+      initialValue:
+        existingSearch?.enabled ?? SEARCH_PROVIDER_OPTIONS.some((e) => hasKeyForProvider(e.value)),
     }),
     runtime,
   );
 
-  let nextSearch = {
+  let nextSearch: Record<string, unknown> = {
     ...existingSearch,
     enabled: enableSearch,
   };
 
   if (enableSearch) {
+    const providerOptions = SEARCH_PROVIDER_OPTIONS.map((entry) => {
+      const configured = hasKeyForProvider(entry.value);
+      return {
+        value: entry.value,
+        label: entry.label,
+        hint: configured ? `${entry.hint} · ${t("commands.configWiz.configured")}` : entry.hint,
+      };
+    });
+
     const providerChoice = guardCancel(
       await select({
         message: t("commands.configWiz.chooseProvider"),
-        options: [
-          {
-            value: "perplexity",
-            label: t("commands.configWiz.perplexitySearch"),
-          },
-          {
-            value: "brave",
-            label: t("commands.configWiz.braveSearch"),
-          },
-        ],
+        options: providerOptions,
         initialValue: existingProvider,
       }),
       runtime,
@@ -213,49 +232,42 @@ async function promptWebToolsConfig(
 
     nextSearch = { ...nextSearch, provider: providerChoice };
 
-    if (providerChoice === "perplexity") {
-      const hasKey = Boolean(existingSearch?.perplexity?.apiKey);
-      const keyInput = guardCancel(
-        await text({
-          message: hasKey
-            ? t("commands.configWiz.perplexityKeyExisting")
-            : t("commands.configWiz.perplexityKeyNew"),
-          placeholder: hasKey ? t("commands.configWiz.keepCurrent") : "pplx-...",
-        }),
-        runtime,
-      );
-      const key = String(keyInput ?? "").trim();
-      if (key) {
-        nextSearch = {
-          ...nextSearch,
-          perplexity: { ...existingSearch?.perplexity, apiKey: key },
-        };
-      } else if (!hasKey && !process.env.PERPLEXITY_API_KEY) {
-        note(
-          t("commands.configWiz.noKeyNote", { envVar: "PERPLEXITY_API_KEY", url: "https://www.perplexity.ai/settings/api" }),
-          t("commands.configWiz.webSearchTitle"),
-        );
-      }
+    const entry = SEARCH_PROVIDER_OPTIONS.find((e) => e.value === providerChoice)!;
+    const existingKey = resolveExistingKey(nextConfig, providerChoice as SP);
+    const keyConfigured = hasExistingKey(nextConfig, providerChoice as SP);
+    const envAvailable = entry.envKeys.some((k) => Boolean(process.env[k]?.trim()));
+    const envVarNames = entry.envKeys.join(" / ");
+
+    const keyInput = guardCancel(
+      await text({
+        message: keyConfigured
+          ? envAvailable
+            ? t("commands.configWiz.apiKeyKeepOrEnv", { label: entry.label, envVars: envVarNames })
+            : t("commands.configWiz.apiKeyKeep", { label: entry.label })
+          : envAvailable
+            ? t("commands.configWiz.apiKeyPasteOrEnv", { label: entry.label, envVars: envVarNames })
+            : t("commands.configWiz.apiKeyPaste", { label: entry.label }),
+        placeholder: keyConfigured ? t("commands.configWiz.keepCurrent") : entry.placeholder,
+      }),
+      runtime,
+    );
+    const key = String(keyInput ?? "").trim();
+
+    if (key || existingKey) {
+      const applied = applySearchKey(nextConfig, providerChoice as SP, (key || existingKey)!);
+      nextSearch = { ...applied.tools?.web?.search };
+    } else if (keyConfigured || envAvailable) {
+      nextSearch = { ...nextSearch };
     } else {
-      const hasKey = Boolean(existingSearch?.apiKey);
-      const keyInput = guardCancel(
-        await text({
-          message: hasKey
-            ? t("commands.configWiz.braveKeyExisting")
-            : t("commands.configWiz.braveKeyNew"),
-          placeholder: hasKey ? t("commands.configWiz.keepCurrent") : "BSA...",
-        }),
-        runtime,
+      note(
+        [
+          t("commands.configWiz.noKeyStored"),
+          t("commands.configWiz.storeKeyOrEnv", { envVars: envVarNames }),
+          t("commands.configWiz.getApiKeyAt", { url: entry.signupUrl }),
+          "Docs: https://docs.openclaw.ai/tools/web",
+        ].join("\n"),
+        t("commands.configWiz.webSearchTitle"),
       );
-      const key = String(keyInput ?? "").trim();
-      if (key) {
-        nextSearch = { ...nextSearch, apiKey: key };
-      } else if (!hasKey && !process.env.BRAVE_API_KEY) {
-        note(
-          t("commands.configWiz.noKeyNote", { envVar: "BRAVE_API_KEY", url: "https://brave.com/search/api/" }),
-          t("commands.configWiz.webSearchTitle"),
-        );
-      }
     }
   }
 

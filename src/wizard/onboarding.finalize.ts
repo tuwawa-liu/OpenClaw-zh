@@ -469,39 +469,86 @@ export async function finalizeOnboardingWizard(
     );
   }
 
-  const webSearchProvider = nextConfig.tools?.web?.search?.provider ?? "brave";
-  const webSearchKey =
-    webSearchProvider === "perplexity"
-      ? (nextConfig.tools?.web?.search?.perplexity?.apiKey ?? "").trim()
-      : (nextConfig.tools?.web?.search?.apiKey ?? "").trim();
-  const webSearchEnv =
-    webSearchProvider === "perplexity"
-      ? (process.env.PERPLEXITY_API_KEY ?? "").trim()
-      : (process.env.BRAVE_API_KEY ?? "").trim();
-  const hasWebSearchKey = Boolean(webSearchKey || webSearchEnv);
-  await prompter.note(
-    hasWebSearchKey
-      ? [
+  const webSearchProvider = nextConfig.tools?.web?.search?.provider;
+  const webSearchEnabled = nextConfig.tools?.web?.search?.enabled;
+  if (webSearchProvider) {
+    const { SEARCH_PROVIDER_OPTIONS, resolveExistingKey, hasExistingKey, hasKeyInEnv } =
+      await import("../commands/onboard-search.js");
+    const entry = SEARCH_PROVIDER_OPTIONS.find((e) => e.value === webSearchProvider);
+    const label = entry?.label ?? webSearchProvider;
+    const storedKey = resolveExistingKey(nextConfig, webSearchProvider);
+    const keyConfigured = hasExistingKey(nextConfig, webSearchProvider);
+    const envAvailable = entry ? hasKeyInEnv(entry) : false;
+    const hasKey = keyConfigured || envAvailable;
+    const keySource = storedKey
+      ? t("wizard.finalize.keyStoredInConfig")
+      : keyConfigured
+        ? t("wizard.finalize.keyViaSecretRef")
+        : envAvailable
+          ? t("wizard.finalize.keyViaEnv", { envVars: entry?.envKeys.join(" / ") ?? "" })
+          : undefined;
+    if (webSearchEnabled !== false && hasKey) {
+      await prompter.note(
+        [
           t("wizard.finalize.webSearchEnabled"),
           "",
-          `Provider: ${webSearchProvider === "perplexity" ? "Perplexity Search" : "Brave Search"}`,
-          webSearchKey
-            ? t("wizard.finalize.webSearchKeyStored", { path: webSearchProvider === "perplexity" ? "perplexity.apiKey" : "apiKey" })
-            : t("wizard.finalize.webSearchKeyEnv", { envVar: webSearchProvider === "perplexity" ? "PERPLEXITY_API_KEY" : "BRAVE_API_KEY" }),
-          "Docs: https://docs.openclaw.ai/tools/web",
-        ].join("\n")
-      : [
-          t("wizard.finalize.webSearchSetupIntro"),
-          "",
-          t("wizard.finalize.webSearchSetupInteractive"),
-          t("wizard.finalize.webSearchSetupCmd", { cmd: formatCliCommand("openclaw configure --section web") }),
-          t("wizard.finalize.webSearchChooseProvider"),
-          "",
-          t("wizard.finalize.webSearchAltEnv"),
+          `${t("wizard.finalize.providerLabel")}: ${label}`,
+          ...(keySource ? [keySource] : []),
           "Docs: https://docs.openclaw.ai/tools/web",
         ].join("\n"),
-    hasWebSearchKey ? t("wizard.finalize.webSearchNoteEnabledTitle") : t("wizard.finalize.webSearchNoteTitle"),
-  );
+        t("wizard.finalize.webSearchTitle"),
+      );
+    } else if (!hasKey) {
+      await prompter.note(
+        [
+          t("wizard.finalize.providerNoKey", { label }),
+          t("wizard.finalize.webSearchWontWork"),
+          `  ${formatCliCommand("openclaw configure --section web")}`,
+          "",
+          t("wizard.finalize.getKeyAt", { url: entry?.signupUrl ?? "https://docs.openclaw.ai/tools/web" }),
+          "Docs: https://docs.openclaw.ai/tools/web",
+        ].join("\n"),
+        t("wizard.finalize.webSearchTitle"),
+      );
+    } else {
+      await prompter.note(
+        [
+          t("wizard.finalize.webSearchDisabled", { label }),
+          t("wizard.finalize.reEnable", { cmd: formatCliCommand("openclaw configure --section web") }),
+          "",
+          "Docs: https://docs.openclaw.ai/tools/web",
+        ].join("\n"),
+        t("wizard.finalize.webSearchTitle"),
+      );
+    }
+  } else {
+    // Legacy configs may have a working key (e.g. apiKey or BRAVE_API_KEY) without
+    // an explicit provider. Runtime auto-detects these, so avoid saying "skipped".
+    const { SEARCH_PROVIDER_OPTIONS, hasExistingKey, hasKeyInEnv } =
+      await import("../commands/onboard-search.js");
+    const legacyDetected = SEARCH_PROVIDER_OPTIONS.find(
+      (e) => hasExistingKey(nextConfig, e.value) || hasKeyInEnv(e),
+    );
+    if (legacyDetected) {
+      await prompter.note(
+        [
+          t("wizard.finalize.webSearchAutoDetected", { label: legacyDetected.label }),
+          "Docs: https://docs.openclaw.ai/tools/web",
+        ].join("\n"),
+        t("wizard.finalize.webSearchTitle"),
+      );
+    } else {
+      await prompter.note(
+        [
+          t("wizard.finalize.webSearchSkipped"),
+          `  ${formatCliCommand("openclaw configure --section web")}`,
+          "",
+          "Docs: https://docs.openclaw.ai/tools/web",
+        ].join("\n"),
+        t("wizard.finalize.webSearchTitle"),
+      );
+    }
+  }
 
   await prompter.note(
     t("wizard.finalize.whatNow"),

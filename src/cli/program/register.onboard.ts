@@ -120,6 +120,7 @@ export function registerOnboardCommand(program: Command) {
     .option("--daemon-runtime <runtime>", t("cli.onboard.optDaemonRuntime"))
     .option("--skip-channels", t("cli.onboard.optSkipChannels"))
     .option("--skip-skills", t("cli.onboard.optSkipSkills"))
+    .option("--skip-search", t("cli.onboard.optSkipSearch"))
     .option("--skip-health", t("cli.onboard.optSkipHealth"))
     .option("--skip-ui", t("cli.onboard.optSkipUi"))
     .option("--node-manager <name>", t("cli.onboard.optNodeManager"))
@@ -194,6 +195,7 @@ export function registerOnboardCommand(program: Command) {
           daemonRuntime: opts.daemonRuntime as GatewayDaemonRuntime | undefined,
           skipChannels: Boolean(opts.skipChannels),
           skipSkills: Boolean(opts.skipSkills),
+          skipSearch: Boolean(opts.skipSearch),
           skipHealth: Boolean(opts.skipHealth),
           skipUi: Boolean(opts.skipUi),
           nodeManager: opts.nodeManager as NodeManagerChoice | undefined,
