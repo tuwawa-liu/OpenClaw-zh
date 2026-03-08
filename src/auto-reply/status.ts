@@ -658,7 +658,7 @@ export function buildStatusMessage(args: StatusArgs): string {
         reason: fallbackState.reason ?? t("statusMsg.selectedModelUnavailable"),
       })
     : null;
-  const commit = resolveCommitHash();
+  const commit = resolveCommitHash({ moduleUrl: import.meta.url });
   const versionLine = t("statusMsg.version", { ver: VERSION, commit: commit ? ` (${commit})` : "" });
   const usagePair = formatUsagePair(inputTokens, outputTokens);
   const cacheLine = formatCacheLine(inputTokens, cacheRead, cacheWrite);

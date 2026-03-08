@@ -1794,6 +1794,7 @@ export const en: TranslationMap = {
     setup: {
       wrote: "Wrote {path}",
       setWorkspace: "(set agents.defaults.workspace)",
+      setGatewayMode: "set gateway.mode",
       configOk: "Config OK: {path}",
       workspaceOk: "Workspace OK: {path}",
       sessionsOk: "Sessions OK: {path}",

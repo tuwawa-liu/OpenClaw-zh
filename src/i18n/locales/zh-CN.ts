@@ -1794,6 +1794,7 @@ export const zh_CN: TranslationMap = {
     setup: {
       wrote: "已写入 {path}",
       setWorkspace: "（设置 agents.defaults.workspace）",
+      setGatewayMode: "设置 gateway.mode",
       configOk: "配置正常：{path}",
       workspaceOk: "工作区正常：{path}",
       sessionsOk: "会话正常：{path}",

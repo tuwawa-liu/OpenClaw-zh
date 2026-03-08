@@ -51,14 +51,30 @@ export async function setupCommand(
         workspace,
       },
     },
+    gateway: {
+      ...cfg.gateway,
+      mode: cfg.gateway?.mode ?? "local",
+    },
   };
 
-  if (!existingRaw.exists || defaults.workspace !== workspace) {
+  if (
+    !existingRaw.exists ||
+    defaults.workspace !== workspace ||
+    cfg.gateway?.mode !== next.gateway?.mode
+  ) {
     await writeConfigFile(next);
     if (!existingRaw.exists) {
       runtime.log(t("commands.setup.wrote", { path: formatConfigPath(configPath) }));
     } else {
-      logConfigUpdated(runtime, { path: configPath, suffix: t("commands.setup.setWorkspace") });
+      const updates: string[] = [];
+      if (defaults.workspace !== workspace) {
+        updates.push(t("commands.setup.setWorkspace"));
+      }
+      if (cfg.gateway?.mode !== next.gateway?.mode) {
+        updates.push(t("commands.setup.setGatewayMode"));
+      }
+      const suffix = updates.length > 0 ? `(${updates.join(", ")})` : undefined;
+      logConfigUpdated(runtime, { path: configPath, suffix });
     }
   } else {
     runtime.log(t("commands.setup.configOk", { path: formatConfigPath(configPath) }));
