@@ -498,7 +498,7 @@ export class PlivoProvider implements VoiceCallProvider {
   }
 
   private static xmlSpeak(text: string, locale?: string): string {
-    const language = locale || "zh-CN";
+    const language = locale || "en-US";
     return `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Speak language="${escapeXml(language)}">${escapeXml(text)}</Speak>
@@ -507,7 +507,7 @@ export class PlivoProvider implements VoiceCallProvider {
   }
 
   private static xmlGetInputSpeech(params: { actionUrl: string; language?: string }): string {
-    const language = params.language || "zh-CN";
+    const language = params.language || "en-US";
     return `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <GetInput inputType="speech" method="POST" action="${escapeXml(params.actionUrl)}" language="${escapeXml(language)}" executionTimeout="30" speechEndTimeout="1" redirect="false">

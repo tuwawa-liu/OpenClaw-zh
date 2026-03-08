@@ -584,7 +584,7 @@ export class TwilioProvider implements VoiceCallProvider {
     const pollyVoice = mapVoiceToPolly(input.voice);
     const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say voice="${pollyVoice}" language="${input.locale || "zh-CN"}">${escapeXml(input.text)}</Say>
+  <Say voice="${pollyVoice}" language="${input.locale || "en-US"}">${escapeXml(input.text)}</Say>
   <Gather input="speech" speechTimeout="auto" action="${escapeXml(webhookUrl)}" method="POST">
     <Say>.</Say>
   </Gather>
@@ -650,7 +650,7 @@ export class TwilioProvider implements VoiceCallProvider {
 
     const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Gather input="speech" speechTimeout="auto" language="${input.language || "zh-CN"}" action="${escapeXml(actionUrl.toString())}" method="POST">
+  <Gather input="speech" speechTimeout="auto" language="${input.language || "en-US"}" action="${escapeXml(actionUrl.toString())}" method="POST">
   </Gather>
 </Response>`;
 

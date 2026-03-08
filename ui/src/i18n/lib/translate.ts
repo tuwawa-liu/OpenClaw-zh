@@ -1,5 +1,4 @@
 import { en } from "../locales/en.ts";
-import { zh_CN } from "../locales/zh-CN.ts";
 import {
   DEFAULT_LOCALE,
   SUPPORTED_LOCALES,
@@ -14,8 +13,8 @@ type Subscriber = (locale: Locale) => void;
 export { SUPPORTED_LOCALES, isSupportedLocale };
 
 class I18nManager {
-  private locale: Locale = "zh-CN";
-  private translations: Partial<Record<Locale, TranslationMap>> = { en, "zh-CN": zh_CN };
+  private locale: Locale = DEFAULT_LOCALE;
+  private translations: Partial<Record<Locale, TranslationMap>> = { [DEFAULT_LOCALE]: en };
   private subscribers: Set<Subscriber> = new Set();
 
   constructor() {
@@ -95,9 +94,9 @@ class I18nManager {
       }
     }
 
-    // Fallback to English if key missing in current locale.
-    if (value === undefined && this.locale !== "en") {
-      value = this.translations.en;
+    // Fallback to English.
+    if (value === undefined && this.locale !== DEFAULT_LOCALE) {
+      value = this.translations[DEFAULT_LOCALE];
       for (const k of keys) {
         if (value && typeof value === "object") {
           value = (value as Record<string, unknown>)[k];

@@ -269,7 +269,7 @@ export class TelnyxProvider implements VoiceCallProvider {
       command_id: crypto.randomUUID(),
       payload: input.text,
       voice: input.voice || "female",
-      language: input.locale || "zh-CN",
+      language: input.locale || "en-US",
     });
   }
 
