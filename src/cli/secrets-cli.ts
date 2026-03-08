@@ -2,6 +2,7 @@ import fs from "node:fs";
 import { confirm } from "@clack/prompts";
 import type { Command } from "commander";
 import { danger } from "../globals.js";
+import { t } from "../i18n/index.js";
 import { defaultRuntime } from "../runtime.js";
 import { runSecretsApply } from "../secrets/apply.js";
 import { resolveSecretsAuditExitCode, runSecretsAudit } from "../secrets/audit.js";
@@ -68,10 +69,10 @@ export function registerSecretsCli(program: Command) {
         (result as { warningCount?: unknown } | undefined)?.warningCount ?? 0,
       );
       if (Number.isFinite(warningCount) && warningCount > 0) {
-        defaultRuntime.log(`Secrets reloaded with ${warningCount} warning(s).`);
+        defaultRuntime.log(t("secretsCli.reloadedWithWarnings", { count: String(warningCount) }));
         return;
       }
-      defaultRuntime.log("Secrets reloaded.");
+      defaultRuntime.log(t("secretsCli.reloaded"));
     } catch (err) {
       defaultRuntime.error(danger(String(err)));
       defaultRuntime.exit(1);
@@ -90,16 +91,27 @@ export function registerSecretsCli(program: Command) {
           defaultRuntime.log(JSON.stringify(report, null, 2));
         } else {
           defaultRuntime.log(
-            `Secrets audit: ${report.status}. plaintext=${report.summary.plaintextCount}, unresolved=${report.summary.unresolvedRefCount}, shadowed=${report.summary.shadowedRefCount}, legacy=${report.summary.legacyResidueCount}.`,
+            t("secretsCli.auditSummary", {
+              status: report.status,
+              plaintext: String(report.summary.plaintextCount),
+              unresolved: String(report.summary.unresolvedRefCount),
+              shadowed: String(report.summary.shadowedRefCount),
+              legacy: String(report.summary.legacyResidueCount),
+            }),
           );
           if (report.findings.length > 0) {
             for (const finding of report.findings.slice(0, 20)) {
               defaultRuntime.log(
-                `- [${finding.code}] ${finding.file}:${finding.jsonPath} ${finding.message}`,
+                t("secretsCli.auditFinding", {
+                  code: finding.code,
+                  file: finding.file,
+                  jsonPath: finding.jsonPath,
+                  message: finding.message,
+                }),
               );
             }
             if (report.findings.length > 20) {
-              defaultRuntime.log(`... ${report.findings.length - 20} more finding(s).`);
+              defaultRuntime.log(t("secretsCli.auditMoreFindings", { count: String(report.findings.length - 20) }));
             }
           }
         }
@@ -153,27 +165,35 @@ export function registerSecretsCli(program: Command) {
           );
         } else {
           defaultRuntime.log(
-            `Preflight: changed=${configured.preflight.changed}, files=${configured.preflight.changedFiles.length}, warnings=${configured.preflight.warningCount}.`,
+            t("secretsCli.preflightSummary", {
+              changed: String(configured.preflight.changed),
+              files: String(configured.preflight.changedFiles.length),
+              warnings: String(configured.preflight.warningCount),
+            }),
           );
           if (configured.preflight.warningCount > 0) {
             for (const warning of configured.preflight.warnings) {
-              defaultRuntime.log(`- warning: ${warning}`);
+              defaultRuntime.log(t("secretsCli.preflightWarning", { warning }));
             }
           }
           const providerUpserts = Object.keys(configured.plan.providerUpserts ?? {}).length;
           const providerDeletes = configured.plan.providerDeletes?.length ?? 0;
           defaultRuntime.log(
-            `Plan: targets=${configured.plan.targets.length}, providerUpserts=${providerUpserts}, providerDeletes=${providerDeletes}.`,
+            t("secretsCli.planSummary", {
+              targets: String(configured.plan.targets.length),
+              providerUpserts: String(providerUpserts),
+              providerDeletes: String(providerDeletes),
+            }),
           );
           if (opts.planOut) {
-            defaultRuntime.log(`Plan written to ${opts.planOut}`);
+            defaultRuntime.log(t("secretsCli.planWrittenTo", { path: opts.planOut }));
           }
         }
 
         let shouldApply = Boolean(opts.apply);
         if (!shouldApply && !opts.json) {
           const approved = await confirm({
-            message: "Apply this plan now?",
+            message: t("secretsCli.applyPlanNow"),
             initialValue: true,
           });
           if (typeof approved === "boolean") {
@@ -185,11 +205,11 @@ export function registerSecretsCli(program: Command) {
           if (needsIrreversiblePrompt && !opts.yes && !opts.json) {
             const confirmed = await confirm({
               message:
-                "This migration is one-way for migrated plaintext values. Continue with apply?",
+                t("secretsCli.migrationOneWay"),
               initialValue: true,
             });
             if (confirmed !== true) {
-              defaultRuntime.log("Apply cancelled.");
+              defaultRuntime.log(t("secretsCli.applyCancelled"));
               return;
             }
           }
@@ -203,8 +223,8 @@ export function registerSecretsCli(program: Command) {
           }
           defaultRuntime.log(
             result.changed
-              ? `Secrets applied. Updated ${result.changedFiles.length} file(s).`
-              : "Secrets apply: no changes.",
+              ? t("secretsCli.secretsApplied", { count: String(result.changedFiles.length) })
+              : t("secretsCli.secretsNoChanges"),
           );
         }
       } catch (err) {
@@ -233,15 +253,15 @@ export function registerSecretsCli(program: Command) {
         if (opts.dryRun) {
           defaultRuntime.log(
             result.changed
-              ? `Secrets apply dry run: ${result.changedFiles.length} file(s) would change.`
-              : "Secrets apply dry run: no changes.",
+              ? t("secretsCli.dryRunChanged", { count: String(result.changedFiles.length) })
+              : t("secretsCli.dryRunNoChanges"),
           );
           return;
         }
         defaultRuntime.log(
           result.changed
-            ? `Secrets applied. Updated ${result.changedFiles.length} file(s).`
-            : "Secrets apply: no changes.",
+            ? t("secretsCli.secretsApplied", { count: String(result.changedFiles.length) })
+            : t("secretsCli.secretsNoChanges"),
         );
       } catch (err) {
         defaultRuntime.error(danger(String(err)));

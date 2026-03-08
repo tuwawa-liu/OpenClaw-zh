@@ -3,7 +3,11 @@ import { formatCliCommand } from "../cli/command-format.js";
 import { resolveCommandSecretRefsViaGateway } from "../cli/command-secret-gateway.js";
 import { getStatusCommandSecretTargetIds } from "../cli/command-secret-targets.js";
 import { withProgress } from "../cli/progress.js";
-import { loadConfig, readConfigFileSnapshot, resolveGatewayPort } from "../config/config.js";
+import {
+  readBestEffortConfig,
+  readConfigFileSnapshot,
+  resolveGatewayPort,
+} from "../config/config.js";
 import { readLastGatewayErrorLine } from "../daemon/diagnostics.js";
 import { resolveNodeService } from "../daemon/node-service.js";
 import type { GatewayService } from "../daemon/service.js";
@@ -31,6 +35,7 @@ import { buildChannelsTable } from "./status-all/channels.js";
 import { formatDurationPrecise, formatGatewayAuthUsed } from "./status-all/format.js";
 import { pickGatewaySelfPresence } from "./status-all/gateway.js";
 import { buildStatusAllReportLines } from "./status-all/report-lines.js";
+import { readServiceStatusSummary } from "./status.service-summary.js";
 import { formatUpdateOneLiner } from "./status.update.js";
 
 export async function statusAllCommand(
@@ -39,7 +44,7 @@ export async function statusAllCommand(
 ): Promise<void> {
   await withProgress({ label: t("commands.statusAll.scanning"), total: 11 }, async (progress) => {
     progress.setLabel(t("commands.statusAll.loadingConfig"));
-    const loadedRaw = loadConfig();
+    const loadedRaw = await readBestEffortConfig();
     const { resolvedConfig: cfg } = await resolveCommandSecretRefsViaGateway({
       config: loadedRaw,
       commandName: "status --all",
@@ -136,18 +141,14 @@ export async function statusAllCommand(
     progress.setLabel(t("commands.statusAll.checkingServices"));
     const readServiceSummary = async (service: GatewayService) => {
       try {
-        const [loaded, runtimeInfo, command] = await Promise.all([
-          service.isLoaded({ env: process.env }).catch(() => false),
-          service.readRuntime(process.env).catch(() => undefined),
-          service.readCommand(process.env).catch(() => null),
-        ]);
-        const installed = command != null;
+        const summary = await readServiceStatusSummary(service, service.label);
         return {
-          label: service.label,
-          installed,
-          loaded,
-          loadedText: loaded ? service.loadedText : service.notLoadedText,
-          runtime: runtimeInfo,
+          label: summary.label,
+          installed: summary.installed,
+          managedByOpenClaw: summary.managedByOpenClaw,
+          loaded: summary.loaded,
+          loadedText: summary.loadedText,
+          runtime: summary.runtime,
         };
       } catch {
         return null;
@@ -194,6 +195,7 @@ export async function statusAllCommand(
     progress.setLabel(t("commands.statusAll.queryingGateway"));
     const health = gatewayReachable
       ? await callGateway({
+          config: cfg,
           method: "health",
           timeoutMs: Math.min(8000, opts?.timeoutMs ?? 10_000),
           ...callOverrides,
@@ -202,6 +204,7 @@ export async function statusAllCommand(
 
     const channelsStatus = gatewayReachable
       ? await callGateway({
+          config: cfg,
           method: "channels.status",
           params: { probe: false, timeoutMs: opts?.timeoutMs ?? 10_000 },
           timeoutMs: Math.min(8000, opts?.timeoutMs ?? 10_000),
@@ -311,7 +314,7 @@ export async function statusAllCommand(
             Item: t("commands.statusAll.gatewayService"),
             Value: !daemon.installed
               ? t("commands.statusAll.notInstalled", { label: daemon.label })
-              : `${daemon.label} ${daemon.installed ? `${t("commands.statusAll.installed")} · ` : ""}${daemon.loadedText}${daemon.runtime?.status ? ` · ${daemon.runtime.status}` : ""}${daemon.runtime?.pid ? ` (pid ${daemon.runtime.pid})` : ""}`,
+              : `${daemon.label} ${daemon.managedByOpenClaw ? `${t("commands.statusAll.installed")} · ` : ""}${daemon.loadedText}${daemon.runtime?.status ? ` · ${daemon.runtime.status}` : ""}${daemon.runtime?.pid ? ` (pid ${daemon.runtime.pid})` : ""}`,
           }
         : { Item: t("commands.statusAll.gatewayService"), Value: t("commands.statusAll.unknown") },
       nodeService
@@ -319,7 +322,7 @@ export async function statusAllCommand(
             Item: t("commands.statusAll.nodeService"),
             Value: !nodeService.installed
               ? t("commands.statusAll.notInstalled", { label: nodeService.label })
-              : `${nodeService.label} ${nodeService.installed ? `${t("commands.statusAll.installed")} · ` : ""}${nodeService.loadedText}${nodeService.runtime?.status ? ` · ${nodeService.runtime.status}` : ""}${nodeService.runtime?.pid ? ` (pid ${nodeService.runtime.pid})` : ""}`,
+              : `${nodeService.label} ${nodeService.managedByOpenClaw ? `${t("commands.statusAll.installed")} · ` : ""}${nodeService.loadedText}${nodeService.runtime?.status ? ` · ${nodeService.runtime.status}` : ""}${nodeService.runtime?.pid ? ` (pid ${nodeService.runtime.pid})` : ""}`,
           }
         : { Item: t("commands.statusAll.nodeService"), Value: t("commands.statusAll.unknown") },
       {

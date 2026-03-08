@@ -36,7 +36,12 @@ export type ChannelHealthPolicy = {
   channelConnectGraceMs: number;
 };
 
-export type ChannelRestartReason = "gave-up" | "stopped" | "stale-socket" | "stuck";
+export type ChannelRestartReason =
+  | "gave-up"
+  | "stopped"
+  | "stale-socket"
+  | "stuck"
+  | "disconnected";
 
 function isManagedAccount(snapshot: ChannelHealthSnapshot): boolean {
   return snapshot.enabled !== false && snapshot.configured !== false;
@@ -109,7 +114,11 @@ export function evaluateChannelHealth(
     snapshot.lastEventAt != null
   ) {
     if (lastStartAt != null && snapshot.lastEventAt < lastStartAt) {
-      return { healthy: true, reason: "healthy" };
+      const lifecycleEventGap = Math.max(0, policy.now - lastStartAt);
+      if (lifecycleEventGap <= policy.staleEventThresholdMs) {
+        return { healthy: true, reason: "healthy" };
+      }
+      return { healthy: false, reason: "stale-socket" };
     }
     const eventAge = policy.now - snapshot.lastEventAt;
     if (eventAge > policy.staleEventThresholdMs) {
@@ -128,6 +137,9 @@ export function resolveChannelRestartReason(
   }
   if (evaluation.reason === "not-running") {
     return snapshot.reconnectAttempts && snapshot.reconnectAttempts >= 10 ? "gave-up" : "stopped";
+  }
+  if (evaluation.reason === "disconnected") {
+    return "disconnected";
   }
   return "stuck";
 }

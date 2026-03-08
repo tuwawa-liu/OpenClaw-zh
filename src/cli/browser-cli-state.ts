@@ -1,5 +1,6 @@
 import type { Command } from "commander";
 import { danger } from "../globals.js";
+import { t } from "../i18n/index.js";
 import { defaultRuntime } from "../runtime.js";
 import { parseBooleanValue } from "../utils/boolean.js";
 import { runBrowserResizeWithOutput } from "./browser-cli-resize.js";
@@ -70,7 +71,7 @@ export function registerBrowserStateCommands(
           height,
           targetId: opts.targetId,
           timeoutMs: 20000,
-          successMessage: `viewport set: ${width}x${height}`,
+          successMessage: t("browserState.viewportSet", { width: String(width), height: String(height) }),
         });
       });
     });
@@ -95,7 +96,7 @@ export function registerBrowserStateCommands(
           offline,
           targetId: opts.targetId?.trim() || undefined,
         },
-        successMessage: `offline: ${offline}`,
+        successMessage: t("browserState.offline", { offline: String(offline) }),
       });
     });
 
@@ -142,7 +143,7 @@ export function registerBrowserStateCommands(
           defaultRuntime.log(JSON.stringify(result, null, 2));
           return;
         }
-        defaultRuntime.log("headers set");
+        defaultRuntime.log(t("browserState.headersSet"));
       });
     });
 
@@ -164,7 +165,7 @@ export function registerBrowserStateCommands(
           clear: Boolean(opts.clear),
           targetId: opts.targetId?.trim() || undefined,
         },
-        successMessage: opts.clear ? "credentials cleared" : "credentials set",
+        successMessage: opts.clear ? t("browserState.credentialsCleared") : t("browserState.credentialsSet"),
       });
     });
 
@@ -190,7 +191,7 @@ export function registerBrowserStateCommands(
           clear: Boolean(opts.clear),
           targetId: opts.targetId?.trim() || undefined,
         },
-        successMessage: opts.clear ? "geolocation cleared" : "geolocation set",
+        successMessage: opts.clear ? t("browserState.geolocationCleared") : t("browserState.geolocationSet"),
       });
     });
 
@@ -216,7 +217,7 @@ export function registerBrowserStateCommands(
           colorScheme,
           targetId: opts.targetId?.trim() || undefined,
         },
-        successMessage: `media colorScheme: ${colorScheme}`,
+        successMessage: t("browserState.mediaColorScheme", { colorScheme }),
       });
     });
 
@@ -234,7 +235,7 @@ export function registerBrowserStateCommands(
           timezoneId,
           targetId: opts.targetId?.trim() || undefined,
         },
-        successMessage: `timezone: ${timezoneId}`,
+        successMessage: t("browserState.timezone", { timezoneId }),
       });
     });
 
@@ -252,7 +253,7 @@ export function registerBrowserStateCommands(
           locale,
           targetId: opts.targetId?.trim() || undefined,
         },
-        successMessage: `locale: ${locale}`,
+        successMessage: t("browserState.locale", { locale }),
       });
     });
 
@@ -270,7 +271,7 @@ export function registerBrowserStateCommands(
           name,
           targetId: opts.targetId?.trim() || undefined,
         },
-        successMessage: `device: ${name}`,
+        successMessage: t("browserState.device", { name }),
       });
     });
 }

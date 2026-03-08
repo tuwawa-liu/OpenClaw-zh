@@ -127,7 +127,7 @@ export async function promptAuthConfig(
       prompter,
       allowedKeys: anthropicOAuth ? ANTHROPIC_OAUTH_MODEL_KEYS : undefined,
       initialSelections: anthropicOAuth ? ["anthropic/claude-sonnet-4-6"] : undefined,
-      message: anthropicOAuth ? "Anthropic OAuth models" : undefined,
+      message: anthropicOAuth ? t("commands.configureGatewayAuth.anthropicOAuthModels") : undefined,
     });
     if (allowlistSelection.models) {
       next = applyModelAllowlist(next, allowlistSelection.models);

@@ -1,5 +1,6 @@
 import type { Command } from "commander";
 import { danger } from "../../globals.js";
+import { t } from "../../i18n/index.js";
 import { defaultRuntime } from "../../runtime.js";
 import type { BrowserParentOpts } from "../browser-cli-shared.js";
 import {
@@ -70,7 +71,7 @@ export function registerBrowserElementCommands(
         successMessage: (result) => {
           const url = (result as { url?: unknown }).url;
           const suffix = typeof url === "string" && url ? ` on ${url}` : "";
-          return `clicked ref ${refValue}${suffix}`;
+          return t("browserElement.clickedRef", { ref: refValue, suffix });
         },
       });
     });
@@ -98,7 +99,7 @@ export function registerBrowserElementCommands(
           slowly: Boolean(opts.slowly),
           targetId: opts.targetId?.trim() || undefined,
         },
-        successMessage: `typed into ref ${refValue}`,
+        successMessage: t("browserElement.typedIntoRef", { ref: refValue }),
       });
     });
 
@@ -111,7 +112,7 @@ export function registerBrowserElementCommands(
       await runElementAction({
         cmd,
         body: { kind: "press", key, targetId: opts.targetId?.trim() || undefined },
-        successMessage: `pressed ${key}`,
+        successMessage: t("browserElement.pressed", { key }),
       });
     });
 
@@ -124,7 +125,7 @@ export function registerBrowserElementCommands(
       await runElementAction({
         cmd,
         body: { kind: "hover", ref, targetId: opts.targetId?.trim() || undefined },
-        successMessage: `hovered ref ${ref}`,
+        successMessage: t("browserElement.hoveredRef", { ref }),
       });
     });
 
@@ -151,7 +152,7 @@ export function registerBrowserElementCommands(
           timeoutMs,
         },
         timeoutMs,
-        successMessage: `scrolled into view: ${refValue}`,
+        successMessage: t("browserElement.scrolledIntoView", { ref: refValue }),
       });
     });
 
@@ -170,7 +171,7 @@ export function registerBrowserElementCommands(
           endRef,
           targetId: opts.targetId?.trim() || undefined,
         },
-        successMessage: `dragged ${startRef} → ${endRef}`,
+        successMessage: t("browserElement.dragged", { startRef, endRef }),
       });
     });
 
@@ -189,7 +190,7 @@ export function registerBrowserElementCommands(
           values,
           targetId: opts.targetId?.trim() || undefined,
         },
-        successMessage: `selected ${values.join(", ")}`,
+        successMessage: t("browserElement.selected", { values: values.join(", ") }),
       });
     });
 }

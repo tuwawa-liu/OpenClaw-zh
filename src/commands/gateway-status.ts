@@ -1,5 +1,5 @@
 import { withProgress } from "../cli/progress.js";
-import { loadConfig, resolveGatewayPort } from "../config/config.js";
+import { readBestEffortConfig, resolveGatewayPort } from "../config/config.js";
 import { probeGateway } from "../gateway/probe.js";
 import { t } from "../i18n/index.js";
 import { discoverGatewayBeacons } from "../infra/bonjour-discovery.js";
@@ -36,7 +36,7 @@ export async function gatewayStatusCommand(
   runtime: RuntimeEnv,
 ) {
   const startedAt = Date.now();
-  const cfg = loadConfig();
+  const cfg = await readBestEffortConfig();
   const rich = isRich() && opts.json !== true;
   const overallTimeoutMs = parseTimeoutMs(opts.timeout, 3000);
   const wideAreaDomain = resolveWideAreaDiscoveryDomain({

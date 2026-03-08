@@ -1,5 +1,6 @@
 import type { Command } from "commander";
 import { danger } from "../globals.js";
+import { t } from "../i18n/index.js";
 import { defaultRuntime } from "../runtime.js";
 import { callBrowserRequest, type BrowserParentOpts } from "./browser-cli-shared.js";
 import { inheritOptionFromParent } from "./command-options.js";
@@ -110,7 +111,7 @@ export function registerBrowserCookiesAndStorageCommands(
             cookie: { name, value, url },
           },
         },
-        successMessage: `cookie set: ${name}`,
+        successMessage: t("browserCookies.cookieSet", { name }),
       });
     });
 
@@ -132,7 +133,7 @@ export function registerBrowserCookiesAndStorageCommands(
             targetId,
           },
         },
-        successMessage: "cookies cleared",
+        successMessage: t("browserCookies.cookiesCleared"),
       });
     });
 
@@ -197,7 +198,7 @@ export function registerBrowserCookiesAndStorageCommands(
               targetId,
             },
           },
-          successMessage: `${kind}Storage set: ${key}`,
+          successMessage: t("browserCookies.storageSet", { kind, key }),
         });
       });
 
@@ -219,7 +220,7 @@ export function registerBrowserCookiesAndStorageCommands(
               targetId,
             },
           },
-          successMessage: `${kind}Storage cleared`,
+          successMessage: t("browserCookies.storageCleared", { kind }),
         });
       });
   }

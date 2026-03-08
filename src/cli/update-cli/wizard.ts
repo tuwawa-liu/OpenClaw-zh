@@ -1,4 +1,5 @@
 import { confirm, isCancel } from "@clack/prompts";
+import { t } from "../../i18n/index.js";
 import { readConfigFileSnapshot } from "../../config/config.js";
 import {
   formatUpdateChannelLabel,
@@ -24,7 +25,7 @@ import { updateCommand } from "./update-command.js";
 export async function updateWizardCommand(opts: UpdateWizardOptions = {}): Promise<void> {
   if (!process.stdin.isTTY) {
     defaultRuntime.error(
-      "Update wizard requires a TTY. Use `openclaw update --channel <stable|beta|dev>` instead.",
+      t("updateWizard.requiresTty"),
     );
     defaultRuntime.exit(1);
     return;
@@ -64,34 +65,34 @@ export async function updateWizardCommand(opts: UpdateWizardOptions = {}): Promi
   });
 
   const pickedChannel = await selectStyled({
-    message: "Update channel",
+    message: t("updateWizard.updateChannel"),
     options: [
       {
         value: "keep",
-        label: `Keep current (${channelInfo.channel})`,
+        label: t("updateWizard.keepCurrent", { channel: channelInfo.channel }),
         hint: channelLabel,
       },
       {
         value: "stable",
-        label: "Stable",
-        hint: "Tagged releases (npm latest)",
+        label: t("updateWizard.stable"),
+        hint: t("updateWizard.stableHint"),
       },
       {
         value: "beta",
-        label: "Beta",
-        hint: "Prereleases (npm beta)",
+        label: t("updateWizard.beta"),
+        hint: t("updateWizard.betaHint"),
       },
       {
         value: "dev",
-        label: "Dev",
-        hint: "Git main",
+        label: t("updateWizard.dev"),
+        hint: t("updateWizard.devHint"),
       },
     ],
     initialValue: "keep",
   });
 
   if (isCancel(pickedChannel)) {
-    defaultRuntime.log(theme.muted("Update cancelled."));
+    defaultRuntime.log(theme.muted(t("updateWizard.cancelled")));
     defaultRuntime.exit(0);
     return;
   }
@@ -107,7 +108,7 @@ export async function updateWizardCommand(opts: UpdateWizardOptions = {}): Promi
         const empty = await isEmptyDir(gitDir);
         if (!empty) {
           defaultRuntime.error(
-            `OPENCLAW_GIT_DIR points at a non-git directory: ${gitDir}. Set OPENCLAW_GIT_DIR to an empty folder or an openclaw checkout.`,
+            t("updateWizard.nonGitDir", { dir: gitDir }),
           );
           defaultRuntime.exit(1);
           return;
@@ -116,12 +117,12 @@ export async function updateWizardCommand(opts: UpdateWizardOptions = {}): Promi
 
       const ok = await confirm({
         message: stylePromptMessage(
-          `Create a git checkout at ${gitDir}? (override via OPENCLAW_GIT_DIR)`,
+          t("updateWizard.createGitCheckout", { dir: gitDir }),
         ),
         initialValue: true,
       });
       if (isCancel(ok) || !ok) {
-        defaultRuntime.log(theme.muted("Update cancelled."));
+        defaultRuntime.log(theme.muted(t("updateWizard.cancelled")));
         defaultRuntime.exit(0);
         return;
       }
@@ -129,11 +130,11 @@ export async function updateWizardCommand(opts: UpdateWizardOptions = {}): Promi
   }
 
   const restart = await confirm({
-    message: stylePromptMessage("Restart the gateway service after update?"),
+    message: stylePromptMessage(t("updateWizard.restartAfterUpdate")),
     initialValue: true,
   });
   if (isCancel(restart)) {
-    defaultRuntime.log(theme.muted("Update cancelled."));
+    defaultRuntime.log(theme.muted(t("updateWizard.cancelled")));
     defaultRuntime.exit(0);
     return;
   }

@@ -154,6 +154,7 @@ export async function statusCommand(
             method: "health",
             params: { probe: true },
             timeoutMs: opts.timeoutMs,
+            config: scan.cfg,
           }),
       )
     : undefined;
@@ -163,6 +164,7 @@ export async function statusCommand(
           method: "last-heartbeat",
           params: {},
           timeoutMs: opts.timeoutMs,
+          config: scan.cfg,
         }).catch(() => null)
       : null;
 
@@ -220,7 +222,7 @@ export async function statusCommand(
   const warn = (value: string) => (rich ? theme.warn(value) : value);
 
   if (opts.verbose) {
-    const details = buildGatewayConnectionDetails();
+    const details = buildGatewayConnectionDetails({ config: scan.cfg });
     runtime.log(info(t("commands.status.gatewayConnection")));
     for (const line of details.message.split("\n")) {
       runtime.log(`  ${line}`);
@@ -303,14 +305,14 @@ export async function statusCommand(
     if (daemon.installed === false) {
       return `${daemon.label} ${t("statusCommand.notInstalled")}`;
     }
-    const installedPrefix = daemon.installed === true ? t("statusCommand.installed") : "";
+    const installedPrefix = daemon.managedByOpenClaw ? t("statusCommand.installed") : "";
     return `${daemon.label} ${installedPrefix}${daemon.loadedText}${daemon.runtimeShort ? ` · ${daemon.runtimeShort}` : ""}`;
   })();
   const nodeDaemonValue = (() => {
     if (nodeDaemon.installed === false) {
       return `${nodeDaemon.label} ${t("statusCommand.notInstalled")}`;
     }
-    const installedPrefix = nodeDaemon.installed === true ? t("statusCommand.installed") : "";
+    const installedPrefix = nodeDaemon.managedByOpenClaw ? t("statusCommand.installed") : "";
     return `${nodeDaemon.label} ${installedPrefix}${nodeDaemon.loadedText}${nodeDaemon.runtimeShort ? ` · ${nodeDaemon.runtimeShort}` : ""}`;
   })();
 
