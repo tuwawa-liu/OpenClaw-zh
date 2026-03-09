@@ -1,6 +1,7 @@
 import type { Command } from "commander";
 import type { CronJob } from "../../cron/types.js";
 import { danger } from "../../globals.js";
+import { t } from "../../i18n/index.js";
 import { sanitizeAgentId } from "../../routing/session-key.js";
 import { defaultRuntime } from "../../runtime.js";
 import { addGatewayClientOptions, callGatewayFromCli } from "../gateway-rpc.js";
@@ -27,58 +28,52 @@ export function registerCronEditCommand(cron: Command) {
   addGatewayClientOptions(
     cron
       .command("edit")
-      .description("Edit a cron job (patch fields)")
-      .argument("<id>", "Job id")
-      .option("--name <name>", "Set name")
-      .option("--description <text>", "Set description")
-      .option("--enable", "Enable job", false)
-      .option("--disable", "Disable job", false)
-      .option("--delete-after-run", "Delete one-shot job after it succeeds", false)
-      .option("--keep-after-run", "Keep one-shot job after it succeeds", false)
-      .option("--session <target>", "Session target (main|isolated)")
-      .option("--agent <id>", "Set agent id")
-      .option("--clear-agent", "Unset agent and use default", false)
-      .option("--session-key <key>", "Set session key for job routing")
-      .option("--clear-session-key", "Unset session key", false)
-      .option("--wake <mode>", "Wake mode (now|next-heartbeat)")
-      .option("--at <when>", "Set one-shot time (ISO) or duration like 20m")
-      .option("--every <duration>", "Set interval duration like 10m")
-      .option("--cron <expr>", "Set cron expression")
-      .option("--tz <iana>", "Timezone for cron expressions (IANA)")
-      .option("--stagger <duration>", "Cron stagger window (e.g. 30s, 5m)")
-      .option("--exact", "Disable cron staggering (set stagger to 0)")
-      .option("--system-event <text>", "Set systemEvent payload")
-      .option("--message <text>", "Set agentTurn payload message")
-      .option("--thinking <level>", "Thinking level for agent jobs")
-      .option("--model <model>", "Model override for agent jobs")
-      .option("--timeout-seconds <n>", "Timeout seconds for agent jobs")
-      .option("--light-context", "Enable lightweight bootstrap context for agent jobs")
-      .option("--no-light-context", "Disable lightweight bootstrap context for agent jobs")
-      .option("--announce", "Announce summary to a chat (subagent-style)")
-      .option("--deliver", "Deprecated (use --announce). Announces a summary to a chat.")
-      .option("--no-deliver", "Disable announce delivery")
+      .description(t("cronEditCli.description"))
+      .argument("<id>", t("cronEditCli.idArg"))
+      .option("--name <name>", t("cronEditCli.nameOpt"))
+      .option("--description <text>", t("cronEditCli.descriptionOpt"))
+      .option("--enable", t("cronEditCli.enableOpt"), false)
+      .option("--disable", t("cronEditCli.disableOpt"), false)
+      .option("--delete-after-run", t("cronCli.addDeleteAfterRunOpt"), false)
+      .option("--keep-after-run", t("cronCli.addKeepAfterRunOpt"), false)
+      .option("--session <target>", t("cronCli.addSessionOpt"))
+      .option("--agent <id>", t("cronEditCli.agentOpt"))
+      .option("--clear-agent", t("cronEditCli.clearAgentOpt"), false)
+      .option("--session-key <key>", t("cronEditCli.sessionKeyOpt"))
+      .option("--clear-session-key", t("cronEditCli.clearSessionKeyOpt"), false)
+      .option("--wake <mode>", t("cronCli.addWakeOpt"))
+      .option("--at <when>", t("cronEditCli.atOpt"))
+      .option("--every <duration>", t("cronEditCli.everyOpt"))
+      .option("--cron <expr>", t("cronEditCli.cronOpt"))
+      .option("--tz <iana>", t("cronCli.addTzOpt"))
+      .option("--stagger <duration>", t("cronCli.addStaggerOpt"))
+      .option("--exact", t("cronCli.addExactOpt"))
+      .option("--system-event <text>", t("cronEditCli.systemEventOpt"))
+      .option("--message <text>", t("cronEditCli.messageOpt"))
+      .option("--thinking <level>", t("cronEditCli.thinkingOpt"))
+      .option("--model <model>", t("cronEditCli.modelOpt"))
+      .option("--timeout-seconds <n>", t("cronCli.addTimeoutSecondsOpt"))
+      .option("--light-context", t("cronEditCli.lightContextOpt"))
+      .option("--no-light-context", t("cronEditCli.noLightContextOpt"))
+      .option("--announce", t("cronCli.addAnnounceOpt"))
+      .option("--deliver", t("cronCli.addDeliverOpt"))
+      .option("--no-deliver", t("cronEditCli.noDeliverOpt"))
       .option("--channel <channel>", `Delivery channel (${getCronChannelOptions()})`)
-      .option(
-        "--to <dest>",
-        "Delivery destination (E.164, Telegram chatId, or Discord channel/user)",
-      )
-      .option("--account <id>", "Channel account id for delivery (multi-account setups)")
-      .option("--best-effort-deliver", "Do not fail job if delivery fails")
-      .option("--no-best-effort-deliver", "Fail job when delivery fails")
-      .option("--failure-alert", "Enable failure alerts for this job")
-      .option("--no-failure-alert", "Disable failure alerts for this job")
-      .option("--failure-alert-after <n>", "Alert after N consecutive job errors")
+      .option("--to <dest>", t("cronCli.addToOpt"))
+      .option("--account <id>", t("cronCli.addAccountOpt"))
+      .option("--best-effort-deliver", t("cronEditCli.bestEffortDeliverOpt"))
+      .option("--no-best-effort-deliver", t("cronEditCli.noBestEffortDeliverOpt"))
+      .option("--failure-alert", t("cronEditCli.failureAlertOpt"))
+      .option("--no-failure-alert", t("cronEditCli.noFailureAlertOpt"))
+      .option("--failure-alert-after <n>", t("cronEditCli.failureAlertAfterOpt"))
       .option(
         "--failure-alert-channel <channel>",
         `Failure alert channel (${getCronChannelOptions()})`,
       )
-      .option("--failure-alert-to <dest>", "Failure alert destination")
-      .option("--failure-alert-cooldown <duration>", "Minimum time between alerts (e.g. 1h, 30m)")
-      .option("--failure-alert-mode <mode>", "Failure alert delivery mode (announce or webhook)")
-      .option(
-        "--failure-alert-account-id <id>",
-        "Account ID for failure alert channel (multi-account setups)",
-      )
+      .option("--failure-alert-to <dest>", t("cronEditCli.failureAlertToOpt"))
+      .option("--failure-alert-cooldown <duration>", t("cronEditCli.failureAlertCooldownOpt"))
+      .option("--failure-alert-mode <mode>", t("cronEditCli.failureAlertModeOpt"))
+      .option("--failure-alert-account-id <id>", t("cronEditCli.failureAlertAccountIdOpt"))
       .action(async (id, opts) => {
         try {
           if (opts.session === "main" && opts.message) {

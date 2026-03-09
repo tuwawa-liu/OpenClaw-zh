@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { t } from "../../i18n/index.js";
 import { formatDocsLink } from "../../terminal/links.js";
 import { theme } from "../../terminal/theme.js";
 import { addGatewayServiceCommands } from "./register-service-commands.js";
@@ -6,7 +7,7 @@ import { addGatewayServiceCommands } from "./register-service-commands.js";
 export function registerDaemonCli(program: Command) {
   const daemon = program
     .command("daemon")
-    .description("Manage the Gateway service (launchd/systemd/schtasks)")
+    .description(t("daemonCli.description"))
     .addHelpText(
       "after",
       () =>

@@ -2,6 +2,7 @@ import type { Command } from "commander";
 import { resolveAgentConfig, resolveDefaultAgentId } from "../../agents/agent-scope.js";
 import { loadConfig } from "../../config/config.js";
 import { randomIdempotencyKey } from "../../gateway/call.js";
+import { t } from "../../i18n/index.js";
 import {
   DEFAULT_EXEC_APPROVAL_TIMEOUT_MS,
   type ExecApprovalsFile,
@@ -304,12 +305,12 @@ export function registerNodesInvokeCommands(nodes: Command) {
   nodesCallOpts(
     nodes
       .command("invoke")
-      .description("Invoke a command on a paired node")
-      .requiredOption("--node <idOrNameOrIp>", "Node id, name, or IP")
-      .requiredOption("--command <command>", "Command (e.g. canvas.eval)")
-      .option("--params <json>", "JSON object string for params", "{}")
-      .option("--invoke-timeout <ms>", "Node invoke timeout in ms (default 15000)", "15000")
-      .option("--idempotency-key <key>", "Idempotency key (optional)")
+      .description(t("nodesInvokeCli.invokeDescription"))
+      .requiredOption("--node <idOrNameOrIp>", t("nodesStatusCli.nodeOpt"))
+      .requiredOption("--command <command>", t("nodesInvokeCli.commandOpt"))
+      .option("--params <json>", t("nodesInvokeCli.paramsOpt"), "{}")
+      .option("--invoke-timeout <ms>", t("nodesInvokeCli.invokeTimeoutOpt"), "15000")
+      .option("--idempotency-key <key>", t("nodesInvokeCli.idempotencyKeyOpt"))
       .action(async (opts: NodesRpcOpts) => {
         await runNodesCommand("invoke", async () => {
           const nodeId = await resolveNodeId(opts, String(opts.node ?? ""));
@@ -345,22 +346,22 @@ export function registerNodesInvokeCommands(nodes: Command) {
   nodesCallOpts(
     nodes
       .command("run")
-      .description("Run a shell command on a node (mac only)")
-      .option("--node <idOrNameOrIp>", "Node id, name, or IP")
-      .option("--cwd <path>", "Working directory")
+      .description(t("nodesInvokeCli.runDescription"))
+      .option("--node <idOrNameOrIp>", t("nodesStatusCli.nodeOpt"))
+      .option("--cwd <path>", t("nodesInvokeCli.cwdOpt"))
       .option(
         "--env <key=val>",
-        "Environment override (repeatable)",
+        t("nodesInvokeCli.envOpt"),
         (value: string, prev: string[] = []) => [...prev, value],
       )
-      .option("--raw <command>", "Run a raw shell command string (sh -lc / cmd.exe /c)")
-      .option("--agent <id>", "Agent id (default: configured default agent)")
-      .option("--ask <mode>", "Exec ask mode (off|on-miss|always)")
-      .option("--security <mode>", "Exec security mode (deny|allowlist|full)")
-      .option("--command-timeout <ms>", "Command timeout (ms)")
-      .option("--needs-screen-recording", "Require screen recording permission")
-      .option("--invoke-timeout <ms>", "Node invoke timeout in ms (default 30000)", "30000")
-      .argument("[command...]", "Command and args")
+      .option("--raw <command>", t("nodesInvokeCli.rawOpt"))
+      .option("--agent <id>", t("nodesInvokeCli.agentOpt"))
+      .option("--ask <mode>", t("nodesInvokeCli.askOpt"))
+      .option("--security <mode>", t("nodesInvokeCli.securityOpt"))
+      .option("--command-timeout <ms>", t("nodesInvokeCli.commandTimeoutOpt"))
+      .option("--needs-screen-recording", t("nodesInvokeCli.needsScreenRecordingOpt"))
+      .option("--invoke-timeout <ms>", t("nodesInvokeCli.runInvokeTimeoutOpt"), "30000")
+      .argument("[command...]", t("nodesInvokeCli.commandArg"))
       .action(async (command: string[], opts: NodesRunOpts) => {
         await runNodesCommand("run", async () => {
           const cfg = loadConfig();

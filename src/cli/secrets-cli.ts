@@ -44,7 +44,7 @@ function readPlanFile(pathname: string): SecretsApplyPlan {
 export function registerSecretsCli(program: Command) {
   const secrets = program
     .command("secrets")
-    .description("Secrets runtime controls")
+    .description(t("secretsCli.description"))
     .addHelpText(
       "after",
       () =>
@@ -54,8 +54,8 @@ export function registerSecretsCli(program: Command) {
   addGatewayClientOptions(
     secrets
       .command("reload")
-      .description("Re-resolve secret references and atomically swap runtime snapshot")
-      .option("--json", "Output JSON", false),
+      .description(t("secretsCli.reloadDescription"))
+      .option("--json", t("secretsCli.jsonOpt"), false),
   ).action(async (opts: SecretsReloadOptions) => {
     try {
       const result = await callGatewayFromCli("secrets.reload", opts, undefined, {
@@ -81,9 +81,9 @@ export function registerSecretsCli(program: Command) {
 
   secrets
     .command("audit")
-    .description("Audit plaintext secrets, unresolved refs, and precedence drift")
-    .option("--check", "Exit non-zero when findings are present", false)
-    .option("--json", "Output JSON", false)
+    .description(t("secretsCli.auditDescription"))
+    .option("--check", t("secretsCli.auditCheckOpt"), false)
+    .option("--json", t("secretsCli.jsonOpt"), false)
     .action(async (opts: SecretsAuditOptions) => {
       try {
         const report = await runSecretsAudit();
@@ -111,7 +111,9 @@ export function registerSecretsCli(program: Command) {
               );
             }
             if (report.findings.length > 20) {
-              defaultRuntime.log(t("secretsCli.auditMoreFindings", { count: String(report.findings.length - 20) }));
+              defaultRuntime.log(
+                t("secretsCli.auditMoreFindings", { count: String(report.findings.length - 20) }),
+              );
             }
           }
         }
@@ -127,21 +129,14 @@ export function registerSecretsCli(program: Command) {
 
   secrets
     .command("configure")
-    .description("Interactive secrets helper (provider setup + SecretRef mapping + preflight)")
-    .option("--apply", "Apply changes immediately after preflight", false)
-    .option("--yes", "Skip apply confirmation prompt", false)
-    .option("--providers-only", "Configure secrets.providers only, skip credential mapping", false)
-    .option(
-      "--skip-provider-setup",
-      "Skip provider setup and only map credential fields to existing providers",
-      false,
-    )
-    .option(
-      "--agent <id>",
-      "Agent id for auth-profiles targets (default: configured default agent)",
-    )
-    .option("--plan-out <path>", "Write generated plan JSON to a file")
-    .option("--json", "Output JSON", false)
+    .description(t("secretsCli.configureDescription"))
+    .option("--apply", t("secretsCli.configureApplyOpt"), false)
+    .option("--yes", t("secretsCli.configureYesOpt"), false)
+    .option("--providers-only", t("secretsCli.configureProvidersOnlyOpt"), false)
+    .option("--skip-provider-setup", t("secretsCli.configureSkipProviderSetupOpt"), false)
+    .option("--agent <id>", t("secretsCli.configureAgentOpt"))
+    .option("--plan-out <path>", t("secretsCli.configurePlanOutOpt"))
+    .option("--json", t("secretsCli.jsonOpt"), false)
     .action(async (opts: SecretsConfigureOptions) => {
       try {
         const configured = await runSecretsConfigureInteractive({
@@ -204,8 +199,7 @@ export function registerSecretsCli(program: Command) {
           const needsIrreversiblePrompt = Boolean(opts.apply);
           if (needsIrreversiblePrompt && !opts.yes && !opts.json) {
             const confirmed = await confirm({
-              message:
-                t("secretsCli.migrationOneWay"),
+              message: t("secretsCli.migrationOneWay"),
               initialValue: true,
             });
             if (confirmed !== true) {
@@ -235,10 +229,10 @@ export function registerSecretsCli(program: Command) {
 
   secrets
     .command("apply")
-    .description("Apply a previously generated secrets plan")
-    .requiredOption("--from <path>", "Path to plan JSON")
-    .option("--dry-run", "Validate/preflight only", false)
-    .option("--json", "Output JSON", false)
+    .description(t("secretsCli.applyDescription"))
+    .requiredOption("--from <path>", t("secretsCli.applyFromOpt"))
+    .option("--dry-run", t("secretsCli.applyDryRunOpt"), false)
+    .option("--json", t("secretsCli.jsonOpt"), false)
     .action(async (opts: SecretsApplyOptions) => {
       try {
         const plan = readPlanFile(opts.from);

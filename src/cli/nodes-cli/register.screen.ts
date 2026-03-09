@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { t } from "../../i18n/index.js";
 import { defaultRuntime } from "../../runtime.js";
 import { shortenHomePath } from "../../utils.js";
 import {
@@ -12,21 +13,19 @@ import { buildNodeInvokeParams, callGatewayCli, nodesCallOpts, resolveNodeId } f
 import type { NodesRpcOpts } from "./types.js";
 
 export function registerNodesScreenCommands(nodes: Command) {
-  const screen = nodes
-    .command("screen")
-    .description("Capture screen recordings from a paired node");
+  const screen = nodes.command("screen").description(t("nodesScreenCli.description"));
 
   nodesCallOpts(
     screen
       .command("record")
-      .description("Capture a short screen recording from a node (prints MEDIA:<path>)")
-      .requiredOption("--node <idOrNameOrIp>", "Node id, name, or IP")
-      .option("--screen <index>", "Screen index (0 = primary)", "0")
-      .option("--duration <ms|10s>", "Clip duration (ms or 10s)", "10000")
-      .option("--fps <fps>", "Frames per second", "10")
-      .option("--no-audio", "Disable microphone audio capture")
-      .option("--out <path>", "Output path")
-      .option("--invoke-timeout <ms>", "Node invoke timeout in ms (default 120000)", "120000")
+      .description(t("nodesScreenCli.recordDescription"))
+      .requiredOption("--node <idOrNameOrIp>", t("nodesStatusCli.nodeOpt"))
+      .option("--screen <index>", t("nodesScreenCli.screenIndexOpt"), "0")
+      .option("--duration <ms|10s>", t("nodesScreenCli.durationOpt"), "10000")
+      .option("--fps <fps>", t("nodesScreenCli.fpsOpt"), "10")
+      .option("--no-audio", t("nodesScreenCli.noAudioOpt"))
+      .option("--out <path>", t("nodesScreenCli.outOpt"))
+      .option("--invoke-timeout <ms>", t("nodesScreenCli.invokeTimeoutOpt"), "120000")
       .action(async (opts: NodesRpcOpts & { out?: string }) => {
         await runNodesCommand("screen record", async () => {
           const nodeId = await resolveNodeId(opts, String(opts.node ?? ""));

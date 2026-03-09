@@ -1,5 +1,6 @@
 import type { Command } from "commander";
 import { danger } from "../../globals.js";
+import { t } from "../../i18n/index.js";
 import { defaultRuntime } from "../../runtime.js";
 import type { BrowserParentOpts } from "../browser-cli-shared.js";
 import {
@@ -15,10 +16,10 @@ export function registerBrowserFormWaitEvalCommands(
 ) {
   browser
     .command("fill")
-    .description("Fill a form with JSON field descriptors")
-    .option("--fields <json>", "JSON array of field objects")
-    .option("--fields-file <path>", "Read JSON array from a file")
-    .option("--target-id <id>", "CDP target id (or unique prefix)")
+    .description(t("browserFormCli.fillDescription"))
+    .option("--fields <json>", t("browserFormCli.fieldsOpt"))
+    .option("--fields-file <path>", t("browserFormCli.fieldsFileOpt"))
+    .option("--target-id <id>", t("browserCli.targetIdOpt"))
     .action(async (opts, cmd) => {
       const { parent, profile } = resolveBrowserActionContext(cmd, parentOpts);
       try {
@@ -44,20 +45,16 @@ export function registerBrowserFormWaitEvalCommands(
 
   browser
     .command("wait")
-    .description("Wait for time, selector, URL, load state, or JS conditions")
-    .argument("[selector]", "CSS selector to wait for (visible)")
-    .option("--time <ms>", "Wait for N milliseconds", (v: string) => Number(v))
-    .option("--text <value>", "Wait for text to appear")
-    .option("--text-gone <value>", "Wait for text to disappear")
-    .option("--url <pattern>", "Wait for URL (supports globs like **/dash)")
-    .option("--load <load|domcontentloaded|networkidle>", "Wait for load state")
-    .option("--fn <js>", "Wait for JS condition (passed to waitForFunction)")
-    .option(
-      "--timeout-ms <ms>",
-      "How long to wait for each condition (default: 20000)",
-      (v: string) => Number(v),
-    )
-    .option("--target-id <id>", "CDP target id (or unique prefix)")
+    .description(t("browserFormCli.waitDescription"))
+    .argument("[selector]", t("browserFormCli.waitSelectorArg"))
+    .option("--time <ms>", t("browserFormCli.waitTimeOpt"), (v: string) => Number(v))
+    .option("--text <value>", t("browserFormCli.waitTextOpt"))
+    .option("--text-gone <value>", t("browserFormCli.waitTextGoneOpt"))
+    .option("--url <pattern>", t("browserFormCli.waitUrlOpt"))
+    .option("--load <load|domcontentloaded|networkidle>", t("browserFormCli.waitLoadOpt"))
+    .option("--fn <js>", t("browserFormCli.waitFnOpt"))
+    .option("--timeout-ms <ms>", t("browserFormCli.waitTimeoutMsOpt"), (v: string) => Number(v))
+    .option("--target-id <id>", t("browserCli.targetIdOpt"))
     .action(async (selector: string | undefined, opts, cmd) => {
       const { parent, profile } = resolveBrowserActionContext(cmd, parentOpts);
       try {
@@ -93,10 +90,10 @@ export function registerBrowserFormWaitEvalCommands(
 
   browser
     .command("evaluate")
-    .description("Evaluate a function against the page or a ref")
-    .option("--fn <code>", "Function source, e.g. (el) => el.textContent")
-    .option("--ref <id>", "Ref from snapshot")
-    .option("--target-id <id>", "CDP target id (or unique prefix)")
+    .description(t("browserFormCli.evaluateDescription"))
+    .option("--fn <code>", t("browserFormCli.evaluateFnOpt"))
+    .option("--ref <id>", t("browserFormCli.evaluateRefOpt"))
+    .option("--target-id <id>", t("browserCli.targetIdOpt"))
     .action(async (opts, cmd) => {
       const { parent, profile } = resolveBrowserActionContext(cmd, parentOpts);
       if (!opts.fn) {

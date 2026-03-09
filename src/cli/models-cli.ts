@@ -41,10 +41,7 @@ export function registerModelsCli(program: Command) {
     .description(t("cli.models.desc"))
     .option("--status-json", t("cli.models.optStatusJson"), false)
     .option("--status-plain", t("cli.models.optStatusPlain"), false)
-    .option(
-      "--agent <id>",
-      t("cli.models.optAgent"),
-    )
+    .option("--agent <id>", t("cli.models.optAgent"))
     .addHelpText(
       "after",
       () =>
@@ -70,29 +67,18 @@ export function registerModelsCli(program: Command) {
     .description(t("cli.models.status.desc"))
     .option("--json", t("cli.models.status.optJson"), false)
     .option("--plain", t("cli.models.status.optPlain"), false)
-    .option(
-      "--check",
-      t("cli.models.status.optCheck"),
-      false,
-    )
+    .option("--check", t("cli.models.status.optCheck"), false)
     .option("--probe", t("cli.models.status.optProbe"), false)
     .option("--probe-provider <name>", t("cli.models.status.optProbeProvider"))
-    .option(
-      "--probe-profile <id>",
-      t("cli.models.status.optProbeProfile"),
-      (value, previous) => {
-        const next = Array.isArray(previous) ? previous : previous ? [previous] : [];
-        next.push(value);
-        return next;
-      },
-    )
+    .option("--probe-profile <id>", t("cli.models.status.optProbeProfile"), (value, previous) => {
+      const next = Array.isArray(previous) ? previous : previous ? [previous] : [];
+      next.push(value);
+      return next;
+    })
     .option("--probe-timeout <ms>", t("cli.models.status.optProbeTimeout"))
     .option("--probe-concurrency <n>", t("cli.models.status.optProbeConcurrency"))
     .option("--probe-max-tokens <n>", t("cli.models.status.optProbeMaxTokens"))
-    .option(
-      "--agent <id>",
-      t("cli.models.status.optAgent"),
-    )
+    .option("--agent <id>", t("cli.models.status.optAgent"))
     .action(async (opts, command) => {
       const agent =
         resolveOptionFromCommand<string>(command, "agent") ?? (opts.agent as string | undefined);
@@ -118,7 +104,7 @@ export function registerModelsCli(program: Command) {
   models
     .command("set")
     .description(t("cli.models.set.desc"))
-    .argument("<model>", "Model id or alias")
+    .argument("<model>", t("cli.models.modelArg"))
     .action(async (model: string) => {
       await runModelsCommand(async () => {
         await modelsSetCommand(model, defaultRuntime);
@@ -128,7 +114,7 @@ export function registerModelsCli(program: Command) {
   models
     .command("set-image")
     .description(t("cli.models.setImage.desc"))
-    .argument("<model>", "Model id or alias")
+    .argument("<model>", t("cli.models.modelArg"))
     .action(async (model: string) => {
       await runModelsCommand(async () => {
         await modelsSetImageCommand(model, defaultRuntime);
@@ -151,8 +137,8 @@ export function registerModelsCli(program: Command) {
   aliases
     .command("add")
     .description(t("cli.models.aliases.add.desc"))
-    .argument("<alias>", "Alias name")
-    .argument("<model>", "Model id or alias")
+    .argument("<alias>", t("cli.models.aliasArg"))
+    .argument("<model>", t("cli.models.modelArg"))
     .action(async (alias: string, model: string) => {
       await runModelsCommand(async () => {
         await modelsAliasesAddCommand(alias, model, defaultRuntime);
@@ -162,7 +148,7 @@ export function registerModelsCli(program: Command) {
   aliases
     .command("remove")
     .description(t("cli.models.aliases.remove.desc"))
-    .argument("<alias>", "Alias name")
+    .argument("<alias>", t("cli.models.aliasArg"))
     .action(async (alias: string) => {
       await runModelsCommand(async () => {
         await modelsAliasesRemoveCommand(alias, defaultRuntime);
@@ -185,7 +171,7 @@ export function registerModelsCli(program: Command) {
   fallbacks
     .command("add")
     .description(t("cli.models.fallbacks.add.desc"))
-    .argument("<model>", "Model id or alias")
+    .argument("<model>", t("cli.models.modelArg"))
     .action(async (model: string) => {
       await runModelsCommand(async () => {
         await modelsFallbacksAddCommand(model, defaultRuntime);
@@ -195,7 +181,7 @@ export function registerModelsCli(program: Command) {
   fallbacks
     .command("remove")
     .description(t("cli.models.fallbacks.remove.desc"))
-    .argument("<model>", "Model id or alias")
+    .argument("<model>", t("cli.models.modelArg"))
     .action(async (model: string) => {
       await runModelsCommand(async () => {
         await modelsFallbacksRemoveCommand(model, defaultRuntime);
@@ -229,7 +215,7 @@ export function registerModelsCli(program: Command) {
   imageFallbacks
     .command("add")
     .description(t("cli.models.imageFallbacks.add.desc"))
-    .argument("<model>", "Model id or alias")
+    .argument("<model>", t("cli.models.modelArg"))
     .action(async (model: string) => {
       await runModelsCommand(async () => {
         await modelsImageFallbacksAddCommand(model, defaultRuntime);
@@ -239,7 +225,7 @@ export function registerModelsCli(program: Command) {
   imageFallbacks
     .command("remove")
     .description(t("cli.models.imageFallbacks.remove.desc"))
-    .argument("<model>", "Model id or alias")
+    .argument("<model>", t("cli.models.modelArg"))
     .action(async (model: string) => {
       await runModelsCommand(async () => {
         await modelsImageFallbacksRemoveCommand(model, defaultRuntime);
@@ -290,7 +276,7 @@ export function registerModelsCli(program: Command) {
   });
 
   const auth = models.command("auth").description(t("cli.models.auth.desc"));
-  auth.option("--agent <id>", "Agent id for auth order get/set/clear");
+  auth.option("--agent <id>", t("cli.models.auth.agentOpt"));
   auth.action(() => {
     auth.help();
   });
@@ -345,10 +331,7 @@ export function registerModelsCli(program: Command) {
     .description(t("cli.models.auth.pasteToken.desc"))
     .requiredOption("--provider <name>", t("cli.models.auth.pasteToken.optProvider"))
     .option("--profile-id <id>", t("cli.models.auth.pasteToken.optProfileId"))
-    .option(
-      "--expires-in <duration>",
-      t("cli.models.auth.pasteToken.optExpiresIn"),
-    )
+    .option("--expires-in <duration>", t("cli.models.auth.pasteToken.optExpiresIn"))
     .action(async (opts) => {
       await runModelsCommand(async () => {
         await modelsAuthPasteTokenCommand(
@@ -407,7 +390,7 @@ export function registerModelsCli(program: Command) {
     .description(t("cli.models.auth.order.set.desc"))
     .requiredOption("--provider <name>", t("cli.models.auth.order.set.optProvider"))
     .option("--agent <id>", t("cli.models.auth.order.set.optAgent"))
-    .argument("<profileIds...>", "Auth profile ids (e.g. anthropic:default)")
+    .argument("<profileIds...>", t("cli.models.auth.order.set.profileIdsArg"))
     .action(async (profileIds: string[], opts, command) => {
       const agent =
         resolveOptionFromCommand<string>(command, "agent") ?? (opts.agent as string | undefined);

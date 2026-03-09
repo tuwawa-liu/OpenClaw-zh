@@ -1,25 +1,23 @@
 import type { Command } from "commander";
 import { randomIdempotencyKey } from "../../gateway/call.js";
+import { t } from "../../i18n/index.js";
 import { defaultRuntime } from "../../runtime.js";
 import { runNodesCommand } from "./cli-utils.js";
 import { callGatewayCli, nodesCallOpts, resolveNodeId } from "./rpc.js";
 import type { NodesRpcOpts } from "./types.js";
 
 export function registerNodesLocationCommands(nodes: Command) {
-  const location = nodes.command("location").description("Fetch location from a paired node");
+  const location = nodes.command("location").description(t("nodesLocationCli.description"));
 
   nodesCallOpts(
     location
       .command("get")
-      .description("Fetch the current location from a node")
-      .requiredOption("--node <idOrNameOrIp>", "Node id, name, or IP")
-      .option("--max-age <ms>", "Use cached location newer than this (ms)")
-      .option(
-        "--accuracy <coarse|balanced|precise>",
-        "Desired accuracy (default: balanced/precise depending on node setting)",
-      )
-      .option("--location-timeout <ms>", "Location fix timeout (ms)", "10000")
-      .option("--invoke-timeout <ms>", "Node invoke timeout in ms (default 20000)", "20000")
+      .description(t("nodesLocationCli.getDescription"))
+      .requiredOption("--node <idOrNameOrIp>", t("nodesStatusCli.nodeOpt"))
+      .option("--max-age <ms>", t("nodesLocationCli.maxAgeOpt"))
+      .option("--accuracy <coarse|balanced|precise>", t("nodesLocationCli.accuracyOpt"))
+      .option("--location-timeout <ms>", t("nodesLocationCli.locationTimeoutOpt"), "10000")
+      .option("--invoke-timeout <ms>", t("nodesCanvasCli.invokeTimeoutOpt20s"), "20000")
       .action(async (opts: NodesRpcOpts) => {
         await runNodesCommand("location get", async () => {
           const nodeId = await resolveNodeId(opts, String(opts.node ?? ""));

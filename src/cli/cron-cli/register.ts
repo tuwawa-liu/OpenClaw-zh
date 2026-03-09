@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { t } from "../../i18n/index.js";
 import { formatDocsLink } from "../../terminal/links.js";
 import { theme } from "../../terminal/theme.js";
 import {
@@ -12,7 +13,7 @@ import { registerCronSimpleCommands } from "./register.cron-simple.js";
 export function registerCronCli(program: Command) {
   const cron = program
     .command("cron")
-    .description("Manage cron jobs (via Gateway)")
+    .description(t("cronCli.description"))
     .addHelpText(
       "after",
       () =>

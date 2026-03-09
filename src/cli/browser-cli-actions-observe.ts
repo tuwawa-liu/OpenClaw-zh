@@ -1,5 +1,6 @@
 import type { Command } from "commander";
 import { danger } from "../globals.js";
+import { t } from "../i18n/index.js";
 import { defaultRuntime } from "../runtime.js";
 import { shortenHomePath } from "../utils.js";
 import { callBrowserRequest, type BrowserParentOpts } from "./browser-cli-shared.js";
@@ -18,9 +19,9 @@ export function registerBrowserActionObserveCommands(
 ) {
   browser
     .command("console")
-    .description("Get recent console messages")
-    .option("--level <level>", "Filter by level (error, warn, info)")
-    .option("--target-id <id>", "CDP target id (or unique prefix)")
+    .description(t("browserObserveCli.consoleDescription"))
+    .option("--level <level>", t("browserObserveCli.levelOpt"))
+    .option("--target-id <id>", t("browserCli.targetIdOpt"))
     .action(async (opts, cmd) => {
       const parent = parentOpts(cmd);
       const profile = parent?.browserProfile;
@@ -48,8 +49,8 @@ export function registerBrowserActionObserveCommands(
 
   browser
     .command("pdf")
-    .description("Save page as PDF")
-    .option("--target-id <id>", "CDP target id (or unique prefix)")
+    .description(t("browserObserveCli.pdfDescription"))
+    .option("--target-id <id>", t("browserCli.targetIdOpt"))
     .action(async (opts, cmd) => {
       const parent = parentOpts(cmd);
       const profile = parent?.browserProfile;
@@ -74,17 +75,11 @@ export function registerBrowserActionObserveCommands(
 
   browser
     .command("responsebody")
-    .description("Wait for a network response and return its body")
-    .argument("<url>", "URL (exact, substring, or glob like **/api)")
-    .option("--target-id <id>", "CDP target id (or unique prefix)")
-    .option(
-      "--timeout-ms <ms>",
-      "How long to wait for the response (default: 20000)",
-      (v: string) => Number(v),
-    )
-    .option("--max-chars <n>", "Max body chars to return (default: 200000)", (v: string) =>
-      Number(v),
-    )
+    .description(t("browserObserveCli.responsebodyDescription"))
+    .argument("<url>", t("browserObserveCli.urlArg"))
+    .option("--target-id <id>", t("browserCli.targetIdOpt"))
+    .option("--timeout-ms <ms>", t("browserObserveCli.timeoutMsOpt"), (v: string) => Number(v))
+    .option("--max-chars <n>", t("browserObserveCli.maxCharsOpt"), (v: string) => Number(v))
     .action(async (url: string, opts, cmd) => {
       const parent = parentOpts(cmd);
       const profile = parent?.browserProfile;

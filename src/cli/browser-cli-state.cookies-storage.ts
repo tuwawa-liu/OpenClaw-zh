@@ -51,45 +51,43 @@ export function registerBrowserCookiesAndStorageCommands(
   browser: Command,
   parentOpts: (cmd: Command) => BrowserParentOpts,
 ) {
-  const cookies = browser.command("cookies").description("Read/write cookies");
+  const cookies = browser.command("cookies").description(t("browserCookiesCli.cookiesDescription"));
 
-  cookies
-    .option("--target-id <id>", "CDP target id (or unique prefix)")
-    .action(async (opts, cmd) => {
-      const parent = parentOpts(cmd);
-      const profile = parent?.browserProfile;
-      const targetId = resolveTargetId(opts.targetId, cmd);
-      try {
-        const result = await callBrowserRequest<{ cookies?: unknown[] }>(
-          parent,
-          {
-            method: "GET",
-            path: "/cookies",
-            query: {
-              targetId,
-              profile,
-            },
+  cookies.option("--target-id <id>", t("browserCli.targetIdOpt")).action(async (opts, cmd) => {
+    const parent = parentOpts(cmd);
+    const profile = parent?.browserProfile;
+    const targetId = resolveTargetId(opts.targetId, cmd);
+    try {
+      const result = await callBrowserRequest<{ cookies?: unknown[] }>(
+        parent,
+        {
+          method: "GET",
+          path: "/cookies",
+          query: {
+            targetId,
+            profile,
           },
-          { timeoutMs: 20000 },
-        );
-        if (parent?.json) {
-          defaultRuntime.log(JSON.stringify(result, null, 2));
-          return;
-        }
-        defaultRuntime.log(JSON.stringify(result.cookies ?? [], null, 2));
-      } catch (err) {
-        defaultRuntime.error(danger(String(err)));
-        defaultRuntime.exit(1);
+        },
+        { timeoutMs: 20000 },
+      );
+      if (parent?.json) {
+        defaultRuntime.log(JSON.stringify(result, null, 2));
+        return;
       }
-    });
+      defaultRuntime.log(JSON.stringify(result.cookies ?? [], null, 2));
+    } catch (err) {
+      defaultRuntime.error(danger(String(err)));
+      defaultRuntime.exit(1);
+    }
+  });
 
   cookies
     .command("set")
-    .description("Set a cookie (requires --url or domain+path)")
-    .argument("<name>", "Cookie name")
-    .argument("<value>", "Cookie value")
-    .option("--url <url>", "Cookie URL scope (recommended)")
-    .option("--target-id <id>", "CDP target id (or unique prefix)")
+    .description(t("browserCookiesCli.setDescription"))
+    .argument("<name>", t("browserCookiesCli.nameArg"))
+    .argument("<value>", t("browserCookiesCli.valueArg"))
+    .option("--url <url>", t("browserCookiesCli.urlOpt"))
+    .option("--target-id <id>", t("browserCli.targetIdOpt"))
     .action(async (name: string, value: string, opts, cmd) => {
       const parent = parentOpts(cmd);
       const profile = parent?.browserProfile;
@@ -117,8 +115,8 @@ export function registerBrowserCookiesAndStorageCommands(
 
   cookies
     .command("clear")
-    .description("Clear all cookies")
-    .option("--target-id <id>", "CDP target id (or unique prefix)")
+    .description(t("browserCookiesCli.clearDescription"))
+    .option("--target-id <id>", t("browserCli.targetIdOpt"))
     .action(async (opts, cmd) => {
       const parent = parentOpts(cmd);
       const profile = parent?.browserProfile;
@@ -137,16 +135,18 @@ export function registerBrowserCookiesAndStorageCommands(
       });
     });
 
-  const storage = browser.command("storage").description("Read/write localStorage/sessionStorage");
+  const storage = browser.command("storage").description(t("browserCookiesCli.storageDescription"));
 
   function registerStorageKind(kind: "local" | "session") {
-    const cmd = storage.command(kind).description(`${kind}Storage commands`);
+    const cmd = storage
+      .command(kind)
+      .description(t("browserCookiesCli.storageKindDescription", { kind }));
 
     cmd
       .command("get")
-      .description(`Get ${kind}Storage (all keys or one key)`)
-      .argument("[key]", "Key (optional)")
-      .option("--target-id <id>", "CDP target id (or unique prefix)")
+      .description(t("browserCookiesCli.storageGetDescription", { kind }))
+      .argument("[key]", t("browserCookiesCli.keyArg"))
+      .option("--target-id <id>", t("browserCli.targetIdOpt"))
       .action(async (key: string | undefined, opts, cmd2) => {
         const parent = parentOpts(cmd2);
         const profile = parent?.browserProfile;
@@ -178,10 +178,10 @@ export function registerBrowserCookiesAndStorageCommands(
 
     cmd
       .command("set")
-      .description(`Set a ${kind}Storage key`)
-      .argument("<key>", "Key")
-      .argument("<value>", "Value")
-      .option("--target-id <id>", "CDP target id (or unique prefix)")
+      .description(t("browserCookiesCli.storageSetDescription", { kind }))
+      .argument("<key>", t("browserCookiesCli.storageKeyArg"))
+      .argument("<value>", t("browserCookiesCli.storageValueArg"))
+      .option("--target-id <id>", t("browserCli.targetIdOpt"))
       .action(async (key: string, value: string, opts, cmd2) => {
         const parent = parentOpts(cmd2);
         const profile = parent?.browserProfile;
@@ -204,8 +204,8 @@ export function registerBrowserCookiesAndStorageCommands(
 
     cmd
       .command("clear")
-      .description(`Clear all ${kind}Storage keys`)
-      .option("--target-id <id>", "CDP target id (or unique prefix)")
+      .description(t("browserCookiesCli.storageClearDescription", { kind }))
+      .option("--target-id <id>", t("browserCli.targetIdOpt"))
       .action(async (opts, cmd2) => {
         const parent = parentOpts(cmd2);
         const profile = parent?.browserProfile;

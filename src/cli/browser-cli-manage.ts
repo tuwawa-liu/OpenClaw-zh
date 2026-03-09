@@ -8,6 +8,7 @@ import type {
   ProfileStatus,
 } from "../browser/client.js";
 import { danger, info } from "../globals.js";
+import { t } from "../i18n/index.js";
 import { defaultRuntime } from "../runtime.js";
 import { shortenHomePath } from "../utils.js";
 import { callBrowserRequest, type BrowserParentOpts } from "./browser-cli-shared.js";
@@ -105,7 +106,7 @@ export function registerBrowserManageCommands(
 ) {
   browser
     .command("status")
-    .description("Show browser status")
+    .description(t("browserManageCli.statusDescription"))
     .action(async (_opts, cmd) => {
       const parent = parentOpts(cmd);
       await runBrowserCommand(async () => {
@@ -134,7 +135,7 @@ export function registerBrowserManageCommands(
 
   browser
     .command("start")
-    .description("Start the browser (no-op if already running)")
+    .description(t("browserManageCli.startDescription"))
     .action(async (_opts, cmd) => {
       const parent = parentOpts(cmd);
       const profile = parent?.browserProfile;
@@ -145,7 +146,7 @@ export function registerBrowserManageCommands(
 
   browser
     .command("stop")
-    .description("Stop the browser (best-effort)")
+    .description(t("browserManageCli.stopDescription"))
     .action(async (_opts, cmd) => {
       const parent = parentOpts(cmd);
       const profile = parent?.browserProfile;
@@ -156,7 +157,7 @@ export function registerBrowserManageCommands(
 
   browser
     .command("reset-profile")
-    .description("Reset browser profile (moves it to Trash)")
+    .description(t("browserManageCli.resetProfileDescription"))
     .action(async (_opts, cmd) => {
       const parent = parentOpts(cmd);
       const profile = parent?.browserProfile;
@@ -184,7 +185,7 @@ export function registerBrowserManageCommands(
 
   browser
     .command("tabs")
-    .description("List open tabs")
+    .description(t("browserManageCli.tabsDescription"))
     .action(async (_opts, cmd) => {
       const parent = parentOpts(cmd);
       const profile = parent?.browserProfile;
@@ -205,7 +206,7 @@ export function registerBrowserManageCommands(
 
   const tab = browser
     .command("tab")
-    .description("Tab shortcuts (index-based)")
+    .description(t("browserManageCli.tabDescription"))
     .action(async (_opts, cmd) => {
       const parent = parentOpts(cmd);
       const profile = parent?.browserProfile;
@@ -229,7 +230,7 @@ export function registerBrowserManageCommands(
 
   tab
     .command("new")
-    .description("Open a new tab (about:blank)")
+    .description(t("browserManageCli.newTabDescription"))
     .action(async (_opts, cmd) => {
       const parent = parentOpts(cmd);
       const profile = parent?.browserProfile;
@@ -244,8 +245,8 @@ export function registerBrowserManageCommands(
 
   tab
     .command("select")
-    .description("Focus tab by index (1-based)")
-    .argument("<index>", "Tab index (1-based)", (v: string) => Number(v))
+    .description(t("browserManageCli.selectTabDescription"))
+    .argument("<index>", t("browserManageCli.tabIndexArg"), (v: string) => Number(v))
     .action(async (index: number, _opts, cmd) => {
       const parent = parentOpts(cmd);
       const profile = parent?.browserProfile;
@@ -268,8 +269,8 @@ export function registerBrowserManageCommands(
 
   tab
     .command("close")
-    .description("Close tab by index (1-based); default: first tab")
-    .argument("[index]", "Tab index (1-based)", (v: string) => Number(v))
+    .description(t("browserManageCli.closeTabDescription"))
+    .argument("[index]", t("browserManageCli.tabIndexArg"), (v: string) => Number(v))
     .action(async (index: number | undefined, _opts, cmd) => {
       const parent = parentOpts(cmd);
       const profile = parent?.browserProfile;
@@ -291,8 +292,8 @@ export function registerBrowserManageCommands(
 
   browser
     .command("open")
-    .description("Open a URL in a new tab")
-    .argument("<url>", "URL to open")
+    .description(t("browserManageCli.openDescription"))
+    .argument("<url>", t("browserManageCli.urlArg"))
     .action(async (url: string, _opts, cmd) => {
       const parent = parentOpts(cmd);
       const profile = parent?.browserProfile;
@@ -316,8 +317,8 @@ export function registerBrowserManageCommands(
 
   browser
     .command("focus")
-    .description("Focus a tab by target id (or unique prefix)")
-    .argument("<targetId>", "Target id or unique prefix")
+    .description(t("browserManageCli.focusDescription"))
+    .argument("<targetId>", t("browserManageCli.targetIdArg"))
     .action(async (targetId: string, _opts, cmd) => {
       const parent = parentOpts(cmd);
       const profile = parent?.browserProfile;
@@ -341,8 +342,8 @@ export function registerBrowserManageCommands(
 
   browser
     .command("close")
-    .description("Close a tab (target id optional)")
-    .argument("[targetId]", "Target id or unique prefix (optional)")
+    .description(t("browserManageCli.closeDescription"))
+    .argument("[targetId]", t("browserManageCli.targetIdOptArg"))
     .action(async (targetId: string | undefined, _opts, cmd) => {
       const parent = parentOpts(cmd);
       const profile = parent?.browserProfile;
@@ -379,7 +380,7 @@ export function registerBrowserManageCommands(
   // Profile management commands
   browser
     .command("profiles")
-    .description("List all browser profiles")
+    .description(t("browserManageCli.profilesDescription"))
     .action(async (_opts, cmd) => {
       const parent = parentOpts(cmd);
       await runBrowserCommand(async () => {
@@ -416,11 +417,11 @@ export function registerBrowserManageCommands(
 
   browser
     .command("create-profile")
-    .description("Create a new browser profile")
-    .requiredOption("--name <name>", "Profile name (lowercase, numbers, hyphens)")
-    .option("--color <hex>", "Profile color (hex format, e.g. #0066CC)")
-    .option("--cdp-url <url>", "CDP URL for remote Chrome (http/https)")
-    .option("--driver <driver>", "Profile driver (openclaw|extension). Default: openclaw")
+    .description(t("browserManageCli.createProfileDescription"))
+    .requiredOption("--name <name>", t("browserManageCli.profileNameOpt"))
+    .option("--color <hex>", t("browserManageCli.profileColorOpt"))
+    .option("--cdp-url <url>", t("browserManageCli.cdpUrlOpt"))
+    .option("--driver <driver>", t("browserManageCli.driverOpt"))
     .action(
       async (opts: { name: string; color?: string; cdpUrl?: string; driver?: string }, cmd) => {
         const parent = parentOpts(cmd);
@@ -456,8 +457,8 @@ export function registerBrowserManageCommands(
 
   browser
     .command("delete-profile")
-    .description("Delete a browser profile")
-    .requiredOption("--name <name>", "Profile name to delete")
+    .description(t("browserManageCli.deleteProfileDescription"))
+    .requiredOption("--name <name>", t("browserManageCli.deleteProfileNameOpt"))
     .action(async (opts: { name: string }, cmd) => {
       const parent = parentOpts(cmd);
       await runBrowserCommand(async () => {

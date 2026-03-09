@@ -2,6 +2,7 @@ import type { Command } from "commander";
 import type { SnapshotResult } from "../browser/client.js";
 import { loadConfig } from "../config/config.js";
 import { danger } from "../globals.js";
+import { t } from "../i18n/index.js";
 import { defaultRuntime } from "../runtime.js";
 import { shortenHomePath } from "../utils.js";
 import { callBrowserRequest, type BrowserParentOpts } from "./browser-cli-shared.js";
@@ -12,12 +13,12 @@ export function registerBrowserInspectCommands(
 ) {
   browser
     .command("screenshot")
-    .description("Capture a screenshot (MEDIA:<path>)")
-    .argument("[targetId]", "CDP target id (or unique prefix)")
-    .option("--full-page", "Capture full scrollable page", false)
-    .option("--ref <ref>", "ARIA ref from ai snapshot")
-    .option("--element <selector>", "CSS selector for element screenshot")
-    .option("--type <png|jpeg>", "Output type (default: png)", "png")
+    .description(t("browserInspectCli.screenshotDescription"))
+    .argument("[targetId]", t("browserCli.targetIdOpt"))
+    .option("--full-page", t("browserInspectCli.fullPageOpt"), false)
+    .option("--ref <ref>", t("browserInspectCli.refOpt"))
+    .option("--element <selector>", t("browserInspectCli.elementOpt"))
+    .option("--type <png|jpeg>", t("browserInspectCli.typeOpt"), "png")
     .action(async (targetId: string | undefined, opts, cmd) => {
       const parent = parentOpts(cmd);
       const profile = parent?.browserProfile;
@@ -51,19 +52,19 @@ export function registerBrowserInspectCommands(
 
   browser
     .command("snapshot")
-    .description("Capture a snapshot (default: ai; aria is the accessibility tree)")
-    .option("--format <aria|ai>", "Snapshot format (default: ai)", "ai")
-    .option("--target-id <id>", "CDP target id (or unique prefix)")
-    .option("--limit <n>", "Max nodes (default: 500/800)", (v: string) => Number(v))
-    .option("--mode <efficient>", "Snapshot preset (efficient)")
-    .option("--efficient", "Use the efficient snapshot preset", false)
-    .option("--interactive", "Role snapshot: interactive elements only", false)
-    .option("--compact", "Role snapshot: compact output", false)
-    .option("--depth <n>", "Role snapshot: max depth", (v: string) => Number(v))
-    .option("--selector <sel>", "Role snapshot: scope to CSS selector")
-    .option("--frame <sel>", "Role snapshot: scope to an iframe selector")
-    .option("--labels", "Include viewport label overlay screenshot", false)
-    .option("--out <path>", "Write snapshot to a file")
+    .description(t("browserInspectCli.snapshotDescription"))
+    .option("--format <aria|ai>", t("browserInspectCli.formatOpt"), "ai")
+    .option("--target-id <id>", t("browserCli.targetIdOpt"))
+    .option("--limit <n>", t("browserInspectCli.limitOpt"), (v: string) => Number(v))
+    .option("--mode <efficient>", t("browserInspectCli.modeOpt"))
+    .option("--efficient", t("browserInspectCli.efficientOpt"), false)
+    .option("--interactive", t("browserInspectCli.interactiveOpt"), false)
+    .option("--compact", t("browserInspectCli.compactOpt"), false)
+    .option("--depth <n>", t("browserInspectCli.depthOpt"), (v: string) => Number(v))
+    .option("--selector <sel>", t("browserInspectCli.selectorOpt"))
+    .option("--frame <sel>", t("browserInspectCli.frameOpt"))
+    .option("--labels", t("browserInspectCli.labelsOpt"), false)
+    .option("--out <path>", t("browserInspectCli.outOpt"))
     .action(async (opts, cmd) => {
       const parent = parentOpts(cmd);
       const profile = parent?.browserProfile;

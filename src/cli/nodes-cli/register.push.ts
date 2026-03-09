@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { t } from "../../i18n/index.js";
 import { defaultRuntime } from "../../runtime.js";
 import { getNodesTheme, runNodesCommand } from "./cli-utils.js";
 import { callGatewayCli, nodesCallOpts, resolveNodeId } from "./rpc.js";
@@ -26,11 +27,11 @@ export function registerNodesPushCommand(nodes: Command) {
   nodesCallOpts(
     nodes
       .command("push")
-      .description("Send an APNs test push to an iOS node")
-      .requiredOption("--node <idOrNameOrIp>", "Node id, name, or IP")
-      .option("--title <text>", "Push title", "OpenClaw")
-      .option("--body <text>", "Push body")
-      .option("--environment <sandbox|production>", "Override APNs environment")
+      .description(t("nodesPushCli.description"))
+      .requiredOption("--node <idOrNameOrIp>", t("nodesStatusCli.nodeOpt"))
+      .option("--title <text>", t("nodesPushCli.titleOpt"), "OpenClaw")
+      .option("--body <text>", t("nodesPushCli.bodyOpt"))
+      .option("--environment <sandbox|production>", t("nodesPushCli.environmentOpt"))
       .action(async (opts: NodesPushOpts) => {
         await runNodesCommand("push", async () => {
           const nodeId = await resolveNodeId(opts, String(opts.node ?? ""));

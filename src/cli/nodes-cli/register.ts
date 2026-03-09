@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { t } from "../../i18n/index.js";
 import { formatDocsLink } from "../../terminal/links.js";
 import { theme } from "../../terminal/theme.js";
 import { formatHelpExamples } from "../help-format.js";
@@ -15,7 +16,7 @@ import { registerNodesStatusCommands } from "./register.status.js";
 export function registerNodesCli(program: Command) {
   const nodes = program
     .command("nodes")
-    .description("Manage gateway-owned nodes (pairing, status, invoke, and media)")
+    .description(t("nodesCli.description"))
     .addHelpText(
       "after",
       () =>

@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { t } from "../../i18n/index.js";
 import { defaultRuntime } from "../../runtime.js";
 import { getNodesTheme, runNodesCommand } from "./cli-utils.js";
 import { parsePairingList } from "./format.js";
@@ -10,7 +11,7 @@ export function registerNodesPairingCommands(nodes: Command) {
   nodesCallOpts(
     nodes
       .command("pending")
-      .description("List pending pairing requests")
+      .description(t("nodesPairingCli.pendingDescription"))
       .action(async (opts: NodesRpcOpts) => {
         await runNodesCommand("pending", async () => {
           const result = await callGatewayCli("node.pair.list", opts, {});
@@ -42,8 +43,8 @@ export function registerNodesPairingCommands(nodes: Command) {
   nodesCallOpts(
     nodes
       .command("approve")
-      .description("Approve a pending pairing request")
-      .argument("<requestId>", "Pending request id")
+      .description(t("nodesPairingCli.approveDescription"))
+      .argument("<requestId>", t("nodesPairingCli.requestIdArg"))
       .action(async (requestId: string, opts: NodesRpcOpts) => {
         await runNodesCommand("approve", async () => {
           const result = await callGatewayCli("node.pair.approve", opts, {
@@ -57,8 +58,8 @@ export function registerNodesPairingCommands(nodes: Command) {
   nodesCallOpts(
     nodes
       .command("reject")
-      .description("Reject a pending pairing request")
-      .argument("<requestId>", "Pending request id")
+      .description(t("nodesPairingCli.rejectDescription"))
+      .argument("<requestId>", t("nodesPairingCli.requestIdArg"))
       .action(async (requestId: string, opts: NodesRpcOpts) => {
         await runNodesCommand("reject", async () => {
           const result = await callGatewayCli("node.pair.reject", opts, {
@@ -72,9 +73,9 @@ export function registerNodesPairingCommands(nodes: Command) {
   nodesCallOpts(
     nodes
       .command("rename")
-      .description("Rename a paired node (display name override)")
-      .requiredOption("--node <idOrNameOrIp>", "Node id, name, or IP")
-      .requiredOption("--name <displayName>", "New display name")
+      .description(t("nodesPairingCli.renameDescription"))
+      .requiredOption("--node <idOrNameOrIp>", t("nodesStatusCli.nodeOpt"))
+      .requiredOption("--name <displayName>", t("nodesPairingCli.newNameOpt"))
       .action(async (opts: NodesRpcOpts) => {
         await runNodesCommand("rename", async () => {
           const nodeId = await resolveNodeId(opts, String(opts.node ?? ""));

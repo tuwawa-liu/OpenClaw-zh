@@ -1,5 +1,6 @@
 import type { Command } from "commander";
 import { danger } from "../globals.js";
+import { t } from "../i18n/index.js";
 import { defaultRuntime } from "../runtime.js";
 import { shortenHomePath } from "../utils.js";
 import { callBrowserRequest, type BrowserParentOpts } from "./browser-cli-shared.js";
@@ -74,9 +75,9 @@ export function registerBrowserDebugCommands(
 ) {
   browser
     .command("highlight")
-    .description("Highlight an element by ref")
-    .argument("<ref>", "Ref id from snapshot")
-    .option("--target-id <id>", "CDP target id (or unique prefix)")
+    .description(t("browserDebugCli.highlightDescription"))
+    .argument("<ref>", t("browserDebugCli.refArg"))
+    .option("--target-id <id>", t("browserCli.targetIdOpt"))
     .action(async (ref: string, opts, cmd) => {
       await withDebugContext(cmd, parentOpts, async ({ parent, profile }) => {
         const result = await callDebugRequest(parent, {
@@ -97,9 +98,9 @@ export function registerBrowserDebugCommands(
 
   browser
     .command("errors")
-    .description("Get recent page errors")
-    .option("--clear", "Clear stored errors after reading", false)
-    .option("--target-id <id>", "CDP target id (or unique prefix)")
+    .description(t("browserDebugCli.errorsDescription"))
+    .option("--clear", t("browserDebugCli.clearOpt"), false)
+    .option("--target-id <id>", t("browserCli.targetIdOpt"))
     .action(async (opts, cmd) => {
       await withDebugContext(cmd, parentOpts, async ({ parent, profile }) => {
         const result = await callDebugRequest<{
@@ -130,10 +131,10 @@ export function registerBrowserDebugCommands(
 
   browser
     .command("requests")
-    .description("Get recent network requests (best-effort)")
-    .option("--filter <text>", "Only show URLs that contain this substring")
-    .option("--clear", "Clear stored requests after reading", false)
-    .option("--target-id <id>", "CDP target id (or unique prefix)")
+    .description(t("browserDebugCli.requestsDescription"))
+    .option("--filter <text>", t("browserDebugCli.filterOpt"))
+    .option("--clear", t("browserDebugCli.clearOpt"), false)
+    .option("--target-id <id>", t("browserCli.targetIdOpt"))
     .action(async (opts, cmd) => {
       await withDebugContext(cmd, parentOpts, async ({ parent, profile }) => {
         const result = await callDebugRequest<{
@@ -175,15 +176,15 @@ export function registerBrowserDebugCommands(
       });
     });
 
-  const trace = browser.command("trace").description("Record a Playwright trace");
+  const trace = browser.command("trace").description(t("browserDebugCli.traceDescription"));
 
   trace
     .command("start")
-    .description("Start trace recording")
-    .option("--target-id <id>", "CDP target id (or unique prefix)")
-    .option("--no-screenshots", "Disable screenshots")
-    .option("--no-snapshots", "Disable snapshots")
-    .option("--sources", "Include sources (bigger traces)", false)
+    .description(t("browserDebugCli.traceStartDescription"))
+    .option("--target-id <id>", t("browserCli.targetIdOpt"))
+    .option("--no-screenshots", t("browserDebugCli.noScreenshotsOpt"))
+    .option("--no-snapshots", t("browserDebugCli.noSnapshotsOpt"))
+    .option("--sources", t("browserDebugCli.sourcesOpt"), false)
     .action(async (opts, cmd) => {
       await withDebugContext(cmd, parentOpts, async ({ parent, profile }) => {
         const result = await callDebugRequest(parent, {
@@ -206,12 +207,9 @@ export function registerBrowserDebugCommands(
 
   trace
     .command("stop")
-    .description("Stop trace recording and write a .zip")
-    .option(
-      "--out <path>",
-      "Output path within openclaw temp dir (e.g. trace.zip or /tmp/openclaw/trace.zip)",
-    )
-    .option("--target-id <id>", "CDP target id (or unique prefix)")
+    .description(t("browserDebugCli.traceStopDescription"))
+    .option("--out <path>", t("browserDebugCli.traceOutOpt"))
+    .option("--target-id <id>", t("browserCli.targetIdOpt"))
     .action(async (opts, cmd) => {
       await withDebugContext(cmd, parentOpts, async ({ parent, profile }) => {
         const result = await callDebugRequest<{ path: string }>(parent, {

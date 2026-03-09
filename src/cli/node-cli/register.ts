@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { t } from "../../i18n/index.js";
 import { loadNodeHostConfig } from "../../node-host/config.js";
 import { runNodeHost } from "../../node-host/runner.js";
 import { formatDocsLink } from "../../terminal/links.js";
@@ -21,7 +22,7 @@ function parsePortWithFallback(value: unknown, fallback: number): number {
 export function registerNodeCli(program: Command) {
   const node = program
     .command("node")
-    .description("Run and manage the headless node host service")
+    .description(t("nodeCli.description"))
     .addHelpText(
       "after",
       () =>
@@ -38,13 +39,13 @@ export function registerNodeCli(program: Command) {
 
   node
     .command("run")
-    .description("Run the headless node host (foreground)")
-    .option("--host <host>", "Gateway host")
-    .option("--port <port>", "Gateway port")
-    .option("--tls", "Use TLS for the gateway connection", false)
-    .option("--tls-fingerprint <sha256>", "Expected TLS certificate fingerprint (sha256)")
-    .option("--node-id <id>", "Override node id (clears pairing token)")
-    .option("--display-name <name>", "Override node display name")
+    .description(t("nodeCli.runDescription"))
+    .option("--host <host>", t("nodeCli.runHostOpt"))
+    .option("--port <port>", t("nodeCli.runPortOpt"))
+    .option("--tls", t("nodeCli.runTlsOpt"), false)
+    .option("--tls-fingerprint <sha256>", t("nodeCli.runTlsFingerprintOpt"))
+    .option("--node-id <id>", t("nodeCli.runNodeIdOpt"))
+    .option("--display-name <name>", t("nodeCli.runDisplayNameOpt"))
     .action(async (opts) => {
       const existing = await loadNodeHostConfig();
       const host =
@@ -62,48 +63,48 @@ export function registerNodeCli(program: Command) {
 
   node
     .command("status")
-    .description("Show node host status")
-    .option("--json", "Output JSON", false)
+    .description(t("nodeCli.statusDescription"))
+    .option("--json", t("nodeCli.jsonOpt"), false)
     .action(async (opts) => {
       await runNodeDaemonStatus(opts);
     });
 
   node
     .command("install")
-    .description("Install the node host service (launchd/systemd/schtasks)")
-    .option("--host <host>", "Gateway host")
-    .option("--port <port>", "Gateway port")
-    .option("--tls", "Use TLS for the gateway connection", false)
-    .option("--tls-fingerprint <sha256>", "Expected TLS certificate fingerprint (sha256)")
-    .option("--node-id <id>", "Override node id (clears pairing token)")
-    .option("--display-name <name>", "Override node display name")
-    .option("--runtime <runtime>", "Service runtime (node|bun). Default: node")
-    .option("--force", "Reinstall/overwrite if already installed", false)
-    .option("--json", "Output JSON", false)
+    .description(t("nodeCli.installDescription"))
+    .option("--host <host>", t("nodeCli.runHostOpt"))
+    .option("--port <port>", t("nodeCli.runPortOpt"))
+    .option("--tls", t("nodeCli.runTlsOpt"), false)
+    .option("--tls-fingerprint <sha256>", t("nodeCli.runTlsFingerprintOpt"))
+    .option("--node-id <id>", t("nodeCli.runNodeIdOpt"))
+    .option("--display-name <name>", t("nodeCli.runDisplayNameOpt"))
+    .option("--runtime <runtime>", t("nodeCli.installRuntimeOpt"))
+    .option("--force", t("nodeCli.installForceOpt"), false)
+    .option("--json", t("nodeCli.jsonOpt"), false)
     .action(async (opts) => {
       await runNodeDaemonInstall(opts);
     });
 
   node
     .command("uninstall")
-    .description("Uninstall the node host service (launchd/systemd/schtasks)")
-    .option("--json", "Output JSON", false)
+    .description(t("nodeCli.uninstallDescription"))
+    .option("--json", t("nodeCli.jsonOpt"), false)
     .action(async (opts) => {
       await runNodeDaemonUninstall(opts);
     });
 
   node
     .command("stop")
-    .description("Stop the node host service (launchd/systemd/schtasks)")
-    .option("--json", "Output JSON", false)
+    .description(t("nodeCli.stopDescription"))
+    .option("--json", t("nodeCli.jsonOpt"), false)
     .action(async (opts) => {
       await runNodeDaemonStop(opts);
     });
 
   node
     .command("restart")
-    .description("Restart the node host service (launchd/systemd/schtasks)")
-    .option("--json", "Output JSON", false)
+    .description(t("nodeCli.restartDescription"))
+    .option("--json", t("nodeCli.jsonOpt"), false)
     .action(async (opts) => {
       await runNodeDaemonRestart(opts);
     });

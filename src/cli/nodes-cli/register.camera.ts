@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { t } from "../../i18n/index.js";
 import { defaultRuntime } from "../../runtime.js";
 import { renderTable } from "../../terminal/table.js";
 import { shortenHomePath } from "../../utils.js";
@@ -32,13 +33,13 @@ const parseFacing = (value: string): CameraFacing => {
 };
 
 export function registerNodesCameraCommands(nodes: Command) {
-  const camera = nodes.command("camera").description("Capture camera media from a paired node");
+  const camera = nodes.command("camera").description(t("nodesCameraCli.description"));
 
   nodesCallOpts(
     camera
       .command("list")
-      .description("List available cameras on a node")
-      .requiredOption("--node <idOrNameOrIp>", "Node id, name, or IP")
+      .description(t("nodesCameraCli.listDescription"))
+      .requiredOption("--node <idOrNameOrIp>", t("nodesStatusCli.nodeOpt"))
       .action(async (opts: NodesRpcOpts) => {
         await runNodesCommand("camera list", async () => {
           const nodeId = await resolveNodeId(opts, String(opts.node ?? ""));
@@ -97,14 +98,14 @@ export function registerNodesCameraCommands(nodes: Command) {
   nodesCallOpts(
     camera
       .command("snap")
-      .description("Capture a photo from a node camera (prints MEDIA:<path>)")
-      .requiredOption("--node <idOrNameOrIp>", "Node id, name, or IP")
-      .option("--facing <front|back|both>", "Camera facing", "both")
-      .option("--device-id <id>", "Camera device id (from nodes camera list)")
-      .option("--max-width <px>", "Max width in px (optional)")
-      .option("--quality <0-1>", "JPEG quality (default 0.9)")
-      .option("--delay-ms <ms>", "Delay before capture in ms (macOS default 2000)")
-      .option("--invoke-timeout <ms>", "Node invoke timeout in ms (default 20000)", "20000")
+      .description(t("nodesCameraCli.snapDescription"))
+      .requiredOption("--node <idOrNameOrIp>", t("nodesStatusCli.nodeOpt"))
+      .option("--facing <front|back|both>", t("nodesCameraCli.facingOpt"), "both")
+      .option("--device-id <id>", t("nodesCameraCli.deviceIdOpt"))
+      .option("--max-width <px>", t("nodesCanvasCli.maxWidthOpt"))
+      .option("--quality <0-1>", t("nodesCameraCli.qualityOpt"))
+      .option("--delay-ms <ms>", t("nodesCameraCli.delayMsOpt"))
+      .option("--invoke-timeout <ms>", t("nodesCanvasCli.invokeTimeoutOpt20s"), "20000")
       .action(async (opts: NodesRpcOpts) => {
         await runNodesCommand("camera snap", async () => {
           const node = await resolveNode(opts, String(opts.node ?? ""));
@@ -192,17 +193,13 @@ export function registerNodesCameraCommands(nodes: Command) {
   nodesCallOpts(
     camera
       .command("clip")
-      .description("Capture a short video clip from a node camera (prints MEDIA:<path>)")
-      .requiredOption("--node <idOrNameOrIp>", "Node id, name, or IP")
-      .option("--facing <front|back>", "Camera facing", "front")
-      .option("--device-id <id>", "Camera device id (from nodes camera list)")
-      .option(
-        "--duration <ms|10s|1m>",
-        "Duration (default 3000ms; supports ms/s/m, e.g. 10s)",
-        "3000",
-      )
-      .option("--no-audio", "Disable audio capture")
-      .option("--invoke-timeout <ms>", "Node invoke timeout in ms (default 90000)", "90000")
+      .description(t("nodesCameraCli.clipDescription"))
+      .requiredOption("--node <idOrNameOrIp>", t("nodesStatusCli.nodeOpt"))
+      .option("--facing <front|back>", t("nodesCameraCli.facingOpt"), "front")
+      .option("--device-id <id>", t("nodesCameraCli.deviceIdOpt"))
+      .option("--duration <ms|10s|1m>", t("nodesCameraCli.durationOpt"), "3000")
+      .option("--no-audio", t("nodesCameraCli.noAudioOpt"))
+      .option("--invoke-timeout <ms>", t("nodesCameraCli.invokeTimeout90sOpt"), "90000")
       .action(async (opts: NodesRpcOpts & { audio?: boolean }) => {
         await runNodesCommand("camera clip", async () => {
           const node = await resolveNode(opts, String(opts.node ?? ""));

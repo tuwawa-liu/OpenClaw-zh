@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { t } from "../../i18n/index.js";
 import { formatTimeAgo } from "../../infra/format-time/format-relative.ts";
 import { defaultRuntime } from "../../runtime.js";
 import { renderTable } from "../../terminal/table.js";
@@ -101,9 +102,9 @@ export function registerNodesStatusCommands(nodes: Command) {
   nodesCallOpts(
     nodes
       .command("status")
-      .description("List known nodes with connection status and capabilities")
-      .option("--connected", "Only show connected nodes")
-      .option("--last-connected <duration>", "Only show nodes connected within duration (e.g. 24h)")
+      .description(t("nodesStatusCli.statusDescription"))
+      .option("--connected", t("nodesStatusCli.connectedOpt"))
+      .option("--last-connected <duration>", t("nodesStatusCli.lastConnectedOpt"))
       .action(async (opts: NodesRpcOpts) => {
         await runNodesCommand("status", async () => {
           const connectedOnly = Boolean(opts.connected);
@@ -214,8 +215,8 @@ export function registerNodesStatusCommands(nodes: Command) {
   nodesCallOpts(
     nodes
       .command("describe")
-      .description("Describe a node (capabilities + supported invoke commands)")
-      .requiredOption("--node <idOrNameOrIp>", "Node id, name, or IP")
+      .description(t("nodesStatusCli.describeDescription"))
+      .requiredOption("--node <idOrNameOrIp>", t("nodesStatusCli.nodeOpt"))
       .action(async (opts: NodesRpcOpts) => {
         await runNodesCommand("describe", async () => {
           const nodeId = await resolveNodeId(opts, String(opts.node ?? ""));
@@ -297,9 +298,9 @@ export function registerNodesStatusCommands(nodes: Command) {
   nodesCallOpts(
     nodes
       .command("list")
-      .description("List pending and paired nodes")
-      .option("--connected", "Only show connected nodes")
-      .option("--last-connected <duration>", "Only show nodes connected within duration (e.g. 24h)")
+      .description(t("nodesStatusCli.listDescription"))
+      .option("--connected", t("nodesStatusCli.connectedOpt"))
+      .option("--last-connected <duration>", t("nodesStatusCli.lastConnectedOpt"))
       .action(async (opts: NodesRpcOpts) => {
         await runNodesCommand("list", async () => {
           const connectedOnly = Boolean(opts.connected);
