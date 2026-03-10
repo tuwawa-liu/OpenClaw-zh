@@ -153,10 +153,10 @@ export async function sendReactionSignal(
     remove: false,
     opts,
     errors: {
-      missingRecipient: "Recipient or groupId is required for Signal reaction",
-      invalidTargetTimestamp: "Valid targetTimestamp is required for Signal reaction",
-      missingEmoji: "Emoji is required for Signal reaction",
-      missingTargetAuthor: "targetAuthor is required for group reactions",
+      missingRecipient: "Signal 回应需要提供收件人或群组 ID",
+      invalidTargetTimestamp: "Signal 回应需要有效的目标时间戳",
+      missingEmoji: "Signal 回应需要提供表情符号",
+      missingTargetAuthor: "群组回应需要提供目标作者",
     },
   });
 }
@@ -181,10 +181,10 @@ export async function removeReactionSignal(
     remove: true,
     opts,
     errors: {
-      missingRecipient: "Recipient or groupId is required for Signal reaction removal",
-      invalidTargetTimestamp: "Valid targetTimestamp is required for Signal reaction removal",
-      missingEmoji: "Emoji is required for Signal reaction removal",
-      missingTargetAuthor: "targetAuthor is required for group reaction removal",
+      missingRecipient: "移除 Signal 回应需要提供收件人或群组 ID",
+      invalidTargetTimestamp: "移除 Signal 回应需要有效的目标时间戳",
+      missingEmoji: "移除 Signal 回应需要提供表情符号",
+      missingTargetAuthor: "移除群组回应需要提供目标作者",
     },
   });
 }

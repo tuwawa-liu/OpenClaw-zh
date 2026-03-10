@@ -384,7 +384,7 @@ async function createApp(
     cleaned_default_fields: cleanedFields,
     hint: tableId
       ? `Table created. Use app_token="${appToken}" and table_id="${tableId}" for other bitable tools.`
-      : "Table created. Use feishu_bitable_get_meta to get table_id and field details.",
+      : "表格已创建。使用 feishu_bitable_get_meta 获取 table_id 和字段详情。",
   };
 }
 
@@ -448,41 +448,41 @@ const GetMetaSchema = Type.Object({
 
 const ListFieldsSchema = Type.Object({
   app_token: Type.String({
-    description: "Bitable app token (use feishu_bitable_get_meta to get from URL)",
+    description: "多维表格 app_token（使用 feishu_bitable_get_meta 从 URL 获取）",
   }),
-  table_id: Type.String({ description: "Table ID (from URL: ?table=YYY)" }),
+  table_id: Type.String({ description: "表格 ID（从 URL 中获取：?table=YYY）" }),
 });
 
 const ListRecordsSchema = Type.Object({
   app_token: Type.String({
-    description: "Bitable app token (use feishu_bitable_get_meta to get from URL)",
+    description: "多维表格 app_token（使用 feishu_bitable_get_meta 从 URL 获取）",
   }),
-  table_id: Type.String({ description: "Table ID (from URL: ?table=YYY)" }),
+  table_id: Type.String({ description: "表格 ID（从 URL 中获取：?table=YYY）" }),
   page_size: Type.Optional(
     Type.Number({
-      description: "Number of records per page (1-500, default 100)",
+      description: "每页记录数（1-500，默认 100）",
       minimum: 1,
       maximum: 500,
     }),
   ),
   page_token: Type.Optional(
-    Type.String({ description: "Pagination token from previous response" }),
+    Type.String({ description: "上一次响应中的分页令牌" }),
   ),
 });
 
 const GetRecordSchema = Type.Object({
   app_token: Type.String({
-    description: "Bitable app token (use feishu_bitable_get_meta to get from URL)",
+    description: "多维表格 app_token（使用 feishu_bitable_get_meta 从 URL 获取）",
   }),
-  table_id: Type.String({ description: "Table ID (from URL: ?table=YYY)" }),
-  record_id: Type.String({ description: "Record ID to retrieve" }),
+  table_id: Type.String({ description: "表格 ID（从 URL 中获取：?table=YYY）" }),
+  record_id: Type.String({ description: "要获取的记录 ID" }),
 });
 
 const CreateRecordSchema = Type.Object({
   app_token: Type.String({
-    description: "Bitable app token (use feishu_bitable_get_meta to get from URL)",
+    description: "多维表格 app_token（使用 feishu_bitable_get_meta 从 URL 获取）",
   }),
-  table_id: Type.String({ description: "Table ID (from URL: ?table=YYY)" }),
+  table_id: Type.String({ description: "表格 ID（从 URL 中获取：?table=YYY）" }),
   fields: Type.Record(Type.String(), Type.Any(), {
     description:
       "Field values keyed by field name. Format by type: Text='string', Number=123, SingleSelect='Option', MultiSelect=['A','B'], DateTime=timestamp_ms, User=[{id:'ou_xxx'}], URL={text:'Display',link:'https://...'}",
@@ -491,11 +491,11 @@ const CreateRecordSchema = Type.Object({
 
 const CreateAppSchema = Type.Object({
   name: Type.String({
-    description: "Name for the new Bitable application",
+    description: "新多维表格应用的名称",
   }),
   folder_token: Type.Optional(
     Type.String({
-      description: "Optional folder token to place the Bitable in a specific folder",
+      description: "可选的文件夹令牌，用于将多维表格放置到指定文件夹",
     }),
   ),
 });
@@ -505,8 +505,8 @@ const CreateFieldSchema = Type.Object({
     description:
       "Bitable app token (use feishu_bitable_get_meta to get from URL, or feishu_bitable_create_app to create new)",
   }),
-  table_id: Type.String({ description: "Table ID (from URL: ?table=YYY)" }),
-  field_name: Type.String({ description: "Name for the new field" }),
+  table_id: Type.String({ description: "表格 ID（从 URL 中获取：?table=YYY）" }),
+  field_name: Type.String({ description: "新字段的名称" }),
   field_type: Type.Number({
     description:
       "Field type ID: 1=Text, 2=Number, 3=SingleSelect, 4=MultiSelect, 5=DateTime, 7=Checkbox, 11=User, 13=Phone, 15=URL, 17=Attachment, 18=SingleLink, 19=Lookup, 20=Formula, 21=DuplexLink, 22=Location, 23=GroupChat, 1001=CreatedTime, 1002=ModifiedTime, 1003=CreatedUser, 1004=ModifiedUser, 1005=AutoNumber",
@@ -521,10 +521,10 @@ const CreateFieldSchema = Type.Object({
 
 const UpdateRecordSchema = Type.Object({
   app_token: Type.String({
-    description: "Bitable app token (use feishu_bitable_get_meta to get from URL)",
+    description: "多维表格 app_token（使用 feishu_bitable_get_meta 从 URL 获取）",
   }),
-  table_id: Type.String({ description: "Table ID (from URL: ?table=YYY)" }),
-  record_id: Type.String({ description: "Record ID to update" }),
+  table_id: Type.String({ description: "表格 ID（从 URL 中获取：?table=YYY）" }),
+  record_id: Type.String({ description: "要更新的记录 ID" }),
   fields: Type.Record(Type.String(), Type.Any(), {
     description: "Field values to update (same format as create_record)",
   }),
@@ -583,7 +583,7 @@ export function registerFeishuBitableTools(api: OpenClawPluginApi) {
     name: "feishu_bitable_get_meta",
     label: "Feishu Bitable Get Meta",
     description:
-      "Parse a Bitable URL and get app_token, table_id, and table list. Use this first when given a /wiki/ or /base/ URL.",
+      "解析多维表格 URL 并获取 app_token、table_id 和表格列表。收到 /wiki/ 或 /base/ URL 时请先使用此工具。",
     parameters: GetMetaSchema,
     async execute({ params, defaultAccountId }) {
       return getBitableMeta(getClient(params, defaultAccountId), params.url);
@@ -593,7 +593,7 @@ export function registerFeishuBitableTools(api: OpenClawPluginApi) {
   registerBitableTool<{ app_token: string; table_id: string; accountId?: string }>({
     name: "feishu_bitable_list_fields",
     label: "Feishu Bitable List Fields",
-    description: "List all fields (columns) in a Bitable table with their types and properties",
+    description: "列出多维表格中所有字段（列）及其类型和属性",
     parameters: ListFieldsSchema,
     async execute({ params, defaultAccountId }) {
       return listFields(getClient(params, defaultAccountId), params.app_token, params.table_id);
@@ -609,7 +609,7 @@ export function registerFeishuBitableTools(api: OpenClawPluginApi) {
   }>({
     name: "feishu_bitable_list_records",
     label: "Feishu Bitable List Records",
-    description: "List records (rows) from a Bitable table with pagination support",
+    description: "列出多维表格中的记录（行），支持分页",
     parameters: ListRecordsSchema,
     async execute({ params, defaultAccountId }) {
       return listRecords(
@@ -630,7 +630,7 @@ export function registerFeishuBitableTools(api: OpenClawPluginApi) {
   }>({
     name: "feishu_bitable_get_record",
     label: "Feishu Bitable Get Record",
-    description: "Get a single record by ID from a Bitable table",
+    description: "通过 ID 获取多维表格中的单条记录",
     parameters: GetRecordSchema,
     async execute({ params, defaultAccountId }) {
       return getRecord(
@@ -650,7 +650,7 @@ export function registerFeishuBitableTools(api: OpenClawPluginApi) {
   }>({
     name: "feishu_bitable_create_record",
     label: "Feishu Bitable Create Record",
-    description: "Create a new record (row) in a Bitable table",
+    description: "在多维表格中创建新记录（行）",
     parameters: CreateRecordSchema,
     async execute({ params, defaultAccountId }) {
       return createRecord(
@@ -671,7 +671,7 @@ export function registerFeishuBitableTools(api: OpenClawPluginApi) {
   }>({
     name: "feishu_bitable_update_record",
     label: "Feishu Bitable Update Record",
-    description: "Update an existing record (row) in a Bitable table",
+    description: "更新多维表格中的现有记录（行）",
     parameters: UpdateRecordSchema,
     async execute({ params, defaultAccountId }) {
       return updateRecord(
@@ -687,7 +687,7 @@ export function registerFeishuBitableTools(api: OpenClawPluginApi) {
   registerBitableTool<{ name: string; folder_token?: string; accountId?: string }>({
     name: "feishu_bitable_create_app",
     label: "Feishu Bitable Create App",
-    description: "Create a new Bitable (multidimensional table) application",
+    description: "创建新的多维表格应用",
     parameters: CreateAppSchema,
     async execute({ params, defaultAccountId }) {
       return createApp(getClient(params, defaultAccountId), params.name, params.folder_token, {
@@ -707,7 +707,7 @@ export function registerFeishuBitableTools(api: OpenClawPluginApi) {
   }>({
     name: "feishu_bitable_create_field",
     label: "Feishu Bitable Create Field",
-    description: "Create a new field (column) in a Bitable table",
+    description: "在多维表格中创建新字段（列）",
     parameters: CreateFieldSchema,
     async execute({ params, defaultAccountId }) {
       return createField(

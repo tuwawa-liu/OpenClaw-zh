@@ -44,12 +44,12 @@ export function createDiffsHttpHandler(params: {
 
     const access = resolveViewerAccess(req);
     if (!access.localRequest && params.allowRemoteViewer !== true) {
-      respondText(res, 404, "Diff not found");
+      respondText(res, 404, "差异不存在");
       return true;
     }
 
     if (req.method !== "GET" && req.method !== "HEAD") {
-      respondText(res, 405, "Method not allowed");
+      respondText(res, 405, "方法不被允许");
       return true;
     }
 
@@ -59,7 +59,7 @@ export function createDiffsHttpHandler(params: {
         res.statusCode = 429;
         setSharedHeaders(res, "text/plain; charset=utf-8");
         res.setHeader("Retry-After", String(Math.max(1, Math.ceil(throttled.retryAfterMs / 1000))));
-        res.end("Too Many Requests");
+        res.end("请求过于频繁");
         return true;
       }
     }
@@ -74,14 +74,14 @@ export function createDiffsHttpHandler(params: {
       !DIFF_ARTIFACT_TOKEN_PATTERN.test(token)
     ) {
       recordRemoteFailure(viewerFailureLimiter, access);
-      respondText(res, 404, "Diff not found");
+      respondText(res, 404, "差异不存在");
       return true;
     }
 
     const artifact = await params.store.getArtifact(id, token);
     if (!artifact) {
       recordRemoteFailure(viewerFailureLimiter, access);
-      respondText(res, 404, "Diff not found or expired");
+      respondText(res, 404, "差异不存在或已过期");
       return true;
     }
 
@@ -100,7 +100,7 @@ export function createDiffsHttpHandler(params: {
     } catch (error) {
       recordRemoteFailure(viewerFailureLimiter, access);
       params.logger?.warn(`Failed to serve diff artifact ${id}: ${String(error)}`);
-      respondText(res, 500, "Failed to load diff");
+      respondText(res, 500, "加载差异失败");
       return true;
     }
   };
@@ -124,14 +124,14 @@ async function serveAsset(
   logger?: PluginLogger,
 ): Promise<boolean> {
   if (req.method !== "GET" && req.method !== "HEAD") {
-    respondText(res, 405, "Method not allowed");
+    respondText(res, 405, "方法不被允许");
     return true;
   }
 
   try {
     const asset = await getServedViewerAsset(pathname);
     if (!asset) {
-      respondText(res, 404, "Asset not found");
+      respondText(res, 404, "资源不存在");
       return true;
     }
 

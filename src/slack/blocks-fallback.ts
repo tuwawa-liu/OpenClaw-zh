@@ -67,17 +67,17 @@ export function buildSlackBlocksFallbackText(blocks: (Block | KnownBlock)[]): st
         if (text) {
           return text;
         }
-        return "Shared an image";
+        return "分享了一张图片";
       }
       case "video": {
         const text = readVideoText(block);
         if (text) {
           return text;
         }
-        return "Shared a video";
+        return "分享了一个视频";
       }
       case "file": {
-        return "Shared a file";
+        return "分享了一个文件";
       }
       case "context": {
         const text = readContextText(block);
@@ -91,5 +91,5 @@ export function buildSlackBlocksFallbackText(blocks: (Block | KnownBlock)[]): st
     }
   }
 
-  return "Shared a Block Kit message";
+  return "分享了一条 Block Kit 消息";
 }

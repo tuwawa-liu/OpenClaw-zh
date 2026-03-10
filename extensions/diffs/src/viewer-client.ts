@@ -166,7 +166,7 @@ function createToolbar(): HTMLElement {
 
   toolbar.append(
     createToolbarButton({
-      title: viewerState.layout === "unified" ? "Switch to split diff" : "Switch to unified diff",
+      title: viewerState.layout === "unified" ? "切换到分栏对比" : "切换到统一对比",
       active: viewerState.layout === "split",
       iconMarkup: viewerState.layout === "split" ? splitIcon() : unifiedIcon(),
       onClick: () => {
@@ -178,7 +178,7 @@ function createToolbar(): HTMLElement {
 
   toolbar.append(
     createToolbarButton({
-      title: viewerState.wrapEnabled ? "Disable word wrap" : "Enable word wrap",
+      title: viewerState.wrapEnabled ? "禁用自动换行" : "启用自动换行",
       active: viewerState.wrapEnabled,
       iconMarkup: wrapIcon(viewerState.wrapEnabled),
       onClick: () => {
@@ -191,8 +191,8 @@ function createToolbar(): HTMLElement {
   toolbar.append(
     createToolbarButton({
       title: viewerState.backgroundEnabled
-        ? "Hide background highlights"
-        : "Show background highlights",
+        ? "隐藏背景高亮"
+        : "显示背景高亮",
       active: viewerState.backgroundEnabled,
       iconMarkup: backgroundIcon(viewerState.backgroundEnabled),
       onClick: () => {
@@ -204,7 +204,7 @@ function createToolbar(): HTMLElement {
 
   toolbar.append(
     createToolbarButton({
-      title: viewerState.theme === "dark" ? "Switch to light theme" : "Switch to dark theme",
+      title: viewerState.theme === "dark" ? "切换到浅色主题" : "切换到深色主题",
       active: viewerState.theme === "dark",
       iconMarkup: themeIcon(viewerState.theme),
       onClick: () => {

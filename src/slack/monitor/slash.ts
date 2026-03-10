@@ -77,7 +77,7 @@ function buildSlackArgMenuConfirm(params: { command: string; arg: string }) {
   const command = escapeSlackMrkdwn(params.command);
   const arg = escapeSlackMrkdwn(params.arg);
   return {
-    title: { type: "plain_text", text: "Confirm selection" },
+    title: { type: "plain_text", text: "确认选择" },
     text: {
       type: "mrkdwn",
       text: `Run */${command}* with *${arg}* set to this value?`,
@@ -317,7 +317,7 @@ export async function registerSlackMonitorSlashCommands(params: {
       }
       if (!prompt.trim()) {
         await ack({
-          text: "Message required.",
+          text: "请输入消息内容。",
           response_type: "ephemeral",
         });
         return;
@@ -345,7 +345,7 @@ export async function registerSlackMonitorSlashCommands(params: {
         })
       ) {
         await respond({
-          text: "This channel is not allowed.",
+          text: "此频道不被允许。",
           response_type: "ephemeral",
         });
         return;
@@ -377,7 +377,7 @@ export async function registerSlackMonitorSlashCommands(params: {
           },
           onDisabled: async () => {
             await respond({
-              text: "Slack DMs are disabled.",
+              text: "Slack 私信已禁用。",
               response_type: "ephemeral",
             });
           },
@@ -386,7 +386,7 @@ export async function registerSlackMonitorSlashCommands(params: {
               `slack: blocked slash sender ${command.user_id} (dmPolicy=${ctx.dmPolicy}, ${allowMatchMeta})`,
             );
             await respond({
-              text: "You are not authorized to use this command.",
+              text: "你无权使用此命令。",
               response_type: "ephemeral",
             });
           },
@@ -416,7 +416,7 @@ export async function registerSlackMonitorSlashCommands(params: {
             })
           ) {
             await respond({
-              text: "This channel is not allowed.",
+              text: "此频道不被允许。",
               response_type: "ephemeral",
             });
             return;
@@ -427,7 +427,7 @@ export async function registerSlackMonitorSlashCommands(params: {
           const hasExplicitConfig = Boolean(channelConfig?.matchSource);
           if (!channelAllowed && (ctx.groupPolicy !== "open" || hasExplicitConfig)) {
             await respond({
-              text: "This channel is not allowed.",
+              text: "此频道不被允许。",
               response_type: "ephemeral",
             });
             return;
@@ -449,7 +449,7 @@ export async function registerSlackMonitorSlashCommands(params: {
         : false;
       if (channelUsersAllowlistConfigured && !channelUserAllowed) {
         await respond({
-          text: "You are not authorized to use this command here.",
+          text: "你无权在此处使用此命令。",
           response_type: "ephemeral",
         });
         return;
@@ -479,7 +479,7 @@ export async function registerSlackMonitorSlashCommands(params: {
         });
         if (ctx.useAccessGroups && !commandAuthorized) {
           await respond({
-            text: "You are not authorized to use this command.",
+            text: "你无权使用此命令。",
             response_type: "ephemeral",
           });
           return;

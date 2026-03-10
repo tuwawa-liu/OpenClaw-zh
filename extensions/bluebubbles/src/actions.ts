@@ -158,7 +158,7 @@ export const bluebubblesMessageActions: ChannelMessageActionAdapter = {
     if (action === "react") {
       assertPrivateApiEnabled();
       const { emoji, remove, isEmpty } = readReactionParams(params, {
-        removeErrorMessage: "Emoji is required to remove a BlueBubbles reaction.",
+        removeErrorMessage: "移除 BlueBubbles 回应需要提供表情符号。",
       });
       if (isEmpty && !remove) {
         throw new Error(

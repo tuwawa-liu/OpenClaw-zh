@@ -139,13 +139,13 @@ export const discordPlugin: ChannelPlugin<ResolvedDiscordAccount> = {
             groupPolicy,
             routeAllowlistConfigured: channelAllowlistConfigured,
             configureRouteAllowlist: {
-              surface: "Discord guilds",
+              surface: "Discord 服务器",
               openScope: "any channel not explicitly denied",
               groupPolicyPath: "channels.discord.groupPolicy",
               routeAllowlistPath: "channels.discord.guilds.<id>.channels",
             },
             missingRouteAllowlist: {
-              surface: "Discord guilds",
+              surface: "Discord 服务器",
               openBehavior:
                 "with no guild/channel allowlist; any channel can trigger (mention-gated)",
               remediation:
@@ -195,7 +195,7 @@ export const discordPlugin: ChannelPlugin<ResolvedDiscordAccount> = {
         return inputs.map((input) => ({
           input,
           resolved: false,
-          note: "missing Discord token",
+          note: "缺少 Discord 令牌",
         }));
       }
       if (kind === "group") {
@@ -242,7 +242,7 @@ export const discordPlugin: ChannelPlugin<ResolvedDiscordAccount> = {
         return "DISCORD_BOT_TOKEN can only be used for the default account.";
       }
       if (!input.useEnv && !input.token) {
-        return "Discord requires token (or --use-env).";
+        return "Discord 需要令牌（或 --use-env）。";
       }
       return null;
     },

@@ -169,75 +169,75 @@ export function createDiagnosticsOtelService(): OpenClawPluginService {
 
       const tokensCounter = meter.createCounter("openclaw.tokens", {
         unit: "1",
-        description: "Token usage by type",
+        description: "按类型统计令牌用量",
       });
       const costCounter = meter.createCounter("openclaw.cost.usd", {
         unit: "1",
-        description: "Estimated model cost (USD)",
+        description: "预估模型费用（USD）",
       });
       const durationHistogram = meter.createHistogram("openclaw.run.duration_ms", {
         unit: "ms",
-        description: "Agent run duration",
+        description: "代理运行时长",
       });
       const contextHistogram = meter.createHistogram("openclaw.context.tokens", {
         unit: "1",
-        description: "Context window size and usage",
+        description: "上下文窗口大小和使用情况",
       });
       const webhookReceivedCounter = meter.createCounter("openclaw.webhook.received", {
         unit: "1",
-        description: "Webhook requests received",
+        description: "收到的 Webhook 请求数",
       });
       const webhookErrorCounter = meter.createCounter("openclaw.webhook.error", {
         unit: "1",
-        description: "Webhook processing errors",
+        description: "Webhook 处理错误数",
       });
       const webhookDurationHistogram = meter.createHistogram("openclaw.webhook.duration_ms", {
         unit: "ms",
-        description: "Webhook processing duration",
+        description: "Webhook 处理时长",
       });
       const messageQueuedCounter = meter.createCounter("openclaw.message.queued", {
         unit: "1",
-        description: "Messages queued for processing",
+        description: "排队处理的消息数",
       });
       const messageProcessedCounter = meter.createCounter("openclaw.message.processed", {
         unit: "1",
-        description: "Messages processed by outcome",
+        description: "按结果统计已处理消息数",
       });
       const messageDurationHistogram = meter.createHistogram("openclaw.message.duration_ms", {
         unit: "ms",
-        description: "Message processing duration",
+        description: "消息处理时长",
       });
       const queueDepthHistogram = meter.createHistogram("openclaw.queue.depth", {
         unit: "1",
-        description: "Queue depth on enqueue/dequeue",
+        description: "入队/出队时的队列深度",
       });
       const queueWaitHistogram = meter.createHistogram("openclaw.queue.wait_ms", {
         unit: "ms",
-        description: "Queue wait time before execution",
+        description: "执行前的队列等待时间",
       });
       const laneEnqueueCounter = meter.createCounter("openclaw.queue.lane.enqueue", {
         unit: "1",
-        description: "Command queue lane enqueue events",
+        description: "命令队列通道入队事件",
       });
       const laneDequeueCounter = meter.createCounter("openclaw.queue.lane.dequeue", {
         unit: "1",
-        description: "Command queue lane dequeue events",
+        description: "命令队列通道出队事件",
       });
       const sessionStateCounter = meter.createCounter("openclaw.session.state", {
         unit: "1",
-        description: "Session state transitions",
+        description: "会话状态转换",
       });
       const sessionStuckCounter = meter.createCounter("openclaw.session.stuck", {
         unit: "1",
-        description: "Sessions stuck in processing",
+        description: "卡在处理中的会话",
       });
       const sessionStuckAgeHistogram = meter.createHistogram("openclaw.session.stuck_age_ms", {
         unit: "ms",
-        description: "Age of stuck sessions",
+        description: "卡住会话的持续时间",
       });
       const runAttemptCounter = meter.createCounter("openclaw.run.attempt", {
         unit: "1",
-        description: "Run attempts",
+        description: "运行尝试次数",
       });
 
       if (logsEnabled) {

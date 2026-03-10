@@ -62,7 +62,7 @@ function formatAcpxExitMessage(params: {
   const stderr = params.stderr.trim();
   if (params.exitCode === ACPX_EXIT_CODE_PERMISSION_DENIED) {
     return [
-      stderr || "Permission denied by ACP runtime (acpx).",
+      stderr || "ACP 运行时（acpx）拒绝了权限。",
       "ACPX blocked a write/exec permission request in a non-interactive session.",
       formatPermissionModeGuidance(),
     ].join(" ");

@@ -31,7 +31,7 @@ export function parseSlackTarget(
       { prefix: "slack:", kind: "user" },
     ],
     atUserPattern: /^[A-Z0-9]+$/i,
-    atUserErrorMessage: "Slack DMs require a user id (use user:<id> or <@id>)",
+    atUserErrorMessage: "Slack 私信需要用户 ID（使用 user:<id> 或 <@id>）",
   });
   if (userTarget) {
     return userTarget;
@@ -41,7 +41,7 @@ export function parseSlackTarget(
     const id = ensureTargetId({
       candidate,
       pattern: /^[A-Z0-9]+$/i,
-      errorMessage: "Slack channels require a channel id (use channel:<id>)",
+      errorMessage: "Slack 频道需要频道 ID（使用 channel:<id>）",
     });
     return buildMessagingTarget("channel", id, trimmed);
   }

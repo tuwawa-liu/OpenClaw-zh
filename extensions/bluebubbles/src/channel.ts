@@ -50,11 +50,11 @@ import {
 const meta = {
   id: "bluebubbles",
   label: "BlueBubbles",
-  selectionLabel: "BlueBubbles (macOS app)",
+  selectionLabel: "BlueBubbles（macOS 应用）",
   detailLabel: "BlueBubbles",
   docsPath: "/channels/bluebubbles",
   docsLabel: "bluebubbles",
-  blurb: "iMessage via the BlueBubbles mac app + REST API.",
+  blurb: "通过 BlueBubbles Mac 应用 + REST API 使用 iMessage。",
   systemImage: "bubble.left.and.text.bubble.right",
   aliases: ["bb"],
   order: 75,
@@ -141,7 +141,7 @@ export const bluebubblesPlugin: ChannelPlugin<ResolvedBlueBubblesAccount> = {
       const groupPolicy = account.config.groupPolicy ?? "allowlist";
       return collectOpenGroupPolicyRestrictSendersWarnings({
         groupPolicy,
-        surface: "BlueBubbles groups",
+        surface: "BlueBubbles 群组",
         openScope: "any member",
         groupPolicyPath: "channels.bluebubbles.groupPolicy",
         groupAllowFromPath: "channels.bluebubbles.groupAllowFrom",
@@ -233,13 +233,13 @@ export const bluebubblesPlugin: ChannelPlugin<ResolvedBlueBubblesAccount> = {
       }),
     validateInput: ({ input }) => {
       if (!input.httpUrl && !input.password) {
-        return "BlueBubbles requires --http-url and --password.";
+        return "BlueBubbles 需要 --http-url 和 --password。";
       }
       if (!input.httpUrl) {
-        return "BlueBubbles requires --http-url.";
+        return "BlueBubbles 需要 --http-url。";
       }
       if (!input.password) {
-        return "BlueBubbles requires --password.";
+        return "BlueBubbles 需要 --password。";
       }
       return null;
     },

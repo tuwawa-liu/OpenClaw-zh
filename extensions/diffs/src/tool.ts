@@ -37,29 +37,29 @@ function stringEnum<T extends readonly string[]>(values: T, description: string)
 
 const DiffsToolSchema = Type.Object(
   {
-    before: Type.Optional(Type.String({ description: "Original text content." })),
-    after: Type.Optional(Type.String({ description: "Updated text content." })),
+    before: Type.Optional(Type.String({ description: "原始文本内容。" })),
+    after: Type.Optional(Type.String({ description: "更新后的文本内容。" })),
     patch: Type.Optional(
       Type.String({
-        description: "Unified diff or patch text.",
+        description: "统一差异或补丁文本。",
         maxLength: MAX_PATCH_BYTES,
       }),
     ),
     path: Type.Optional(
       Type.String({
-        description: "Display path for before/after input.",
+        description: "前/后对比的显示路径。",
         maxLength: MAX_PATH_BYTES,
       }),
     ),
     lang: Type.Optional(
       Type.String({
-        description: "Optional language override for before/after input.",
+        description: "可选的前/后对比语言覆盖。",
         maxLength: MAX_LANG_BYTES,
       }),
     ),
     title: Type.Optional(
       Type.String({
-        description: "Optional title for the rendered diff.",
+        description: "可选的差异渲染标题。",
         maxLength: MAX_TITLE_BYTES,
       }),
     ),
@@ -92,20 +92,20 @@ const DiffsToolSchema = Type.Object(
     imageFormat: Type.Optional(stringEnum(DIFF_OUTPUT_FORMATS, "Deprecated alias for fileFormat.")),
     imageScale: Type.Optional(
       Type.Number({
-        description: "Deprecated alias for fileScale.",
+        description: "fileScale 的已弃用别名。",
         minimum: 1,
         maximum: 4,
       }),
     ),
     imageMaxWidth: Type.Optional(
       Type.Number({
-        description: "Deprecated alias for fileMaxWidth.",
+        description: "fileMaxWidth 的已弃用别名。",
         minimum: 640,
         maximum: 2400,
       }),
     ),
     expandUnchanged: Type.Optional(
-      Type.Boolean({ description: "Expand unchanged sections instead of collapsing them." }),
+      Type.Boolean({ description: "展开未更改的部分而非折叠。" }),
     ),
     ttlSeconds: Type.Optional(
       Type.Number({

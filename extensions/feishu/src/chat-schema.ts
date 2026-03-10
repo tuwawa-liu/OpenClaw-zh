@@ -7,16 +7,16 @@ export const FeishuChatSchema = Type.Object({
   action: Type.Unsafe<(typeof CHAT_ACTION_VALUES)[number]>({
     type: "string",
     enum: [...CHAT_ACTION_VALUES],
-    description: "Action to run: members | info",
+    description: "要执行的操作：members | info",
   }),
-  chat_id: Type.String({ description: "Chat ID (from URL or event payload)" }),
-  page_size: Type.Optional(Type.Number({ description: "Page size (1-100, default 50)" })),
-  page_token: Type.Optional(Type.String({ description: "Pagination token" })),
+  chat_id: Type.String({ description: "群聊 ID（从 URL 或事件负载获取）" }),
+  page_size: Type.Optional(Type.Number({ description: "分页大小（1-100，默认 50）" })),
+  page_token: Type.Optional(Type.String({ description: "分页令牌" })),
   member_id_type: Type.Optional(
     Type.Unsafe<(typeof MEMBER_ID_TYPE_VALUES)[number]>({
       type: "string",
       enum: [...MEMBER_ID_TYPE_VALUES],
-      description: "Member ID type (default: open_id)",
+      description: "成员 ID 类型（默认：open_id）",
     }),
   ),
 });

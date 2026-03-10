@@ -29,7 +29,7 @@ function warnInvalidAllowFromEntries(entries: string[]) {
     warnedInvalidEntries.add(entry);
     log.warn(
       [
-        "Invalid allowFrom entry:",
+        "无效的 allowFrom 条目：",
         JSON.stringify(entry),
         "- allowFrom/groupAllowFrom authorization requires numeric Telegram sender IDs only.",
         'If you had "@username" entries, re-run onboarding (it resolves @username to IDs) or replace them manually.',

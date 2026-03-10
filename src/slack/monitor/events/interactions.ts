@@ -518,7 +518,7 @@ export function registerSlackInteractionEvents(params: { ctx: SlackMonitorContex
         if (respond) {
           try {
             await respond({
-              text: "You are not authorized to use this control.",
+              text: "你无权使用此控件。",
               response_type: "ephemeral",
             });
           } catch {

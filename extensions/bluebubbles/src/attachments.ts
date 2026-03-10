@@ -152,7 +152,7 @@ export async function sendBlueBubblesAttachment(params: {
   const { to, caption, replyToMessageGuid, replyToPartIndex, asVoice, opts = {} } = params;
   let { buffer, filename, contentType } = params;
   const wantsVoice = asVoice === true;
-  const fallbackName = wantsVoice ? "Audio Message" : "attachment";
+  const fallbackName = wantsVoice ? "语音消息" : "attachment";
   filename = sanitizeFilename(filename, fallbackName);
   contentType = contentType?.trim() || undefined;
   const { baseUrl, password, accountId } = resolveAccount(opts);

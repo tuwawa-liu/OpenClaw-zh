@@ -254,7 +254,7 @@ export async function resolveSlackMedia(params: {
         return {
           path: saved.path,
           ...(contentType ? { contentType } : {}),
-          placeholder: label ? `[Slack file: ${label}]` : "[Slack file]",
+          placeholder: label ? `[Slack file: ${label}]` : "[Slack 文件]",
         };
       } catch {
         return null;
@@ -291,7 +291,7 @@ export async function resolveSlackAttachmentContent(params: {
     const text = att.text?.trim() || att.fallback?.trim();
     if (text) {
       const author = att.author_name;
-      const heading = author ? `[Forwarded message from ${author}]` : "[Forwarded message]";
+      const heading = author ? `[Forwarded message from ${author}]` : "[转发消息]";
       textBlocks.push(`${heading}\n${text}`);
     }
 

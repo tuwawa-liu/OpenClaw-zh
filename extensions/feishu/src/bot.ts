@@ -336,11 +336,11 @@ function parseMessageContent(content: string, messageType: string): string {
           return `[Forwarded message: ${share.share_chat_id.trim()}]`;
         }
       }
-      return "[Forwarded message]";
+      return "[转发消息]";
     }
     if (messageType === "merge_forward") {
       // Return placeholder; actual content fetched asynchronously in handleFeishuMessage
-      return "[Merged and Forwarded Message - loading...]";
+      return "[合并转发消息 - 加载中...]";
     }
     return content;
   } catch {
@@ -377,18 +377,18 @@ function parseMergeForwardContent(params: {
     items = JSON.parse(content);
   } catch {
     log?.(`feishu: merge_forward items parse failed`);
-    return "[Merged and Forwarded Message - parse error]";
+    return "[合并转发消息 - 解析错误]";
   }
 
   if (!Array.isArray(items) || items.length === 0) {
-    return "[Merged and Forwarded Message - no sub-messages]";
+    return "[合并转发消息 - 无子消息]";
   }
 
   // Filter to only sub-messages (those with upper_message_id, skip the merge_forward container itself)
   const subMessages = items.filter((item) => item.upper_message_id);
 
   if (subMessages.length === 0) {
-    return "[Merged and Forwarded Message - no sub-messages found]";
+    return "[合并转发消息 - 未找到子消息]";
   }
 
   log?.(`feishu: merge_forward contains ${subMessages.length} sub-messages`);
@@ -401,7 +401,7 @@ function parseMergeForwardContent(params: {
   });
 
   // Format output
-  const lines: string[] = ["[Merged and Forwarded Messages]"];
+  const lines: string[] = ["[合并转发消息]"];
   const limitedMessages = subMessages.slice(0, maxMessages);
 
   for (const item of limitedMessages) {
@@ -442,7 +442,7 @@ function formatSubMessageContent(content: string, contentType: string): string {
       case "sticker":
         return "[Sticker]";
       case "merge_forward":
-        return "[Nested Merged Forward]";
+        return "[嵌套合并转发]";
       default:
         return `[${contentType}]`;
     }
@@ -920,7 +920,7 @@ export async function handleFeishuMessage(params: {
         ctx = { ...ctx, content: expandedContent };
       } else {
         log(`feishu[${account.accountId}]: merge_forward API returned no items`);
-        ctx = { ...ctx, content: "[Merged and Forwarded Message - could not fetch]" };
+        ctx = { ...ctx, content: "[合并转发消息 - 无法获取]" };
       }
     } catch (err) {
       log(`feishu[${account.accountId}]: merge_forward fetch failed: ${String(err)}`);
