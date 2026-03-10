@@ -1,30 +1,30 @@
 ---
-summary: "CLI reference for `openclaw tui` (terminal UI connected to the Gateway)"
 read_when:
-  - You want a terminal UI for the Gateway (remote-friendly)
-  - You want to pass url/token/session from scripts
-title: "tui"
+  - 你想要一个连接 Gateway 网关的终端 UI（支持远程）
+  - 你想从脚本传递 url/token/session
+summary: "`openclaw tui` 的 CLI 参考（连接到 Gateway 网关的终端 UI）"
+title: tui
+x-i18n:
+  generated_at: "2026-02-03T07:45:20Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: f0a97d92e08746a9d6a4f31d361ccad9aea4c3dc61cfafb310d88715f61cfb64
+  source_path: cli/tui.md
+  workflow: 15
 ---
 
 # `openclaw tui`
 
-Open the terminal UI connected to the Gateway.
+打开连接到 Gateway 网关的终端 UI。
 
-Related:
+相关：
 
-- TUI guide: [TUI](/web/tui)
+- TUI 指南：[TUI](/web/tui)
 
-Notes:
-
-- `tui` resolves configured gateway auth SecretRefs for token/password auth when possible (`env`/`file`/`exec` providers).
-- When launched from inside a configured agent workspace directory, TUI auto-selects that agent for the session key default (unless `--session` is explicitly `agent:<id>:...`).
-
-## Examples
+## 示例
 
 ```bash
 openclaw tui
 openclaw tui --url ws://127.0.0.1:18789 --token <token>
 openclaw tui --session main --deliver
-# when run inside an agent workspace, infers that agent automatically
-openclaw tui --session bugfix
 ```

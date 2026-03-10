@@ -1,74 +1,81 @@
 ---
-summary: "Use Venice AI privacy-focused models in OpenClaw"
 read_when:
-  - You want privacy-focused inference in OpenClaw
-  - You want Venice AI setup guidance
-title: "Venice AI"
+  - 你想在 OpenClaw 中使用注重隐私的推理服务
+  - 你需要 Venice AI 设置指导
+summary: 在 OpenClaw 中使用 Venice AI 注重隐私的模型
+title: Venice AI
+x-i18n:
+  generated_at: "2026-02-01T21:36:03Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 2453a6ec3a715c24c460f902dec1755edcad40328de2ef895e35a614a25624cf
+  source_path: providers/venice.md
+  workflow: 15
 ---
 
-# Venice AI (Venice highlight)
+# Venice AI（Venice 精选）
 
-**Venice** is our highlight Venice setup for privacy-first inference with optional anonymized access to proprietary models.
+**Venice** 是我们精选的 Venice 隐私优先推理配置，支持可选的匿名化访问专有模型。
 
-Venice AI provides privacy-focused AI inference with support for uncensored models and access to major proprietary models through their anonymized proxy. All inference is private by default—no training on your data, no logging.
+Venice AI 提供注重隐私的 AI 推理服务，支持无审查模型，并可通过其匿名代理访问主流专有模型。所有推理默认私密——不会用你的数据训练，不会记录日志。
 
-## Why Venice in OpenClaw
+## 为什么在 OpenClaw 中使用 Venice
 
-- **Private inference** for open-source models (no logging).
-- **Uncensored models** when you need them.
-- **Anonymized access** to proprietary models (Opus/GPT/Gemini) when quality matters.
-- OpenAI-compatible `/v1` endpoints.
+- **私密推理**，适用于开源模型（无日志记录）。
+- 需要时可使用**无审查模型**。
+- 在质量重要时，可**匿名访问**专有模型（Opus/GPT/Gemini）。
+- 兼容 OpenAI 的 `/v1` 端点。
 
-## Privacy Modes
+## 隐私模式
 
-Venice offers two privacy levels — understanding this is key to choosing your model:
+Venice 提供两种隐私级别——理解这一点是选择模型的关键：
 
-| Mode           | Description                                                                                                                       | Models                                                        |
-| -------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| **Private**    | Fully private. Prompts/responses are **never stored or logged**. Ephemeral.                                                       | Llama, Qwen, DeepSeek, Kimi, MiniMax, Venice Uncensored, etc. |
-| **Anonymized** | Proxied through Venice with metadata stripped. The underlying provider (OpenAI, Anthropic, Google, xAI) sees anonymized requests. | Claude, GPT, Gemini, Grok                                     |
+| 模式       | 描述                                                                                  | 模型                                        |
+| ---------- | ------------------------------------------------------------------------------------- | ------------------------------------------- |
+| **私密**   | 完全私密。提示词/回复**从不存储或记录**。临时性处理。                                 | Llama、Qwen、DeepSeek、Venice Uncensored 等 |
+| **匿名化** | 通过 Venice 代理转发并剥离元数据。底层提供商（OpenAI、Anthropic）收到的是匿名化请求。 | Claude、GPT、Gemini、Grok、Kimi、MiniMax    |
 
-## Features
+## 功能特性
 
-- **Privacy-focused**: Choose between "private" (fully private) and "anonymized" (proxied) modes
-- **Uncensored models**: Access to models without content restrictions
-- **Major model access**: Use Claude, GPT, Gemini, and Grok via Venice's anonymized proxy
-- **OpenAI-compatible API**: Standard `/v1` endpoints for easy integration
-- **Streaming**: ✅ Supported on all models
-- **Function calling**: ✅ Supported on select models (check model capabilities)
-- **Vision**: ✅ Supported on models with vision capability
-- **No hard rate limits**: Fair-use throttling may apply for extreme usage
+- **注重隐私**：可选择"私密"（完全私密）和"匿名化"（代理转发）模式
+- **无审查模型**：访问无内容限制的模型
+- **主流模型访问**：通过 Venice 匿名代理使用 Claude、GPT-5.2、Gemini、Grok
+- **兼容 OpenAI API**：标准 `/v1` 端点，易于集成
+- **流式输出**：✅ 所有模型均支持
+- **函数调用**：✅ 部分模型支持（请检查模型能力）
+- **视觉**：✅ 具有视觉能力的模型支持
+- **无硬性速率限制**：极端使用情况下可能触发公平使用限流
 
-## Setup
+## 设置
 
-### 1. Get API Key
+### 1. 获取 API 密钥
 
-1. Sign up at [venice.ai](https://venice.ai)
-2. Go to **Settings → API Keys → Create new key**
-3. Copy your API key (format: `vapi_xxxxxxxxxxxx`)
+1. 在 [venice.ai](https://venice.ai) 注册
+2. 前往 **Settings → API Keys → Create new key**
+3. 复制你的 API 密钥（格式：`vapi_xxxxxxxxxxxx`）
 
-### 2. Configure OpenClaw
+### 2. 配置 OpenClaw
 
-**Option A: Environment Variable**
+**方案 A：环境变量**
 
 ```bash
 export VENICE_API_KEY="vapi_xxxxxxxxxxxx"
 ```
 
-**Option B: Interactive Setup (Recommended)**
+**方案 B：交互式设置（推荐）**
 
 ```bash
 openclaw onboard --auth-choice venice-api-key
 ```
 
-This will:
+这将：
 
-1. Prompt for your API key (or use existing `VENICE_API_KEY`)
-2. Show all available Venice models
-3. Let you pick your default model
-4. Configure the provider automatically
+1. 提示输入你的 API 密钥（或使用已有的 `VENICE_API_KEY`）
+2. 显示所有可用的 Venice 模型
+3. 让你选择默认模型
+4. 自动配置提供商
 
-**Option C: Non-interactive**
+**方案 C：非交互式**
 
 ```bash
 openclaw onboard --non-interactive \
@@ -76,180 +83,165 @@ openclaw onboard --non-interactive \
   --venice-api-key "vapi_xxxxxxxxxxxx"
 ```
 
-### 3. Verify Setup
+### 3. 验证设置
 
 ```bash
-openclaw agent --model venice/kimi-k2-5 --message "Hello, are you working?"
+openclaw chat --model venice/llama-3.3-70b "Hello, are you working?"
 ```
 
-## Model Selection
+## 模型选择
 
-After setup, OpenClaw shows all available Venice models. Pick based on your needs:
+设置完成后，OpenClaw 会显示所有可用的 Venice 模型。根据你的需求选择：
 
-- **Default model**: `venice/kimi-k2-5` for strong private reasoning plus vision.
-- **High-capability option**: `venice/claude-opus-4-6` for the strongest anonymized Venice path.
-- **Privacy**: Choose "private" models for fully private inference.
-- **Capability**: Choose "anonymized" models to access Claude, GPT, Gemini via Venice's proxy.
+- **默认（我们的推荐）**：`venice/llama-3.3-70b`，私密且性能均衡。
+- **最佳整体质量**：`venice/claude-opus-45`，适合复杂任务（Opus 仍然是最强的）。
+- **隐私**：选择"私密"模型以获得完全私密的推理。
+- **能力**：选择"匿名化"模型以通过 Venice 代理访问 Claude、GPT、Gemini。
 
-Change your default model anytime:
+随时更改默认模型：
 
 ```bash
-openclaw models set venice/kimi-k2-5
-openclaw models set venice/claude-opus-4-6
+openclaw models set venice/claude-opus-45
+openclaw models set venice/llama-3.3-70b
 ```
 
-List all available models:
+列出所有可用模型：
 
 ```bash
 openclaw models list | grep venice
 ```
 
-## Configure via `openclaw configure`
+## 通过 `openclaw configure` 配置
 
-1. Run `openclaw configure`
-2. Select **Model/auth**
-3. Choose **Venice AI**
+1. 运行 `openclaw configure`
+2. 选择 **Model/auth**
+3. 选择 **Venice AI**
 
-## Which Model Should I Use?
+## 应该使用哪个模型？
 
-| Use Case                   | Recommended Model                | Why                                          |
-| -------------------------- | -------------------------------- | -------------------------------------------- |
-| **General chat (default)** | `kimi-k2-5`                      | Strong private reasoning plus vision         |
-| **Best overall quality**   | `claude-opus-4-6`                | Strongest anonymized Venice option           |
-| **Privacy + coding**       | `qwen3-coder-480b-a35b-instruct` | Private coding model with large context      |
-| **Private vision**         | `kimi-k2-5`                      | Vision support without leaving private mode  |
-| **Fast + cheap**           | `qwen3-4b`                       | Lightweight reasoning model                  |
-| **Complex private tasks**  | `deepseek-v3.2`                  | Strong reasoning, but no Venice tool support |
-| **Uncensored**             | `venice-uncensored`              | No content restrictions                      |
+| 使用场景               | 推荐模型                         | 原因                         |
+| ---------------------- | -------------------------------- | ---------------------------- |
+| **通用对话**           | `llama-3.3-70b`                  | 综合表现好，完全私密         |
+| **最佳整体质量**       | `claude-opus-45`                 | Opus 在复杂任务上仍然最强    |
+| **隐私 + Claude 品质** | `claude-opus-45`                 | 通过匿名代理获得最佳推理能力 |
+| **编程**               | `qwen3-coder-480b-a35b-instruct` | 代码优化，262k 上下文        |
+| **视觉任务**           | `qwen3-vl-235b-a22b`             | 最佳私密视觉模型             |
+| **无审查**             | `venice-uncensored`              | 无内容限制                   |
+| **快速 + 低成本**      | `qwen3-4b`                       | 轻量级，仍有不错能力         |
+| **复杂推理**           | `deepseek-v3.2`                  | 推理能力强，私密             |
 
-## Available Models (41 Total)
+## 可用模型（共 25 个）
 
-### Private Models (26) — Fully Private, No Logging
+### 私密模型（15 个）— 完全私密，无日志记录
 
-| Model ID                               | Name                                | Context | Features                   |
-| -------------------------------------- | ----------------------------------- | ------- | -------------------------- |
-| `kimi-k2-5`                            | Kimi K2.5                           | 256k    | Default, reasoning, vision |
-| `kimi-k2-thinking`                     | Kimi K2 Thinking                    | 256k    | Reasoning                  |
-| `llama-3.3-70b`                        | Llama 3.3 70B                       | 128k    | General                    |
-| `llama-3.2-3b`                         | Llama 3.2 3B                        | 128k    | General                    |
-| `hermes-3-llama-3.1-405b`              | Hermes 3 Llama 3.1 405B             | 128k    | General, tools disabled    |
-| `qwen3-235b-a22b-thinking-2507`        | Qwen3 235B Thinking                 | 128k    | Reasoning                  |
-| `qwen3-235b-a22b-instruct-2507`        | Qwen3 235B Instruct                 | 128k    | General                    |
-| `qwen3-coder-480b-a35b-instruct`       | Qwen3 Coder 480B                    | 256k    | Coding                     |
-| `qwen3-coder-480b-a35b-instruct-turbo` | Qwen3 Coder 480B Turbo              | 256k    | Coding                     |
-| `qwen3-5-35b-a3b`                      | Qwen3.5 35B A3B                     | 256k    | Reasoning, vision          |
-| `qwen3-next-80b`                       | Qwen3 Next 80B                      | 256k    | General                    |
-| `qwen3-vl-235b-a22b`                   | Qwen3 VL 235B (Vision)              | 256k    | Vision                     |
-| `qwen3-4b`                             | Venice Small (Qwen3 4B)             | 32k     | Fast, reasoning            |
-| `deepseek-v3.2`                        | DeepSeek V3.2                       | 160k    | Reasoning, tools disabled  |
-| `venice-uncensored`                    | Venice Uncensored (Dolphin-Mistral) | 32k     | Uncensored, tools disabled |
-| `mistral-31-24b`                       | Venice Medium (Mistral)             | 128k    | Vision                     |
-| `google-gemma-3-27b-it`                | Google Gemma 3 27B Instruct         | 198k    | Vision                     |
-| `openai-gpt-oss-120b`                  | OpenAI GPT OSS 120B                 | 128k    | General                    |
-| `nvidia-nemotron-3-nano-30b-a3b`       | NVIDIA Nemotron 3 Nano 30B          | 128k    | General                    |
-| `olafangensan-glm-4.7-flash-heretic`   | GLM 4.7 Flash Heretic               | 128k    | Reasoning                  |
-| `zai-org-glm-4.6`                      | GLM 4.6                             | 198k    | General                    |
-| `zai-org-glm-4.7`                      | GLM 4.7                             | 198k    | Reasoning                  |
-| `zai-org-glm-4.7-flash`                | GLM 4.7 Flash                       | 128k    | Reasoning                  |
-| `zai-org-glm-5`                        | GLM 5                               | 198k    | Reasoning                  |
-| `minimax-m21`                          | MiniMax M2.1                        | 198k    | Reasoning                  |
-| `minimax-m25`                          | MiniMax M2.5                        | 198k    | Reasoning                  |
+| 模型 ID                          | 名称                    | 上下文（token） | 特性         |
+| -------------------------------- | ----------------------- | --------------- | ------------ |
+| `llama-3.3-70b`                  | Llama 3.3 70B           | 131k            | 通用         |
+| `llama-3.2-3b`                   | Llama 3.2 3B            | 131k            | 快速，轻量   |
+| `hermes-3-llama-3.1-405b`        | Hermes 3 Llama 3.1 405B | 131k            | 复杂任务     |
+| `qwen3-235b-a22b-thinking-2507`  | Qwen3 235B Thinking     | 131k            | 推理         |
+| `qwen3-235b-a22b-instruct-2507`  | Qwen3 235B Instruct     | 131k            | 通用         |
+| `qwen3-coder-480b-a35b-instruct` | Qwen3 Coder 480B        | 262k            | 编程         |
+| `qwen3-next-80b`                 | Qwen3 Next 80B          | 262k            | 通用         |
+| `qwen3-vl-235b-a22b`             | Qwen3 VL 235B           | 262k            | 视觉         |
+| `qwen3-4b`                       | Venice Small (Qwen3 4B) | 32k             | 快速，推理   |
+| `deepseek-v3.2`                  | DeepSeek V3.2           | 163k            | 推理         |
+| `venice-uncensored`              | Venice Uncensored       | 32k             | 无审查       |
+| `mistral-31-24b`                 | Venice Medium (Mistral) | 131k            | 视觉         |
+| `google-gemma-3-27b-it`          | Gemma 3 27B Instruct    | 202k            | 视觉         |
+| `openai-gpt-oss-120b`            | OpenAI GPT OSS 120B     | 131k            | 通用         |
+| `zai-org-glm-4.7`                | GLM 4.7                 | 202k            | 推理，多语言 |
 
-### Anonymized Models (15) — Via Venice Proxy
+### 匿名化模型（10 个）— 通过 Venice 代理
 
-| Model ID                        | Name                           | Context | Features                  |
-| ------------------------------- | ------------------------------ | ------- | ------------------------- |
-| `claude-opus-4-6`               | Claude Opus 4.6 (via Venice)   | 1M      | Reasoning, vision         |
-| `claude-opus-4-5`               | Claude Opus 4.5 (via Venice)   | 198k    | Reasoning, vision         |
-| `claude-sonnet-4-6`             | Claude Sonnet 4.6 (via Venice) | 1M      | Reasoning, vision         |
-| `claude-sonnet-4-5`             | Claude Sonnet 4.5 (via Venice) | 198k    | Reasoning, vision         |
-| `openai-gpt-54`                 | GPT-5.4 (via Venice)           | 1M      | Reasoning, vision         |
-| `openai-gpt-53-codex`           | GPT-5.3 Codex (via Venice)     | 400k    | Reasoning, vision, coding |
-| `openai-gpt-52`                 | GPT-5.2 (via Venice)           | 256k    | Reasoning                 |
-| `openai-gpt-52-codex`           | GPT-5.2 Codex (via Venice)     | 256k    | Reasoning, vision, coding |
-| `openai-gpt-4o-2024-11-20`      | GPT-4o (via Venice)            | 128k    | Vision                    |
-| `openai-gpt-4o-mini-2024-07-18` | GPT-4o Mini (via Venice)       | 128k    | Vision                    |
-| `gemini-3-1-pro-preview`        | Gemini 3.1 Pro (via Venice)    | 1M      | Reasoning, vision         |
-| `gemini-3-pro-preview`          | Gemini 3 Pro (via Venice)      | 198k    | Reasoning, vision         |
-| `gemini-3-flash-preview`        | Gemini 3 Flash (via Venice)    | 256k    | Reasoning, vision         |
-| `grok-41-fast`                  | Grok 4.1 Fast (via Venice)     | 1M      | Reasoning, vision         |
-| `grok-code-fast-1`              | Grok Code Fast 1 (via Venice)  | 256k    | Reasoning, coding         |
+| 模型 ID                  | 原始模型          | 上下文（token） | 特性       |
+| ------------------------ | ----------------- | --------------- | ---------- |
+| `claude-opus-45`         | Claude Opus 4.5   | 202k            | 推理，视觉 |
+| `claude-sonnet-45`       | Claude Sonnet 4.5 | 202k            | 推理，视觉 |
+| `openai-gpt-52`          | GPT-5.2           | 262k            | 推理       |
+| `openai-gpt-52-codex`    | GPT-5.2 Codex     | 262k            | 推理，视觉 |
+| `gemini-3-pro-preview`   | Gemini 3 Pro      | 202k            | 推理，视觉 |
+| `gemini-3-flash-preview` | Gemini 3 Flash    | 262k            | 推理，视觉 |
+| `grok-41-fast`           | Grok 4.1 Fast     | 262k            | 推理，视觉 |
+| `grok-code-fast-1`       | Grok Code Fast 1  | 262k            | 推理，编程 |
+| `kimi-k2-thinking`       | Kimi K2 Thinking  | 262k            | 推理       |
+| `minimax-m21`            | MiniMax M2.1      | 202k            | 推理       |
 
-## Model Discovery
+## 模型发现
 
-OpenClaw automatically discovers models from the Venice API when `VENICE_API_KEY` is set. If the API is unreachable, it falls back to a static catalog.
+当设置了 `VENICE_API_KEY` 时，OpenClaw 会自动从 Venice API 发现模型。如果 API 不可达，则回退到静态目录。
 
-The `/models` endpoint is public (no auth needed for listing), but inference requires a valid API key.
+`/models` 端点是公开的（列出模型无需认证），但推理需要有效的 API 密钥。
 
-## Streaming & Tool Support
+## 流式输出与工具支持
 
-| Feature              | Support                                                 |
-| -------------------- | ------------------------------------------------------- |
-| **Streaming**        | ✅ All models                                           |
-| **Function calling** | ✅ Most models (check `supportsFunctionCalling` in API) |
-| **Vision/Images**    | ✅ Models marked with "Vision" feature                  |
-| **JSON mode**        | ✅ Supported via `response_format`                      |
+| 功能          | 支持情况                                                   |
+| ------------- | ---------------------------------------------------------- |
+| **流式输出**  | ✅ 所有模型                                                |
+| **函数调用**  | ✅ 大多数模型（请检查 API 中的 `supportsFunctionCalling`） |
+| **视觉/图像** | ✅ 标记为"视觉"特性的模型                                  |
+| **JSON 模式** | ✅ 通过 `response_format` 支持                             |
 
-## Pricing
+## 定价
 
-Venice uses a credit-based system. Check [venice.ai/pricing](https://venice.ai/pricing) for current rates:
+Venice 使用积分制。请查看 [venice.ai/pricing](https://venice.ai/pricing) 了解当前费率：
 
-- **Private models**: Generally lower cost
-- **Anonymized models**: Similar to direct API pricing + small Venice fee
+- **私密模型**：通常成本较低
+- **匿名化模型**：与直接 API 定价相近 + 少量 Venice 费用
 
-## Comparison: Venice vs Direct API
+## 对比：Venice 与直接 API
 
-| Aspect       | Venice (Anonymized)           | Direct API          |
-| ------------ | ----------------------------- | ------------------- |
-| **Privacy**  | Metadata stripped, anonymized | Your account linked |
-| **Latency**  | +10-50ms (proxy)              | Direct              |
-| **Features** | Most features supported       | Full features       |
-| **Billing**  | Venice credits                | Provider billing    |
+| 方面     | Venice（匿名化）   | 直接 API     |
+| -------- | ------------------ | ------------ |
+| **隐私** | 剥离元数据，匿名化 | 关联你的账户 |
+| **延迟** | +10-50ms（代理）   | 直连         |
+| **功能** | 支持大部分功能     | 完整功能     |
+| **计费** | Venice 积分        | 提供商计费   |
 
-## Usage Examples
+## 使用示例
 
 ```bash
-# Use the default private model
-openclaw agent --model venice/kimi-k2-5 --message "Quick health check"
+# 使用默认私密模型
+openclaw chat --model venice/llama-3.3-70b
 
-# Use Claude Opus via Venice (anonymized)
-openclaw agent --model venice/claude-opus-4-6 --message "Summarize this task"
+# 通过 Venice 使用 Claude（匿名化）
+openclaw chat --model venice/claude-opus-45
 
-# Use uncensored model
-openclaw agent --model venice/venice-uncensored --message "Draft options"
+# 使用无审查模型
+openclaw chat --model venice/venice-uncensored
 
-# Use vision model with image
-openclaw agent --model venice/qwen3-vl-235b-a22b --message "Review attached image"
+# 使用视觉模型处理图像
+openclaw chat --model venice/qwen3-vl-235b-a22b
 
-# Use coding model
-openclaw agent --model venice/qwen3-coder-480b-a35b-instruct --message "Refactor this function"
+# 使用编程模型
+openclaw chat --model venice/qwen3-coder-480b-a35b-instruct
 ```
 
-## Troubleshooting
+## 故障排除
 
-### API key not recognized
+### API 密钥无法识别
 
 ```bash
 echo $VENICE_API_KEY
 openclaw models list | grep venice
 ```
 
-Ensure the key starts with `vapi_`.
+确保密钥以 `vapi_` 开头。
 
-### Model not available
+### 模型不可用
 
-The Venice model catalog updates dynamically. Run `openclaw models list` to see currently available models. Some models may be temporarily offline.
+Venice 模型目录会动态更新。运行 `openclaw models list` 查看当前可用的模型。部分模型可能暂时离线。
 
-### Connection issues
+### 连接问题
 
-Venice API is at `https://api.venice.ai/api/v1`. Ensure your network allows HTTPS connections.
+Venice API 地址为 `https://api.venice.ai/api/v1`。确保你的网络允许 HTTPS 连接。
 
-## Config file example
+## 配置文件示例
 
 ```json5
 {
   env: { VENICE_API_KEY: "vapi_..." },
-  agents: { defaults: { model: { primary: "venice/kimi-k2-5" } } },
+  agents: { defaults: { model: { primary: "venice/llama-3.3-70b" } } },
   models: {
     mode: "merge",
     providers: {
@@ -259,13 +251,13 @@ Venice API is at `https://api.venice.ai/api/v1`. Ensure your network allows HTTP
         api: "openai-completions",
         models: [
           {
-            id: "kimi-k2-5",
-            name: "Kimi K2.5",
-            reasoning: true,
-            input: ["text", "image"],
+            id: "llama-3.3-70b",
+            name: "Llama 3.3 70B",
+            reasoning: false,
+            input: ["text"],
             cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
-            contextWindow: 256000,
-            maxTokens: 65536,
+            contextWindow: 131072,
+            maxTokens: 8192,
           },
         ],
       },
@@ -274,9 +266,9 @@ Venice API is at `https://api.venice.ai/api/v1`. Ensure your network allows HTTP
 }
 ```
 
-## Links
+## 链接
 
 - [Venice AI](https://venice.ai)
-- [API Documentation](https://docs.venice.ai)
-- [Pricing](https://venice.ai/pricing)
-- [Status](https://status.venice.ai)
+- [API 文档](https://docs.venice.ai)
+- [定价](https://venice.ai/pricing)
+- [状态页](https://status.venice.ai)

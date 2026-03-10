@@ -1,59 +1,44 @@
 ---
-summary: "CLI reference for `openclaw devices` (device pairing + token rotation/revocation)"
 read_when:
-  - You are approving device pairing requests
-  - You need to rotate or revoke device tokens
-title: "devices"
+  - 你正在批准设备配对请求
+  - 你需要轮换或撤销设备 token
+summary: "`openclaw devices` 的 CLI 参考（设备配对 + token 轮换/撤销）"
+title: devices
+x-i18n:
+  generated_at: "2026-02-03T07:44:52Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 52f903817d2886c1dc29b85d30168d1edff7944bd120a1e139159c9d99a1f517
+  source_path: cli/devices.md
+  workflow: 15
 ---
 
 # `openclaw devices`
 
-Manage device pairing requests and device-scoped tokens.
+管理设备配对请求和设备范围的 token。
 
-## Commands
+## 命令
 
 ### `openclaw devices list`
 
-List pending pairing requests and paired devices.
+列出待处理的配对请求和已配对的设备。
 
 ```
 openclaw devices list
 openclaw devices list --json
 ```
 
-### `openclaw devices remove <deviceId>`
+### `openclaw devices approve <requestId>`
 
-Remove one paired device entry.
-
-```
-openclaw devices remove <deviceId>
-openclaw devices remove <deviceId> --json
-```
-
-### `openclaw devices clear --yes [--pending]`
-
-Clear paired devices in bulk.
+批准待处理的设备配对请求。
 
 ```
-openclaw devices clear --yes
-openclaw devices clear --yes --pending
-openclaw devices clear --yes --pending --json
-```
-
-### `openclaw devices approve [requestId] [--latest]`
-
-Approve a pending device pairing request. If `requestId` is omitted, OpenClaw
-automatically approves the most recent pending request.
-
-```
-openclaw devices approve
 openclaw devices approve <requestId>
-openclaw devices approve --latest
 ```
 
 ### `openclaw devices reject <requestId>`
 
-Reject a pending device pairing request.
+拒绝待处理的设备配对请求。
 
 ```
 openclaw devices reject <requestId>
@@ -61,7 +46,7 @@ openclaw devices reject <requestId>
 
 ### `openclaw devices rotate --device <id> --role <role> [--scope <scope...>]`
 
-Rotate a device token for a specific role (optionally updating scopes).
+为特定角色轮换设备 token（可选更新 scope）。
 
 ```
 openclaw devices rotate --device <deviceId> --role operator --scope operator.read --scope operator.write
@@ -69,26 +54,21 @@ openclaw devices rotate --device <deviceId> --role operator --scope operator.rea
 
 ### `openclaw devices revoke --device <id> --role <role>`
 
-Revoke a device token for a specific role.
+为特定角色撤销设备 token。
 
 ```
 openclaw devices revoke --device <deviceId> --role node
 ```
 
-## Common options
+## 通用选项
 
-- `--url <url>`: Gateway WebSocket URL (defaults to `gateway.remote.url` when configured).
-- `--token <token>`: Gateway token (if required).
-- `--password <password>`: Gateway password (password auth).
-- `--timeout <ms>`: RPC timeout.
-- `--json`: JSON output (recommended for scripting).
+- `--url <url>`：Gateway 网关 WebSocket URL（配置后默认使用 `gateway.remote.url`）。
+- `--token <token>`：Gateway 网关 token（如需要）。
+- `--password <password>`：Gateway 网关密码（密码认证）。
+- `--timeout <ms>`：RPC 超时。
+- `--json`：JSON 输出（推荐用于脚本）。
 
-Note: when you set `--url`, the CLI does not fall back to config or environment credentials.
-Pass `--token` or `--password` explicitly. Missing explicit credentials is an error.
+## 注意事项
 
-## Notes
-
-- Token rotation returns a new token (sensitive). Treat it like a secret.
-- These commands require `operator.pairing` (or `operator.admin`) scope.
-- `devices clear` is intentionally gated by `--yes`.
-- If pairing scope is unavailable on local loopback (and no explicit `--url` is passed), list/approve can use a local pairing fallback.
+- Token 轮换会返回新 token（敏感信息）。请像对待密钥一样对待它。
+- 这些命令需要 `operator.pairing`（或 `operator.admin`）scope。

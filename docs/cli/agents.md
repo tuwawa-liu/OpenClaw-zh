@@ -1,108 +1,67 @@
 ---
-summary: "CLI reference for `openclaw agents` (list/add/delete/bindings/bind/unbind/set identity)"
 read_when:
-  - You want multiple isolated agents (workspaces + routing + auth)
-title: "agents"
+  - 你需要多个隔离的智能体（工作区 + 路由 + 认证）
+summary: "`openclaw agents` 的 CLI 参考（列出/添加/删除/设置身份）"
+title: agents
+x-i18n:
+  generated_at: "2026-02-01T19:58:38Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 30556d81636a9ad8972573cc6b498e620fd266e1dfb16eef3f61096ea62f9896
+  source_path: cli/agents.md
+  workflow: 14
 ---
 
 # `openclaw agents`
 
-Manage isolated agents (workspaces + auth + routing).
+管理隔离的智能体（工作区 + 认证 + 路由）。
 
-Related:
+相关内容：
 
-- Multi-agent routing: [Multi-Agent Routing](/concepts/multi-agent)
-- Agent workspace: [Agent workspace](/concepts/agent-workspace)
+- 多智能体路由：[多智能体路由](/concepts/multi-agent)
+- 智能体工作区：[智能体工作区](/concepts/agent-workspace)
 
-## Examples
+## 示例
 
 ```bash
 openclaw agents list
 openclaw agents add work --workspace ~/.openclaw/workspace-work
-openclaw agents bindings
-openclaw agents bind --agent work --bind telegram:ops
-openclaw agents unbind --agent work --bind telegram:ops
 openclaw agents set-identity --workspace ~/.openclaw/workspace --from-identity
 openclaw agents set-identity --agent main --avatar avatars/openclaw.png
 openclaw agents delete work
 ```
 
-## Routing bindings
+## 身份文件
 
-Use routing bindings to pin inbound channel traffic to a specific agent.
+每个智能体工作区可以在工作区根目录包含一个 `IDENTITY.md`：
 
-List bindings:
+- 示例路径：`~/.openclaw/workspace/IDENTITY.md`
+- `set-identity --from-identity` 从工作区根目录读取（或从显式指定的 `--identity-file` 读取）
 
-```bash
-openclaw agents bindings
-openclaw agents bindings --agent work
-openclaw agents bindings --json
-```
+头像路径相对于工作区根目录解析。
 
-Add bindings:
+## 设置身份
 
-```bash
-openclaw agents bind --agent work --bind telegram:ops --bind discord:guild-a
-```
-
-If you omit `accountId` (`--bind <channel>`), OpenClaw resolves it from channel defaults and plugin setup hooks when available.
-
-### Binding scope behavior
-
-- A binding without `accountId` matches the channel default account only.
-- `accountId: "*"` is the channel-wide fallback (all accounts) and is less specific than an explicit account binding.
-- If the same agent already has a matching channel binding without `accountId`, and you later bind with an explicit or resolved `accountId`, OpenClaw upgrades that existing binding in place instead of adding a duplicate.
-
-Example:
-
-```bash
-# initial channel-only binding
-openclaw agents bind --agent work --bind telegram
-
-# later upgrade to account-scoped binding
-openclaw agents bind --agent work --bind telegram:ops
-```
-
-After the upgrade, routing for that binding is scoped to `telegram:ops`. If you also want default-account routing, add it explicitly (for example `--bind telegram:default`).
-
-Remove bindings:
-
-```bash
-openclaw agents unbind --agent work --bind telegram:ops
-openclaw agents unbind --agent work --all
-```
-
-## Identity files
-
-Each agent workspace can include an `IDENTITY.md` at the workspace root:
-
-- Example path: `~/.openclaw/workspace/IDENTITY.md`
-- `set-identity --from-identity` reads from the workspace root (or an explicit `--identity-file`)
-
-Avatar paths resolve relative to the workspace root.
-
-## Set identity
-
-`set-identity` writes fields into `agents.list[].identity`:
+`set-identity` 将字段写入 `agents.list[].identity`：
 
 - `name`
 - `theme`
 - `emoji`
-- `avatar` (workspace-relative path, http(s) URL, or data URI)
+- `avatar`（工作区相对路径、http(s) URL 或 data URI）
 
-Load from `IDENTITY.md`:
+从 `IDENTITY.md` 加载：
 
 ```bash
 openclaw agents set-identity --workspace ~/.openclaw/workspace --from-identity
 ```
 
-Override fields explicitly:
+显式覆盖字段：
 
 ```bash
 openclaw agents set-identity --agent main --name "OpenClaw" --emoji "🦞" --avatar avatars/openclaw.png
 ```
 
-Config sample:
+配置示例：
 
 ```json5
 {

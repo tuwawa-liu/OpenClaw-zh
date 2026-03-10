@@ -1,22 +1,27 @@
 ---
-summary: "JSON-only LLM tasks for workflows (optional plugin tool)"
 read_when:
-  - You want a JSON-only LLM step inside workflows
-  - You need schema-validated LLM output for automation
-title: "LLM Task"
+  - 你需要在工作流中添加纯 JSON 的 LLM 步骤
+  - 你需要经过 Schema 验证的 LLM 输出用于自动化
+summary: 用于工作流的纯 JSON LLM 任务（可选插件工具）
+title: LLM 任务
+x-i18n:
+  generated_at: "2026-02-01T21:42:34Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: d81b74fcfd5491a9edb4bfadb47d404067020990b1f6d6d8fed652fbc860f646
+  source_path: tools/llm-task.md
+  workflow: 15
 ---
 
-# LLM Task
+# LLM 任务
 
-`llm-task` is an **optional plugin tool** that runs a JSON-only LLM task and
-returns structured output (optionally validated against JSON Schema).
+`llm-task` 是一个**可选插件工具**，用于运行纯 JSON 的 LLM 任务并返回结构化输出（可选择根据 JSON Schema 进行验证）。
 
-This is ideal for workflow engines like Lobster: you can add a single LLM step
-without writing custom OpenClaw code for each workflow.
+这非常适合像 Lobster 这样的工作流引擎：你可以添加单个 LLM 步骤，而无需为每个工作流编写自定义 OpenClaw 代码。
 
-## Enable the plugin
+## 启用插件
 
-1. Enable the plugin:
+1. 启用插件：
 
 ```json
 {
@@ -28,7 +33,7 @@ without writing custom OpenClaw code for each workflow.
 }
 ```
 
-2. Allowlist the tool (it is registered with `optional: true`):
+2. 将工具加入允许列表（它以 `optional: true` 注册）：
 
 ```json
 {
@@ -43,7 +48,7 @@ without writing custom OpenClaw code for each workflow.
 }
 ```
 
-## Config (optional)
+## 配置（可选）
 
 ```json
 {
@@ -53,9 +58,9 @@ without writing custom OpenClaw code for each workflow.
         "enabled": true,
         "config": {
           "defaultProvider": "openai-codex",
-          "defaultModel": "gpt-5.4",
+          "defaultModel": "gpt-5.2",
           "defaultAuthProfileId": "main",
-          "allowedModels": ["openai-codex/gpt-5.4"],
+          "allowedModels": ["openai-codex/gpt-5.2"],
           "maxTokens": 800,
           "timeoutMs": 30000
         }
@@ -65,27 +70,25 @@ without writing custom OpenClaw code for each workflow.
 }
 ```
 
-`allowedModels` is an allowlist of `provider/model` strings. If set, any request
-outside the list is rejected.
+`allowedModels` 是 `provider/model` 字符串的允许列表。如果设置了该项，任何不在列表中的请求都会被拒绝。
 
-## Tool parameters
+## 工具参数
 
-- `prompt` (string, required)
-- `input` (any, optional)
-- `schema` (object, optional JSON Schema)
-- `provider` (string, optional)
-- `model` (string, optional)
-- `authProfileId` (string, optional)
-- `temperature` (number, optional)
-- `maxTokens` (number, optional)
-- `timeoutMs` (number, optional)
+- `prompt`（字符串，必填）
+- `input`（任意类型，可选）
+- `schema`（对象，可选 JSON Schema）
+- `provider`（字符串，可选）
+- `model`（字符串，可选）
+- `authProfileId`（字符串，可选）
+- `temperature`（数字，可选）
+- `maxTokens`（数字，可选）
+- `timeoutMs`（数字，可选）
 
-## Output
+## 输出
 
-Returns `details.json` containing the parsed JSON (and validates against
-`schema` when provided).
+返回 `details.json`，包含解析后的 JSON（如果提供了 `schema`，则会进行验证）。
 
-## Example: Lobster workflow step
+## 示例：Lobster 工作流步骤
 
 ```lobster
 openclaw.invoke --tool llm-task --action json --args-json '{
@@ -106,10 +109,9 @@ openclaw.invoke --tool llm-task --action json --args-json '{
 }'
 ```
 
-## Safety notes
+## 安全注意事项
 
-- The tool is **JSON-only** and instructs the model to output only JSON (no
-  code fences, no commentary).
-- No tools are exposed to the model for this run.
-- Treat output as untrusted unless you validate with `schema`.
-- Put approvals before any side-effecting step (send, post, exec).
+- 该工具为**纯 JSON 模式**，指示模型仅输出 JSON（无代码围栏、无注释说明）。
+- 此次运行不会向模型暴露任何工具。
+- 除非使用 `schema` 进行验证，否则应将输出视为不可信。
+- 在任何有副作用的步骤（发送、发布、执行）之前设置审批流程。

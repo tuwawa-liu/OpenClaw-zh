@@ -1,19 +1,19 @@
 ---
 title: IRC
-description: Connect OpenClaw to IRC channels and direct messages.
-summary: "IRC plugin setup, access controls, and troubleshooting"
+description: 将 OpenClaw 连接到 IRC 频道和私信。
+summary: "IRC 插件设置、访问控制和故障排除"
 read_when:
-  - You want to connect OpenClaw to IRC channels or DMs
-  - You are configuring IRC allowlists, group policy, or mention gating
+  - 想要将 OpenClaw 连接到 IRC 频道或私信
+  - 正在配置 IRC 白名单、群组策略或提及门控
 ---
 
-Use IRC when you want OpenClaw in classic channels (`#room`) and direct messages.
-IRC ships as an extension plugin, but it is configured in the main config under `channels.irc`.
+当你想在经典频道（`#room`）和私信中使用 OpenClaw 时，请使用 IRC。
+IRC 作为扩展插件提供，但在主配置的 `channels.irc` 下进行配置。
 
-## Quick start
+## 快速开始
 
-1. Enable IRC config in `~/.openclaw/openclaw.json`.
-2. Set at least:
+1. 在 `~/.openclaw/openclaw.json` 中启用 IRC 配置。
+2. 至少设置：
 
 ```json
 {
@@ -30,48 +30,48 @@ IRC ships as an extension plugin, but it is configured in the main config under 
 }
 ```
 
-3. Start/restart gateway:
+3. 启动/重启 Gateway：
 
 ```bash
 openclaw gateway run
 ```
 
-## Security defaults
+## 安全默认设置
 
-- `channels.irc.dmPolicy` defaults to `"pairing"`.
-- `channels.irc.groupPolicy` defaults to `"allowlist"`.
-- With `groupPolicy="allowlist"`, set `channels.irc.groups` to define allowed channels.
-- Use TLS (`channels.irc.tls=true`) unless you intentionally accept plaintext transport.
+- `channels.irc.dmPolicy` 默认为 `"pairing"`。
+- `channels.irc.groupPolicy` 默认为 `"allowlist"`。
+- 使用 `groupPolicy="allowlist"` 时，设置 `channels.irc.groups` 定义允许的频道。
+- 使用 TLS（`channels.irc.tls=true`），除非你有意接受明文传输。
 
-## Access control
+## 访问控制
 
-There are two separate “gates” for IRC channels:
+IRC 频道有两个独立的"门控"：
 
-1. **Channel access** (`groupPolicy` + `groups`): whether the bot accepts messages from a channel at all.
-2. **Sender access** (`groupAllowFrom` / per-channel `groups["#channel"].allowFrom`): who is allowed to trigger the bot inside that channel.
+1. **频道访问**（`groupPolicy` + `groups`）：机器人是否接受来自某个频道的消息。
+2. **发送者访问**（`groupAllowFrom` / 按频道 `groups["#channel"].allowFrom`）：频道内谁可以触发机器人。
 
-Config keys:
+配置键：
 
-- DM allowlist (DM sender access): `channels.irc.allowFrom`
-- Group sender allowlist (channel sender access): `channels.irc.groupAllowFrom`
-- Per-channel controls (channel + sender + mention rules): `channels.irc.groups["#channel"]`
-- `channels.irc.groupPolicy="open"` allows unconfigured channels (**still mention-gated by default**)
+- 私信白名单（私信发送者访问）：`channels.irc.allowFrom`
+- 群组发送者白名单（频道发送者访问）：`channels.irc.groupAllowFrom`
+- 按频道控制（频道 + 发送者 + 提及规则）：`channels.irc.groups["#channel"]`
+- `channels.irc.groupPolicy="open"` 允许未配置的频道（**默认仍然有提及门控**）
 
-Allowlist entries should use stable sender identities (`nick!user@host`).
-Bare nick matching is mutable and only enabled when `channels.irc.dangerouslyAllowNameMatching: true`.
+白名单条目应使用稳定的发送者身份（`nick!user@host`）。
+仅当 `channels.irc.dangerouslyAllowNameMatching: true` 时才启用裸昵称匹配，且这是可变的。
 
-### Common gotcha: `allowFrom` is for DMs, not channels
+### 常见误区：`allowFrom` 用于私信，不是频道
 
-If you see logs like:
+如果你看到类似日志：
 
 - `irc: drop group sender alice!ident@host (policy=allowlist)`
 
-…it means the sender wasn’t allowed for **group/channel** messages. Fix it by either:
+...这意味着发送者不被允许在 **群组/频道** 消息中交互。修复方法：
 
-- setting `channels.irc.groupAllowFrom` (global for all channels), or
-- setting per-channel sender allowlists: `channels.irc.groups["#channel"].allowFrom`
+- 设置 `channels.irc.groupAllowFrom`（对所有频道全局生效），或
+- 设置按频道的发送者白名单：`channels.irc.groups["#channel"].allowFrom`
 
-Example (allow anyone in `#tuirc-dev` to talk to the bot):
+示例（允许 `#tuirc-dev` 中的任何人与机器人对话）：
 
 ```json5
 {
@@ -86,13 +86,13 @@ Example (allow anyone in `#tuirc-dev` to talk to the bot):
 }
 ```
 
-## Reply triggering (mentions)
+## 回复触发（提及）
 
-Even if a channel is allowed (via `groupPolicy` + `groups`) and the sender is allowed, OpenClaw defaults to **mention-gating** in group contexts.
+即使频道被允许（通过 `groupPolicy` + `groups`）且发送者被允许，OpenClaw 在群组上下文中默认使用 **提及门控**。
 
-That means you may see logs like `drop channel … (missing-mention)` unless the message includes a mention pattern that matches the bot.
+这意味着你可能会看到 `drop channel … (missing-mention)` 日志，除非消息中包含匹配机器人的提及模式。
 
-To make the bot reply in an IRC channel **without needing a mention**, disable mention gating for that channel:
+要使机器人在 IRC 频道中 **无需提及即可回复**，请为该频道禁用提及门控：
 
 ```json5
 {
@@ -110,7 +110,7 @@ To make the bot reply in an IRC channel **without needing a mention**, disable m
 }
 ```
 
-Or to allow **all** IRC channels (no per-channel allowlist) and still reply without mentions:
+或者允许 **所有** IRC 频道（不使用按频道白名单）且无需提及即可回复：
 
 ```json5
 {
@@ -125,12 +125,12 @@ Or to allow **all** IRC channels (no per-channel allowlist) and still reply with
 }
 ```
 
-## Security note (recommended for public channels)
+## 安全说明（推荐用于公共频道）
 
-If you allow `allowFrom: ["*"]` in a public channel, anyone can prompt the bot.
-To reduce risk, restrict tools for that channel.
+如果你在公共频道中允许 `allowFrom: ["*"]`，任何人都可以向机器人发送提示。
+要降低风险，请限制该频道的工具。
 
-### Same tools for everyone in the channel
+### 频道中所有人使用相同工具
 
 ```json5
 {
@@ -140,7 +140,14 @@ To reduce risk, restrict tools for that channel.
         "#tuirc-dev": {
           allowFrom: ["*"],
           tools: {
-            deny: ["group:runtime", "group:fs", "gateway", "nodes", "cron", "browser"],
+            deny: [
+              "group:runtime",
+              "group:fs",
+              "gateway",
+              "nodes",
+              "cron",
+              "browser",
+            ],
           },
         },
       },
@@ -149,9 +156,9 @@ To reduce risk, restrict tools for that channel.
 }
 ```
 
-### Different tools per sender (owner gets more power)
+### 不同发送者使用不同工具（所有者获得更多权限）
 
-Use `toolsBySender` to apply a stricter policy to `"*"` and a looser one to your nick:
+使用 `toolsBySender` 为 `"*"` 应用更严格的策略，为你的昵称应用更宽松的策略：
 
 ```json5
 {
@@ -162,7 +169,14 @@ Use `toolsBySender` to apply a stricter policy to `"*"` and a looser one to your
           allowFrom: ["*"],
           toolsBySender: {
             "*": {
-              deny: ["group:runtime", "group:fs", "gateway", "nodes", "cron", "browser"],
+              deny: [
+                "group:runtime",
+                "group:fs",
+                "gateway",
+                "nodes",
+                "cron",
+                "browser",
+              ],
             },
             "id:eigen": {
               deny: ["gateway", "nodes", "cron"],
@@ -175,18 +189,18 @@ Use `toolsBySender` to apply a stricter policy to `"*"` and a looser one to your
 }
 ```
 
-Notes:
+注意事项：
 
-- `toolsBySender` keys should use `id:` for IRC sender identity values:
-  `id:eigen` or `id:eigen!~eigen@174.127.248.171` for stronger matching.
-- Legacy unprefixed keys are still accepted and matched as `id:` only.
-- The first matching sender policy wins; `"*"` is the wildcard fallback.
+- `toolsBySender` 键应使用 `id:` 前缀表示 IRC 发送者身份值：
+  `id:eigen` 或 `id:eigen!~eigen@174.127.248.171` 以进行更强的匹配。
+- 旧版无前缀键仍被接受，仅作为 `id:` 匹配。
+- 第一个匹配的发送者策略生效；`"*"` 是通配符回退。
 
-For more on group access vs mention-gating (and how they interact), see: [/channels/groups](/channels/groups).
+关于群组访问与提及门控（及其交互方式）的更多信息，参见：[/channels/groups](/channels/groups)。
 
 ## NickServ
 
-To identify with NickServ after connect:
+连接后使用 NickServ 认证：
 
 ```json
 {
@@ -202,7 +216,7 @@ To identify with NickServ after connect:
 }
 ```
 
-Optional one-time registration on connect:
+可选的连接时一次性注册：
 
 ```json
 {
@@ -217,11 +231,11 @@ Optional one-time registration on connect:
 }
 ```
 
-Disable `register` after the nick is registered to avoid repeated REGISTER attempts.
+昵称注册后请禁用 `register`，以避免重复的 REGISTER 尝试。
 
-## Environment variables
+## 环境变量
 
-Default account supports:
+默认账户支持：
 
 - `IRC_HOST`
 - `IRC_PORT`
@@ -230,12 +244,12 @@ Default account supports:
 - `IRC_USERNAME`
 - `IRC_REALNAME`
 - `IRC_PASSWORD`
-- `IRC_CHANNELS` (comma-separated)
+- `IRC_CHANNELS`（逗号分隔）
 - `IRC_NICKSERV_PASSWORD`
 - `IRC_NICKSERV_REGISTER_EMAIL`
 
-## Troubleshooting
+## 故障排除
 
-- If the bot connects but never replies in channels, verify `channels.irc.groups` **and** whether mention-gating is dropping messages (`missing-mention`). If you want it to reply without pings, set `requireMention:false` for the channel.
-- If login fails, verify nick availability and server password.
-- If TLS fails on a custom network, verify host/port and certificate setup.
+- 如果机器人连接成功但从不在频道中回复，请验证 `channels.irc.groups` **以及** 提及门控是否在丢弃消息（`missing-mention`）。如果你希望它无需被提及即可回复，为该频道设置 `requireMention:false`。
+- 如果登录失败，验证昵称可用性和服务器密码。
+- 如果 TLS 在自定义网络上失败，验证主机/端口和证书配置。

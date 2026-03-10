@@ -1,121 +1,129 @@
 ---
-title: "Session Pruning"
-summary: "Session pruning: tool-result trimming to reduce context bloat"
 read_when:
-  - You want to reduce LLM context growth from tool outputs
-  - You are tuning agents.defaults.contextPruning
+  - 你想减少工具输出导致的 LLM 上下文增长
+  - 你正在调整 agents.defaults.contextPruning
+summary: 会话剪枝：工具结果修剪以减少上下文膨胀
+x-i18n:
+  generated_at: "2026-02-03T07:46:35Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 9b0aa2d1abea7050ba848a2db038ccc3e6e2d83c6eb4e3843a2ead0ab847574a
+  source_path: concepts/session-pruning.md
+  workflow: 15
 ---
 
-# Session Pruning
+# 会话剪枝
 
-Session pruning trims **old tool results** from the in-memory context right before each LLM call. It does **not** rewrite the on-disk session history (`*.jsonl`).
+会话剪枝在每次 LLM 调用之前从内存上下文中修剪**旧的工具结果**。它**不会**重写磁盘上的会话历史（`*.jsonl`）。
 
-## When it runs
+## 运行时机
 
-- When `mode: "cache-ttl"` is enabled and the last Anthropic call for the session is older than `ttl`.
-- Only affects the messages sent to the model for that request.
-- Only active for Anthropic API calls (and OpenRouter Anthropic models).
-- For best results, match `ttl` to your model `cacheRetention` policy (`short` = 5m, `long` = 1h).
-- After a prune, the TTL window resets so subsequent requests keep cache until `ttl` expires again.
+- 当启用 `mode: "cache-ttl"` 且该会话的最后一次 Anthropic 调用早于 `ttl` 时。
+- 仅影响该请求发送给模型的消息。
+- 仅对 Anthropic API 调用（和 OpenRouter Anthropic 模型）生效。
+- 为获得最佳效果，请将 `ttl` 与你的模型 `cacheControlTtl` 匹配。
+- 剪枝后，TTL 窗口会重置，因此后续请求会保持缓存直到 `ttl` 再次过期。
 
-## Smart defaults (Anthropic)
+## 智能默认值（Anthropic）
 
-- **OAuth or setup-token** profiles: enable `cache-ttl` pruning and set heartbeat to `1h`.
-- **API key** profiles: enable `cache-ttl` pruning, set heartbeat to `30m`, and default `cacheRetention: "short"` on Anthropic models.
-- If you set any of these values explicitly, OpenClaw does **not** override them.
+- **OAuth 或 setup-token** 配置文件：启用 `cache-ttl` 剪枝并将心跳设置为 `1h`。
+- **API 密钥**配置文件：启用 `cache-ttl` 剪枝，将心跳设置为 `30m`，并将 Anthropic 模型的 `cacheControlTtl` 默认为 `1h`。
+- 如果你显式设置了这些值中的任何一个，OpenClaw **不会**覆盖它们。
 
-## What this improves (cost + cache behavior)
+## 改进内容（成本 + 缓存行为）
 
-- **Why prune:** Anthropic prompt caching only applies within the TTL. If a session goes idle past the TTL, the next request re-caches the full prompt unless you trim it first.
-- **What gets cheaper:** pruning reduces the **cacheWrite** size for that first request after the TTL expires.
-- **Why the TTL reset matters:** once pruning runs, the cache window resets, so follow‑up requests can reuse the freshly cached prompt instead of re-caching the full history again.
-- **What it does not do:** pruning doesn’t add tokens or “double” costs; it only changes what gets cached on that first post‑TTL request.
+- **为什么要剪枝：** Anthropic 提示缓存仅在 TTL 内适用。如果会话空闲超过 TTL，下一个请求会重新缓存完整提示，除非你先修剪它。
+- **什么变得更便宜：** 剪枝减少了 TTL 过期后第一个请求的 **cacheWrite** 大小。
+- **为什么 TTL 重置很重要：** 一旦剪枝运行，缓存窗口会重置，因此后续请求可以重用新缓存的提示，而不是再次重新缓存完整历史。
+- **它不做什么：** 剪枝不会添加 token 或"双倍"成本；它只改变该 TTL 后第一个请求缓存的内容。
 
-## What can be pruned
+## 可以剪枝的内容
 
-- Only `toolResult` messages.
-- User + assistant messages are **never** modified.
-- The last `keepLastAssistants` assistant messages are protected; tool results after that cutoff are not pruned.
-- If there aren’t enough assistant messages to establish the cutoff, pruning is skipped.
-- Tool results containing **image blocks** are skipped (never trimmed/cleared).
+- 仅 `toolResult` 消息。
+- 用户 + 助手消息**永远不会**被修改。
+- 最后 `keepLastAssistants` 条助手消息受保护；该截止点之后的工具结果不会被剪枝。
+- 如果没有足够的助手消息来确定截止点，则跳过剪枝。
+- 包含**图像块**的工具结果会被跳过（永不修剪/清除）。
 
-## Context window estimation
+## 上下文窗口估算
 
-Pruning uses an estimated context window (chars ≈ tokens × 4). The base window is resolved in this order:
+剪枝使用估算的上下文窗口（字符 ≈ token × 4）。基础窗口按以下顺序解析：
 
-1. `models.providers.*.models[].contextWindow` override.
-2. Model definition `contextWindow` (from the model registry).
-3. Default `200000` tokens.
+1. `models.providers.*.models[].contextWindow` 覆盖。
+2. 模型定义 `contextWindow`（来自模型注册表）。
+3. 默认 `200000` token。
 
-If `agents.defaults.contextTokens` is set, it is treated as a cap (min) on the resolved window.
+如果设置了 `agents.defaults.contextTokens`，它将被视为解析窗口的上限（最小值）。
 
-## Mode
+## 模式
 
 ### cache-ttl
 
-- Pruning only runs if the last Anthropic call is older than `ttl` (default `5m`).
-- When it runs: same soft-trim + hard-clear behavior as before.
+- 仅当最后一次 Anthropic 调用早于 `ttl`（默认 `5m`）时才运行剪枝。
+- 运行时：与之前相同的软修剪 + 硬清除行为。
 
-## Soft vs hard pruning
+## 软剪枝 vs 硬剪枝
 
-- **Soft-trim**: only for oversized tool results.
-  - Keeps head + tail, inserts `...`, and appends a note with the original size.
-  - Skips results with image blocks.
-- **Hard-clear**: replaces the entire tool result with `hardClear.placeholder`.
+- **软修剪**：仅用于过大的工具结果。
+  - 保留头部 + 尾部，插入 `...`，并附加一个包含原始大小的注释。
+  - 跳过包含图像块的结果。
+- **硬清除**：用 `hardClear.placeholder` 替换整个工具结果。
 
-## Tool selection
+## 工具选择
 
-- `tools.allow` / `tools.deny` support `*` wildcards.
-- Deny wins.
-- Matching is case-insensitive.
-- Empty allow list => all tools allowed.
+- `tools.allow` / `tools.deny` 支持 `*` 通配符。
+- 拒绝优先。
+- 匹配不区分大小写。
+- 允许列表为空 => 允许所有工具。
 
-## Interaction with other limits
+## 与其他限制的交互
 
-- Built-in tools already truncate their own output; session pruning is an extra layer that prevents long-running chats from accumulating too much tool output in the model context.
-- Compaction is separate: compaction summarizes and persists, pruning is transient per request. See [/concepts/compaction](/concepts/compaction).
+- 内置工具已经截断自己的输出；会话剪枝是一个额外的层，防止长时间运行的聊天在模型上下文中累积过多的工具输出。
+- 压缩是独立的：压缩进行总结并持久化，剪枝是每个请求的临时操作。参阅 [/concepts/compaction](/concepts/compaction)。
 
-## Defaults (when enabled)
+## 默认值（启用时）
 
-- `ttl`: `"5m"`
-- `keepLastAssistants`: `3`
-- `softTrimRatio`: `0.3`
-- `hardClearRatio`: `0.5`
-- `minPrunableToolChars`: `50000`
-- `softTrim`: `{ maxChars: 4000, headChars: 1500, tailChars: 1500 }`
-- `hardClear`: `{ enabled: true, placeholder: "[Old tool result content cleared]" }`
+- `ttl`：`"5m"`
+- `keepLastAssistants`：`3`
+- `softTrimRatio`：`0.3`
+- `hardClearRatio`：`0.5`
+- `minPrunableToolChars`：`50000`
+- `softTrim`：`{ maxChars: 4000, headChars: 1500, tailChars: 1500 }`
+- `hardClear`：`{ enabled: true, placeholder: "[Old tool result content cleared]" }`
 
-## Examples
+## 示例
 
-Default (off):
+默认（关闭）：
 
 ```json5
 {
-  agents: { defaults: { contextPruning: { mode: "off" } } },
+  agent: {
+    contextPruning: { mode: "off" },
+  },
 }
 ```
 
-Enable TTL-aware pruning:
+启用 TTL 感知剪枝：
 
 ```json5
 {
-  agents: { defaults: { contextPruning: { mode: "cache-ttl", ttl: "5m" } } },
+  agent: {
+    contextPruning: { mode: "cache-ttl", ttl: "5m" },
+  },
 }
 ```
 
-Restrict pruning to specific tools:
+限制剪枝到特定工具：
 
 ```json5
 {
-  agents: {
-    defaults: {
-      contextPruning: {
-        mode: "cache-ttl",
-        tools: { allow: ["exec", "read"], deny: ["*image*"] },
-      },
+  agent: {
+    contextPruning: {
+      mode: "cache-ttl",
+      tools: { allow: ["exec", "read"], deny: ["*image*"] },
     },
   },
 }
 ```
 
-See config reference: [Gateway Configuration](/gateway/configuration)
+参阅配置参考：[Gateway 网关配置](/gateway/configuration)

@@ -1,33 +1,39 @@
 ---
-summary: "iMessage via BlueBubbles macOS server (REST send/receive, typing, reactions, pairing, advanced actions)."
 read_when:
-  - Setting up BlueBubbles channel
-  - Troubleshooting webhook pairing
-  - Configuring iMessage on macOS
-title: "BlueBubbles"
+  - 设置 BlueBubbles 渠道
+  - 排查 webhook 配对问题
+  - 在 macOS 上配置 iMessage
+summary: 通过 BlueBubbles macOS 服务器使用 iMessage（REST 发送/接收、输入状态、回应、配对、高级操作）。
+title: BlueBubbles
+x-i18n:
+  generated_at: "2026-02-03T10:04:52Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 3aae277a8bec479800a7f6268bfbca912c65a4aadc6e513694057fb873597b69
+  source_path: channels/bluebubbles.md
+  workflow: 15
 ---
 
-# BlueBubbles (macOS REST)
+# BlueBubbles（macOS REST）
 
-Status: bundled plugin that talks to the BlueBubbles macOS server over HTTP. **Recommended for iMessage integration** due to its richer API and easier setup compared to the legacy imsg channel.
+状态：内置插件，通过 HTTP 与 BlueBubbles macOS 服务器通信。由于其更丰富的 API 和更简便的设置，**推荐用于 iMessage 集成**，优于旧版 imsg 渠道。
 
-## Overview
+## 概述
 
-- Runs on macOS via the BlueBubbles helper app ([bluebubbles.app](https://bluebubbles.app)).
-- Recommended/tested: macOS Sequoia (15). macOS Tahoe (26) works; edit is currently broken on Tahoe, and group icon updates may report success but not sync.
-- OpenClaw talks to it through its REST API (`GET /api/v1/ping`, `POST /message/text`, `POST /chat/:id/*`).
-- Incoming messages arrive via webhooks; outgoing replies, typing indicators, read receipts, and tapbacks are REST calls.
-- Attachments and stickers are ingested as inbound media (and surfaced to the agent when possible).
-- Pairing/allowlist works the same way as other channels (`/channels/pairing` etc) with `channels.bluebubbles.allowFrom` + pairing codes.
-- Reactions are surfaced as system events just like Slack/Telegram so agents can "mention" them before replying.
-- Advanced features: edit, unsend, reply threading, message effects, group management.
+- 通过 BlueBubbles 辅助应用在 macOS 上运行（[bluebubbles.app](https://bluebubbles.app)）。
+- 推荐/已测试版本：macOS Sequoia (15)。macOS Tahoe (26) 可用；但在 Tahoe 上编辑功能目前不可用，群组图标更新可能显示成功但实际未同步。
+- OpenClaw 通过其 REST API 与之通信（`GET /api/v1/ping`、`POST /message/text`、`POST /chat/:id/*`）。
+- 传入消息通过 webhook 到达；发出的回复、输入指示器、已读回执和 tapback 均为 REST 调用。
+- 附件和贴纸作为入站媒体被接收（并在可能时呈现给智能体）。
+- 配对/白名单的工作方式与其他渠道相同（`/channels/pairing` 等），使用 `channels.bluebubbles.allowFrom` + 配对码。
+- 回应作为系统事件呈现，与 Slack/Telegram 类似，智能体可以在回复前"提及"它们。
+- 高级功能：编辑、撤回、回复线程、消息效果、群组管理。
 
-## Quick start
+## 快速开始
 
-1. Install the BlueBubbles server on your Mac (follow the instructions at [bluebubbles.app/install](https://bluebubbles.app/install)).
-2. In the BlueBubbles config, enable the web API and set a password.
-3. Run `openclaw onboard` and select BlueBubbles, or configure manually:
-
+1. 在你的 Mac 上安装 BlueBubbles 服务器（按照 [bluebubbles.app/install](https://bluebubbles.app/install) 的说明操作）。
+2. 在 BlueBubbles 配置中，启用 web API 并设置密码。
+3. 运行 `openclaw onboard` 并选择 BlueBubbles，或手动配置：
    ```json5
    {
      channels: {
@@ -40,137 +46,56 @@ Status: bundled plugin that talks to the BlueBubbles macOS server over HTTP. **R
      },
    }
    ```
+4. 将 BlueBubbles webhook 指向你的 Gateway 网关（示例：`https://your-gateway-host:3000/bluebubbles-webhook?password=<password>`）。
+5. 启动 Gateway 网关；它将注册 webhook 处理程序并开始配对。
 
-4. Point BlueBubbles webhooks to your gateway (example: `https://your-gateway-host:3000/bluebubbles-webhook?password=<password>`).
-5. Start the gateway; it will register the webhook handler and start pairing.
+## 新手引导
 
-Security note:
-
-- Always set a webhook password.
-- Webhook authentication is always required. OpenClaw rejects BlueBubbles webhook requests unless they include a password/guid that matches `channels.bluebubbles.password` (for example `?password=<password>` or `x-password`), regardless of loopback/proxy topology.
-- Password authentication is checked before reading/parsing full webhook bodies.
-
-## Keeping Messages.app alive (VM / headless setups)
-
-Some macOS VM / always-on setups can end up with Messages.app going “idle” (incoming events stop until the app is opened/foregrounded). A simple workaround is to **poke Messages every 5 minutes** using an AppleScript + LaunchAgent.
-
-### 1) Save the AppleScript
-
-Save this as:
-
-- `~/Scripts/poke-messages.scpt`
-
-Example script (non-interactive; does not steal focus):
-
-```applescript
-try
-  tell application "Messages"
-    if not running then
-      launch
-    end if
-
-    -- Touch the scripting interface to keep the process responsive.
-    set _chatCount to (count of chats)
-  end tell
-on error
-  -- Ignore transient failures (first-run prompts, locked session, etc).
-end try
-```
-
-### 2) Install a LaunchAgent
-
-Save this as:
-
-- `~/Library/LaunchAgents/com.user.poke-messages.plist`
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-  <dict>
-    <key>Label</key>
-    <string>com.user.poke-messages</string>
-
-    <key>ProgramArguments</key>
-    <array>
-      <string>/bin/bash</string>
-      <string>-lc</string>
-      <string>/usr/bin/osascript &quot;$HOME/Scripts/poke-messages.scpt&quot;</string>
-    </array>
-
-    <key>RunAtLoad</key>
-    <true/>
-
-    <key>StartInterval</key>
-    <integer>300</integer>
-
-    <key>StandardOutPath</key>
-    <string>/tmp/poke-messages.log</string>
-    <key>StandardErrorPath</key>
-    <string>/tmp/poke-messages.err</string>
-  </dict>
-</plist>
-```
-
-Notes:
-
-- This runs **every 300 seconds** and **on login**.
-- The first run may trigger macOS **Automation** prompts (`osascript` → Messages). Approve them in the same user session that runs the LaunchAgent.
-
-Load it:
-
-```bash
-launchctl unload ~/Library/LaunchAgents/com.user.poke-messages.plist 2>/dev/null || true
-launchctl load ~/Library/LaunchAgents/com.user.poke-messages.plist
-```
-
-## Onboarding
-
-BlueBubbles is available in the interactive setup wizard:
+BlueBubbles 可在交互式设置向导中使用：
 
 ```
 openclaw onboard
 ```
 
-The wizard prompts for:
+向导会提示输入：
 
-- **Server URL** (required): BlueBubbles server address (e.g., `http://192.168.1.100:1234`)
-- **Password** (required): API password from BlueBubbles Server settings
-- **Webhook path** (optional): Defaults to `/bluebubbles-webhook`
-- **DM policy**: pairing, allowlist, open, or disabled
-- **Allow list**: Phone numbers, emails, or chat targets
+- **服务器 URL**（必填）：BlueBubbles 服务器地址（例如 `http://192.168.1.100:1234`）
+- **密码**（必填）：来自 BlueBubbles 服务器设置的 API 密码
+- **Webhook 路径**（可选）：默认为 `/bluebubbles-webhook`
+- **私信策略**：配对、白名单、开放或禁用
+- **白名单**：电话号码、电子邮件或聊天目标
 
-You can also add BlueBubbles via CLI:
+你也可以通过 CLI 添加 BlueBubbles：
 
 ```
 openclaw channels add bluebubbles --http-url http://192.168.1.100:1234 --password <password>
 ```
 
-## Access control (DMs + groups)
+## 访问控制（私信 + 群组）
 
-DMs:
+私信：
 
-- Default: `channels.bluebubbles.dmPolicy = "pairing"`.
-- Unknown senders receive a pairing code; messages are ignored until approved (codes expire after 1 hour).
-- Approve via:
+- 默认：`channels.bluebubbles.dmPolicy = "pairing"`。
+- 未知发送者会收到配对码；在批准之前消息会被忽略（配对码 1 小时后过期）。
+- 批准方式：
   - `openclaw pairing list bluebubbles`
   - `openclaw pairing approve bluebubbles <CODE>`
-- Pairing is the default token exchange. Details: [Pairing](/channels/pairing)
+- 配对是默认的令牌交换方式。详情：[配对](/channels/pairing)
 
-Groups:
+群组：
 
-- `channels.bluebubbles.groupPolicy = open | allowlist | disabled` (default: `allowlist`).
-- `channels.bluebubbles.groupAllowFrom` controls who can trigger in groups when `allowlist` is set.
+- `channels.bluebubbles.groupPolicy = open | allowlist | disabled`（默认：`allowlist`）。
+- 当设置为 `allowlist` 时，`channels.bluebubbles.groupAllowFrom` 控制谁可以在群组中触发。
 
-### Mention gating (groups)
+### 提及门控（群组）
 
-BlueBubbles supports mention gating for group chats, matching iMessage/WhatsApp behavior:
+BlueBubbles 支持群聊的提及门控，与 iMessage/WhatsApp 行为一致：
 
-- Uses `agents.list[].groupChat.mentionPatterns` (or `messages.groupChat.mentionPatterns`) to detect mentions.
-- When `requireMention` is enabled for a group, the agent only responds when mentioned.
-- Control commands from authorized senders bypass mention gating.
+- 使用 `agents.list[].groupChat.mentionPatterns`（或 `messages.groupChat.mentionPatterns`）检测提及。
+- 当群组启用 `requireMention` 时，智能体仅在被提及时响应。
+- 来自授权发送者的控制命令会绕过提及门控。
 
-Per-group configuration:
+单群组配置：
 
 ```json5
 {
@@ -179,169 +104,168 @@ Per-group configuration:
       groupPolicy: "allowlist",
       groupAllowFrom: ["+15555550123"],
       groups: {
-        "*": { requireMention: true }, // default for all groups
-        "iMessage;-;chat123": { requireMention: false }, // override for specific group
+        "*": { requireMention: true }, // 所有群组的默认设置
+        "iMessage;-;chat123": { requireMention: false }, // 特定群组的覆盖设置
       },
     },
   },
 }
 ```
 
-### Command gating
+### 命令门控
 
-- Control commands (e.g., `/config`, `/model`) require authorization.
-- Uses `allowFrom` and `groupAllowFrom` to determine command authorization.
-- Authorized senders can run control commands even without mentioning in groups.
+- 控制命令（例如 `/config`、`/model`）需要授权。
+- 使用 `allowFrom` 和 `groupAllowFrom` 确定命令授权。
+- 授权发送者即使在群组中未被提及也可以运行控制命令。
 
-## Typing + read receipts
+## 输入状态 + 已读回执
 
-- **Typing indicators**: Sent automatically before and during response generation.
-- **Read receipts**: Controlled by `channels.bluebubbles.sendReadReceipts` (default: `true`).
-- **Typing indicators**: OpenClaw sends typing start events; BlueBubbles clears typing automatically on send or timeout (manual stop via DELETE is unreliable).
+- **输入指示器**：在响应生成前和生成期间自动发送。
+- **已读回执**：由 `channels.bluebubbles.sendReadReceipts` 控制（默认：`true`）。
+- **输入指示器**：OpenClaw 发送输入开始事件；BlueBubbles 在发送或超时时自动清除输入状态（通过 DELETE 手动停止不可靠）。
 
 ```json5
 {
   channels: {
     bluebubbles: {
-      sendReadReceipts: false, // disable read receipts
+      sendReadReceipts: false, // 禁用已读回执
     },
   },
 }
 ```
 
-## Advanced actions
+## 高级操作
 
-BlueBubbles supports advanced message actions when enabled in config:
+BlueBubbles 在配置中启用时支持高级消息操作：
 
 ```json5
 {
   channels: {
     bluebubbles: {
       actions: {
-        reactions: true, // tapbacks (default: true)
-        edit: true, // edit sent messages (macOS 13+, broken on macOS 26 Tahoe)
-        unsend: true, // unsend messages (macOS 13+)
-        reply: true, // reply threading by message GUID
-        sendWithEffect: true, // message effects (slam, loud, etc.)
-        renameGroup: true, // rename group chats
-        setGroupIcon: true, // set group chat icon/photo (flaky on macOS 26 Tahoe)
-        addParticipant: true, // add participants to groups
-        removeParticipant: true, // remove participants from groups
-        leaveGroup: true, // leave group chats
-        sendAttachment: true, // send attachments/media
+        reactions: true, // tapback（默认：true）
+        edit: true, // 编辑已发送消息（macOS 13+，在 macOS 26 Tahoe 上不可用）
+        unsend: true, // 撤回消息（macOS 13+）
+        reply: true, // 通过消息 GUID 进行回复线程
+        sendWithEffect: true, // 消息效果（slam、loud 等）
+        renameGroup: true, // 重命名群聊
+        setGroupIcon: true, // 设置群聊图标/照片（在 macOS 26 Tahoe 上不稳定）
+        addParticipant: true, // 将参与者添加到群组
+        removeParticipant: true, // 从群组移除参与者
+        leaveGroup: true, // 离开群聊
+        sendAttachment: true, // 发送附件/媒体
       },
     },
   },
 }
 ```
 
-Available actions:
+可用操作：
 
-- **react**: Add/remove tapback reactions (`messageId`, `emoji`, `remove`)
-- **edit**: Edit a sent message (`messageId`, `text`)
-- **unsend**: Unsend a message (`messageId`)
-- **reply**: Reply to a specific message (`messageId`, `text`, `to`)
-- **sendWithEffect**: Send with iMessage effect (`text`, `to`, `effectId`)
-- **renameGroup**: Rename a group chat (`chatGuid`, `displayName`)
-- **setGroupIcon**: Set a group chat's icon/photo (`chatGuid`, `media`) — flaky on macOS 26 Tahoe (API may return success but the icon does not sync).
-- **addParticipant**: Add someone to a group (`chatGuid`, `address`)
-- **removeParticipant**: Remove someone from a group (`chatGuid`, `address`)
-- **leaveGroup**: Leave a group chat (`chatGuid`)
-- **sendAttachment**: Send media/files (`to`, `buffer`, `filename`, `asVoice`)
-  - Voice memos: set `asVoice: true` with **MP3** or **CAF** audio to send as an iMessage voice message. BlueBubbles converts MP3 → CAF when sending voice memos.
+- **react**：添加/移除 tapback 回应（`messageId`、`emoji`、`remove`）
+- **edit**：编辑已发送的消息（`messageId`、`text`）
+- **unsend**：撤回消息（`messageId`）
+- **reply**：回复特定消息（`messageId`、`text`、`to`）
+- **sendWithEffect**：带 iMessage 效果发送（`text`、`to`、`effectId`）
+- **renameGroup**：重命名群聊（`chatGuid`、`displayName`）
+- **setGroupIcon**：设置群聊图标/照片（`chatGuid`、`media`）— 在 macOS 26 Tahoe 上不稳定（API 可能返回成功但图标未同步）。
+- **addParticipant**：将某人添加到群组（`chatGuid`、`address`）
+- **removeParticipant**：将某人从群组移除（`chatGuid`、`address`）
+- **leaveGroup**：离开群聊（`chatGuid`）
+- **sendAttachment**：发送媒体/文件（`to`、`buffer`、`filename`、`asVoice`）
+  - 语音备忘录：将 `asVoice: true` 与 **MP3** 或 **CAF** 音频一起设置，以 iMessage 语音消息形式发送。BlueBubbles 在发送语音备忘录时会将 MP3 转换为 CAF。
 
-### Message IDs (short vs full)
+### 消息 ID（短格式 vs 完整格式）
 
-OpenClaw may surface _short_ message IDs (e.g., `1`, `2`) to save tokens.
+OpenClaw 可能会显示*短*消息 ID（例如 `1`、`2`）以节省 token。
 
-- `MessageSid` / `ReplyToId` can be short IDs.
-- `MessageSidFull` / `ReplyToIdFull` contain the provider full IDs.
-- Short IDs are in-memory; they can expire on restart or cache eviction.
-- Actions accept short or full `messageId`, but short IDs will error if no longer available.
+- `MessageSid` / `ReplyToId` 可以是短 ID。
+- `MessageSidFull` / `ReplyToIdFull` 包含提供商的完整 ID。
+- 短 ID 存储在内存中；它们可能在重启或缓存清除后过期。
+- 操作接受短或完整的 `messageId`，但如果短 ID 不再可用将会报错。
 
-Use full IDs for durable automations and storage:
+对于持久化自动化和存储，请使用完整 ID：
 
-- Templates: `{{MessageSidFull}}`, `{{ReplyToIdFull}}`
-- Context: `MessageSidFull` / `ReplyToIdFull` in inbound payloads
+- 模板：`{{MessageSidFull}}`、`{{ReplyToIdFull}}`
+- 上下文：入站负载中的 `MessageSidFull` / `ReplyToIdFull`
 
-See [Configuration](/gateway/configuration) for template variables.
+参见[配置](/gateway/configuration)了解模板变量。
 
-## Block streaming
+## 分块流式传输
 
-Control whether responses are sent as a single message or streamed in blocks:
+控制响应是作为单条消息发送还是分块流式传输：
 
 ```json5
 {
   channels: {
     bluebubbles: {
-      blockStreaming: true, // enable block streaming (off by default)
+      blockStreaming: true, // 启用分块流式传输（默认关闭）
     },
   },
 }
 ```
 
-## Media + limits
+## 媒体 + 限制
 
-- Inbound attachments are downloaded and stored in the media cache.
-- Media cap via `channels.bluebubbles.mediaMaxMb` for inbound and outbound media (default: 8 MB).
-- Outbound text is chunked to `channels.bluebubbles.textChunkLimit` (default: 4000 chars).
+- 入站附件会被下载并存储在媒体缓存中。
+- 媒体上限通过 `channels.bluebubbles.mediaMaxMb` 设置（默认：8 MB）。
+- 出站文本按 `channels.bluebubbles.textChunkLimit` 分块（默认：4000 字符）。
 
-## Configuration reference
+## 配置参考
 
-Full configuration: [Configuration](/gateway/configuration)
+完整配置：[配置](/gateway/configuration)
 
-Provider options:
+提供商选项：
 
-- `channels.bluebubbles.enabled`: Enable/disable the channel.
-- `channels.bluebubbles.serverUrl`: BlueBubbles REST API base URL.
-- `channels.bluebubbles.password`: API password.
-- `channels.bluebubbles.webhookPath`: Webhook endpoint path (default: `/bluebubbles-webhook`).
-- `channels.bluebubbles.dmPolicy`: `pairing | allowlist | open | disabled` (default: `pairing`).
-- `channels.bluebubbles.allowFrom`: DM allowlist (handles, emails, E.164 numbers, `chat_id:*`, `chat_guid:*`).
-- `channels.bluebubbles.groupPolicy`: `open | allowlist | disabled` (default: `allowlist`).
-- `channels.bluebubbles.groupAllowFrom`: Group sender allowlist.
-- `channels.bluebubbles.groups`: Per-group config (`requireMention`, etc.).
-- `channels.bluebubbles.sendReadReceipts`: Send read receipts (default: `true`).
-- `channels.bluebubbles.blockStreaming`: Enable block streaming (default: `false`; required for streaming replies).
-- `channels.bluebubbles.textChunkLimit`: Outbound chunk size in chars (default: 4000).
-- `channels.bluebubbles.chunkMode`: `length` (default) splits only when exceeding `textChunkLimit`; `newline` splits on blank lines (paragraph boundaries) before length chunking.
-- `channels.bluebubbles.mediaMaxMb`: Inbound/outbound media cap in MB (default: 8).
-- `channels.bluebubbles.mediaLocalRoots`: Explicit allowlist of absolute local directories permitted for outbound local media paths. Local path sends are denied by default unless this is configured. Per-account override: `channels.bluebubbles.accounts.<accountId>.mediaLocalRoots`.
-- `channels.bluebubbles.historyLimit`: Max group messages for context (0 disables).
-- `channels.bluebubbles.dmHistoryLimit`: DM history limit.
-- `channels.bluebubbles.actions`: Enable/disable specific actions.
-- `channels.bluebubbles.accounts`: Multi-account configuration.
+- `channels.bluebubbles.enabled`：启用/禁用渠道。
+- `channels.bluebubbles.serverUrl`：BlueBubbles REST API 基础 URL。
+- `channels.bluebubbles.password`：API 密码。
+- `channels.bluebubbles.webhookPath`：Webhook 端点路径（默认：`/bluebubbles-webhook`）。
+- `channels.bluebubbles.dmPolicy`：`pairing | allowlist | open | disabled`（默认：`pairing`）。
+- `channels.bluebubbles.allowFrom`：私信白名单（句柄、电子邮件、E.164 号码、`chat_id:*`、`chat_guid:*`）。
+- `channels.bluebubbles.groupPolicy`：`open | allowlist | disabled`（默认：`allowlist`）。
+- `channels.bluebubbles.groupAllowFrom`：群组发送者白名单。
+- `channels.bluebubbles.groups`：单群组配置（`requireMention` 等）。
+- `channels.bluebubbles.sendReadReceipts`：发送已读回执（默认：`true`）。
+- `channels.bluebubbles.blockStreaming`：启用分块流式传输（默认：`false`；流式回复必需）。
+- `channels.bluebubbles.textChunkLimit`：出站分块大小（字符）（默认：4000）。
+- `channels.bluebubbles.chunkMode`：`length`（默认）仅在超过 `textChunkLimit` 时分割；`newline` 在长度分块前先按空行（段落边界）分割。
+- `channels.bluebubbles.mediaMaxMb`：入站媒体上限（MB）（默认：8）。
+- `channels.bluebubbles.historyLimit`：上下文的最大群组消息数（0 表示禁用）。
+- `channels.bluebubbles.dmHistoryLimit`：私信历史限制。
+- `channels.bluebubbles.actions`：启用/禁用特定操作。
+- `channels.bluebubbles.accounts`：多账户配置。
 
-Related global options:
+相关全局选项：
 
-- `agents.list[].groupChat.mentionPatterns` (or `messages.groupChat.mentionPatterns`).
-- `messages.responsePrefix`.
+- `agents.list[].groupChat.mentionPatterns`（或 `messages.groupChat.mentionPatterns`）。
+- `messages.responsePrefix`。
 
-## Addressing / delivery targets
+## 地址 / 投递目标
 
-Prefer `chat_guid` for stable routing:
+优先使用 `chat_guid` 以获得稳定的路由：
 
-- `chat_guid:iMessage;-;+15555550123` (preferred for groups)
+- `chat_guid:iMessage;-;+15555550123`（群组推荐）
 - `chat_id:123`
 - `chat_identifier:...`
-- Direct handles: `+15555550123`, `user@example.com`
-  - If a direct handle does not have an existing DM chat, OpenClaw will create one via `POST /api/v1/chat/new`. This requires the BlueBubbles Private API to be enabled.
+- 直接句柄：`+15555550123`、`user@example.com`
+  - 如果直接句柄没有现有的私信聊天，OpenClaw 将通过 `POST /api/v1/chat/new` 创建一个。这需要启用 BlueBubbles Private API。
 
-## Security
+## 安全性
 
-- Webhook requests are authenticated by comparing `guid`/`password` query params or headers against `channels.bluebubbles.password`. Requests from `localhost` are also accepted.
-- Keep the API password and webhook endpoint secret (treat them like credentials).
-- Localhost trust means a same-host reverse proxy can unintentionally bypass the password. If you proxy the gateway, require auth at the proxy and configure `gateway.trustedProxies`. See [Gateway security](/gateway/security#reverse-proxy-configuration).
-- Enable HTTPS + firewall rules on the BlueBubbles server if exposing it outside your LAN.
+- Webhook 请求通过比较 `guid`/`password` 查询参数或头部与 `channels.bluebubbles.password` 进行身份验证。来自 `localhost` 的请求也会被接受。
+- 保持 API 密码和 webhook 端点的机密性（将它们视为凭证）。
+- localhost 信任意味着同主机的反向代理可能无意中绕过密码验证。如果你使用代理 Gateway 网关，请在代理处要求身份验证并配置 `gateway.trustedProxies`。参见 [Gateway 网关安全性](/gateway/security#reverse-proxy-configuration)。
+- 如果将 BlueBubbles 服务器暴露在局域网之外，请启用 HTTPS + 防火墙规则。
 
-## Troubleshooting
+## 故障排除
 
-- If typing/read events stop working, check the BlueBubbles webhook logs and verify the gateway path matches `channels.bluebubbles.webhookPath`.
-- Pairing codes expire after one hour; use `openclaw pairing list bluebubbles` and `openclaw pairing approve bluebubbles <code>`.
-- Reactions require the BlueBubbles private API (`POST /api/v1/message/react`); ensure the server version exposes it.
-- Edit/unsend require macOS 13+ and a compatible BlueBubbles server version. On macOS 26 (Tahoe), edit is currently broken due to private API changes.
-- Group icon updates can be flaky on macOS 26 (Tahoe): the API may return success but the new icon does not sync.
-- OpenClaw auto-hides known-broken actions based on the BlueBubbles server's macOS version. If edit still appears on macOS 26 (Tahoe), disable it manually with `channels.bluebubbles.actions.edit=false`.
-- For status/health info: `openclaw status --all` or `openclaw status --deep`.
+- 如果输入/已读事件停止工作，请检查 BlueBubbles webhook 日志并验证 Gateway 网关路径是否与 `channels.bluebubbles.webhookPath` 匹配。
+- 配对码在一小时后过期；使用 `openclaw pairing list bluebubbles` 和 `openclaw pairing approve bluebubbles <code>`。
+- 回应需要 BlueBubbles private API（`POST /api/v1/message/react`）；确保服务器版本支持它。
+- 编辑/撤回需要 macOS 13+ 和兼容的 BlueBubbles 服务器版本。在 macOS 26（Tahoe）上，由于 private API 变更，编辑功能目前不可用。
+- 在 macOS 26（Tahoe）上群组图标更新可能不稳定：API 可能返回成功但新图标未同步。
+- OpenClaw 会根据 BlueBubbles 服务器的 macOS 版本自动隐藏已知不可用的操作。如果在 macOS 26（Tahoe）上编辑仍然显示，请使用 `channels.bluebubbles.actions.edit=false` 手动禁用。
+- 查看状态/健康信息：`openclaw status --all` 或 `openclaw status --deep`。
 
-For general channel workflow reference, see [Channels](/channels) and the [Plugins](/tools/plugin) guide.
+有关通用渠道工作流参考，请参阅[渠道](/channels)和[插件](/tools/plugin)指南。

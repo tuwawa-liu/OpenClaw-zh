@@ -1,33 +1,40 @@
 ---
-summary: "Date and time handling across envelopes, prompts, tools, and connectors"
 read_when:
-  - You are changing how timestamps are shown to the model or users
-  - You are debugging time formatting in messages or system prompt output
-title: "Date and Time"
+  - 你正在更改向模型或用户展示时间戳的方式
+  - 你正在调试消息或系统提示词输出中的时间格式问题
+summary: 信封、提示词、工具和连接器中的日期与时间处理
+title: 日期与时间
+x-i18n:
+  generated_at: "2026-02-01T20:24:52Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 753af5946a006215d6af2467fa478f3abb42b1dff027cf85d5dc4c7ba4b58d39
+  source_path: date-time.md
+  workflow: 14
 ---
 
-# Date & Time
+# 日期与时间
 
-OpenClaw defaults to **host-local time for transport timestamps** and **user timezone only in the system prompt**.
-Provider timestamps are preserved so tools keep their native semantics (current time is available via `session_status`).
+OpenClaw 默认使用**主机本地时间作为传输时间戳**，并且**仅在系统提示词中使用用户时区**。
+提供商时间戳会被保留，因此工具保持其原生语义（当前时间可通过 `session_status` 获取）。
 
-## Message envelopes (local by default)
+## 消息信封（默认为本地时间）
 
-Inbound messages are wrapped with a timestamp (minute precision):
+入站消息会附带一个时间戳（分钟精度）：
 
 ```
 [Provider ... 2026-01-05 16:26 PST] message text
 ```
 
-This envelope timestamp is **host-local by default**, regardless of the provider timezone.
+此信封时间戳**默认为主机本地时间**，与提供商时区无关。
 
-You can override this behavior:
+你可以覆盖此行为：
 
 ```json5
 {
   agents: {
     defaults: {
-      envelopeTimezone: "local", // "utc" | "local" | "user" | IANA timezone
+      envelopeTimezone: "local", // "utc" | "local" | "user" | IANA 时区
       envelopeTimestamp: "on", // "on" | "off"
       envelopeElapsed: "on", // "on" | "off"
     },
@@ -35,56 +42,52 @@ You can override this behavior:
 }
 ```
 
-- `envelopeTimezone: "utc"` uses UTC.
-- `envelopeTimezone: "local"` uses the host timezone.
-- `envelopeTimezone: "user"` uses `agents.defaults.userTimezone` (falls back to host timezone).
-- Use an explicit IANA timezone (e.g., `"America/Chicago"`) for a fixed zone.
-- `envelopeTimestamp: "off"` removes absolute timestamps from envelope headers.
-- `envelopeElapsed: "off"` removes elapsed time suffixes (the `+2m` style).
+- `envelopeTimezone: "utc"` 使用 UTC。
+- `envelopeTimezone: "local"` 使用主机时区。
+- `envelopeTimezone: "user"` 使用 `agents.defaults.userTimezone`（回退到主机时区）。
+- 使用显式 IANA 时区（例如 `"America/Chicago"`）指定固定时区。
+- `envelopeTimestamp: "off"` 从信封头中移除绝对时间戳。
+- `envelopeElapsed: "off"` 移除已用时间后缀（`+2m` 样式）。
 
-### Examples
+### 示例
 
-**Local (default):**
+**本地时间（默认）：**
 
 ```
 [WhatsApp +1555 2026-01-18 00:19 PST] hello
 ```
 
-**User timezone:**
+**用户时区：**
 
 ```
 [WhatsApp +1555 2026-01-18 00:19 CST] hello
 ```
 
-**Elapsed time enabled:**
+**启用已用时间：**
 
 ```
 [WhatsApp +1555 +30s 2026-01-18T05:19Z] follow-up
 ```
 
-## System prompt: Current Date & Time
+## 系统提示词：当前日期与时间
 
-If the user timezone is known, the system prompt includes a dedicated
-**Current Date & Time** section with the **time zone only** (no clock/time format)
-to keep prompt caching stable:
+如果已知用户时区，系统提示词会包含一个专门的**当前日期与时间**部分，其中仅包含**时区**（不含时钟/时间格式），以保持提示词缓存的稳定性：
 
 ```
 Time zone: America/Chicago
 ```
 
-When the agent needs the current time, use the `session_status` tool; the status
-card includes a timestamp line.
+当智能体需要获取当前时间时，请使用 `session_status` 工具；状态卡中包含时间戳行。
 
-## System event lines (local by default)
+## 系统事件行（默认为本地时间）
 
-Queued system events inserted into agent context are prefixed with a timestamp using the
-same timezone selection as message envelopes (default: host-local).
+插入到智能体上下文中的排队系统事件会带有时间戳前缀，使用与消息信封相同的时区选择（默认：主机本地时间）。
 
 ```
 System: [2026-01-12 12:19:17 PST] Model switched.
 ```
 
-### Configure user timezone + format
+### 配置用户时区和格式
 
 ```json5
 {
@@ -97,32 +100,30 @@ System: [2026-01-12 12:19:17 PST] Model switched.
 }
 ```
 
-- `userTimezone` sets the **user-local timezone** for prompt context.
-- `timeFormat` controls **12h/24h display** in the prompt. `auto` follows OS prefs.
+- `userTimezone` 设置提示词上下文中的**用户本地时区**。
+- `timeFormat` 控制提示词中的 **12 小时/24 小时显示格式**。`auto` 跟随操作系统偏好设置。
 
-## Time format detection (auto)
+## 时间格式检测（auto）
 
-When `timeFormat: "auto"`, OpenClaw inspects the OS preference (macOS/Windows)
-and falls back to locale formatting. The detected value is **cached per process**
-to avoid repeated system calls.
+当 `timeFormat: "auto"` 时，OpenClaw 会检查操作系统偏好设置（macOS/Windows），并回退到区域格式。检测到的值会**按进程缓存**，以避免重复的系统调用。
 
-## Tool payloads + connectors (raw provider time + normalized fields)
+## 工具载荷 + 连接器（原始提供商时间 + 标准化字段）
 
-Channel tools return **provider-native timestamps** and add normalized fields for consistency:
+渠道工具返回**提供商原生时间戳**，并添加标准化字段以保持一致性：
 
-- `timestampMs`: epoch milliseconds (UTC)
-- `timestampUtc`: ISO 8601 UTC string
+- `timestampMs`：纪元毫秒数（UTC）
+- `timestampUtc`：ISO 8601 UTC 字符串
 
-Raw provider fields are preserved so nothing is lost.
+原始提供商字段会被保留，不会丢失任何数据。
 
-- Slack: epoch-like strings from the API
-- Discord: UTC ISO timestamps
-- Telegram/WhatsApp: provider-specific numeric/ISO timestamps
+- Slack：来自 API 的类纪元字符串
+- Discord：UTC ISO 时间戳
+- Telegram/WhatsApp：提供商特定的数字/ISO 时间戳
 
-If you need local time, convert it downstream using the known timezone.
+如果需要本地时间，请使用已知时区在下游进行转换。
 
-## Related docs
+## 相关文档
 
-- [System Prompt](/concepts/system-prompt)
-- [Timezones](/concepts/timezone)
-- [Messages](/concepts/messages)
+- [系统提示词](/concepts/system-prompt)
+- [时区](/concepts/timezone)
+- [消息](/concepts/messages)

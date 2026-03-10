@@ -1,330 +1,238 @@
 ---
-summary: "Doctor command: health checks, config migrations, and repair steps"
 read_when:
-  - Adding or modifying doctor migrations
-  - Introducing breaking config changes
-title: "Doctor"
+  - 添加或修改 doctor 迁移
+  - 引入破坏性配置更改
+summary: Doctor 命令：健康检查、配置迁移和修复步骤
+title: Doctor
+x-i18n:
+  generated_at: "2026-02-03T07:49:03Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: df7b25f60fd08d508f4c6abfc8e7e06f29bd4bbb34c3320397f47eb72c8de83f
+  source_path: gateway/doctor.md
+  workflow: 15
 ---
 
 # Doctor
 
-`openclaw doctor` is the repair + migration tool for OpenClaw. It fixes stale
-config/state, checks health, and provides actionable repair steps.
+`openclaw doctor` 是 OpenClaw 的修复 + 迁移工具。它修复过时的配置/状态，检查健康状况，并提供可操作的修复步骤。
 
-## Quick start
+## 快速开始
 
 ```bash
 openclaw doctor
 ```
 
-### Headless / automation
+### 无头/自动化
 
 ```bash
 openclaw doctor --yes
 ```
 
-Accept defaults without prompting (including restart/service/sandbox repair steps when applicable).
+无需提示接受默认值（包括适用时的重启/服务/沙箱修复步骤）。
 
 ```bash
 openclaw doctor --repair
 ```
 
-Apply recommended repairs without prompting (repairs + restarts where safe).
+无需提示应用推荐的修复（安全时进行修复 + 重启）。
 
 ```bash
 openclaw doctor --repair --force
 ```
 
-Apply aggressive repairs too (overwrites custom supervisor configs).
+也应用激进的修复（覆盖自定义 supervisor 配置）。
 
 ```bash
 openclaw doctor --non-interactive
 ```
 
-Run without prompts and only apply safe migrations (config normalization + on-disk state moves). Skips restart/service/sandbox actions that require human confirmation.
-Legacy state migrations run automatically when detected.
+无需提示运行，仅应用安全迁移（配置规范化 + 磁盘状态移动）。跳过需要人工确认的重启/服务/沙箱操作。
+检测到时自动运行遗留状态迁移。
 
 ```bash
 openclaw doctor --deep
 ```
 
-Scan system services for extra gateway installs (launchd/systemd/schtasks).
+扫描系统服务以查找额外的 Gateway 网关安装（launchd/systemd/schtasks）。
 
-If you want to review changes before writing, open the config file first:
+如果你想在写入前查看更改，请先打开配置文件：
 
 ```bash
 cat ~/.openclaw/openclaw.json
 ```
 
-## What it does (summary)
+## 功能概述
 
-- Optional pre-flight update for git installs (interactive only).
-- UI protocol freshness check (rebuilds Control UI when the protocol schema is newer).
-- Health check + restart prompt.
-- Skills status summary (eligible/missing/blocked).
-- Config normalization for legacy values.
-- OpenCode Zen provider override warnings (`models.providers.opencode`).
-- Legacy on-disk state migration (sessions/agent dir/WhatsApp auth).
-- Legacy cron store migration (`jobId`, `schedule.cron`, top-level delivery/payload fields, payload `provider`, simple `notify: true` webhook fallback jobs).
-- State integrity and permissions checks (sessions, transcripts, state dir).
-- Config file permission checks (chmod 600) when running locally.
-- Model auth health: checks OAuth expiry, can refresh expiring tokens, and reports auth-profile cooldown/disabled states.
-- Extra workspace dir detection (`~/openclaw`).
-- Sandbox image repair when sandboxing is enabled.
-- Legacy service migration and extra gateway detection.
-- Gateway runtime checks (service installed but not running; cached launchd label).
-- Channel status warnings (probed from the running gateway).
-- Supervisor config audit (launchd/systemd/schtasks) with optional repair.
-- Gateway runtime best-practice checks (Node vs Bun, version-manager paths).
-- Gateway port collision diagnostics (default `18789`).
-- Security warnings for open DM policies.
-- Gateway auth checks for local token mode (offers token generation when no token source exists; does not overwrite token SecretRef configs).
-- systemd linger check on Linux.
-- Source install checks (pnpm workspace mismatch, missing UI assets, missing tsx binary).
-- Writes updated config + wizard metadata.
+- git 安装的可选预检更新（仅交互模式）。
+- UI 协议新鲜度检查（当协议 schema 较新时重建 Control UI）。
+- 健康检查 + 重启提示。
+- Skills 状态摘要（符合条件/缺失/被阻止）。
+- 遗留值的配置规范化。
+- OpenCode Zen 提供商覆盖警告（`models.providers.opencode`）。
+- 遗留磁盘状态迁移（会话/智能体目录/WhatsApp 认证）。
+- 状态完整性和权限检查（会话、记录、状态目录）。
+- 本地运行时的配置文件权限检查（chmod 600）。
+- 模型认证健康：检查 OAuth 过期，可刷新即将过期的 token，并报告认证配置文件冷却/禁用状态。
+- 额外工作区目录检测（`~/openclaw`）。
+- 启用沙箱隔离时的沙箱镜像修复。
+- 遗留服务迁移和额外 Gateway 网关检测。
+- Gateway 网关运行时检查（服务已安装但未运行；缓存的 launchd 标签）。
+- 渠道状态警告（从运行中的 Gateway 网关探测）。
+- Supervisor 配置审计（launchd/systemd/schtasks）及可选修复。
+- Gateway 网关运行时最佳实践检查（Node vs Bun，版本管理器路径）。
+- Gateway 网关端口冲突诊断（默认 `18789`）。
+- 开放私信策略的安全警告。
+- 未设置 `gateway.auth.token` 时的 Gateway 网关认证警告（本地模式；提供 token 生成）。
+- Linux 上的 systemd linger 检查。
+- 源码安装检查（pnpm workspace 不匹配、缺失 UI 资产、缺失 tsx 二进制文件）。
+- 写入更新后的配置 + 向导元数据。
 
-## Detailed behavior and rationale
+## 详细行为和原理
 
-### 0) Optional update (git installs)
+### 0）可选更新（git 安装）
 
-If this is a git checkout and doctor is running interactively, it offers to
-update (fetch/rebase/build) before running doctor.
+如果这是 git 检出且 doctor 以交互模式运行，它会在运行 doctor 之前提供更新（fetch/rebase/build）。
 
-### 1) Config normalization
+### 1）配置规范化
 
-If the config contains legacy value shapes (for example `messages.ackReaction`
-without a channel-specific override), doctor normalizes them into the current
-schema.
+如果配置包含遗留值形式（例如没有渠道特定覆盖的 `messages.ackReaction`），doctor 会将它们规范化为当前 schema。
 
-### 2) Legacy config key migrations
+### 2）遗留配置键迁移
 
-When the config contains deprecated keys, other commands refuse to run and ask
-you to run `openclaw doctor`.
+当配置包含已弃用的键时，其他命令会拒绝运行并要求你运行 `openclaw doctor`。
 
-Doctor will:
+Doctor 将：
 
-- Explain which legacy keys were found.
-- Show the migration it applied.
-- Rewrite `~/.openclaw/openclaw.json` with the updated schema.
+- 解释找到了哪些遗留键。
+- 显示它应用的迁移。
+- 使用更新后的 schema 重写 `~/.openclaw/openclaw.json`。
 
-The Gateway also auto-runs doctor migrations on startup when it detects a
-legacy config format, so stale configs are repaired without manual intervention.
+Gateway 网关在检测到遗留配置格式时也会在启动时自动运行 doctor 迁移，因此过时的配置无需手动干预即可修复。
 
-Current migrations:
+当前迁移：
 
 - `routing.allowFrom` → `channels.whatsapp.allowFrom`
 - `routing.groupChat.requireMention` → `channels.whatsapp/telegram/imessage.groups."*".requireMention`
 - `routing.groupChat.historyLimit` → `messages.groupChat.historyLimit`
 - `routing.groupChat.mentionPatterns` → `messages.groupChat.mentionPatterns`
 - `routing.queue` → `messages.queue`
-- `routing.bindings` → top-level `bindings`
+- `routing.bindings` → 顶级 `bindings`
 - `routing.agents`/`routing.defaultAgentId` → `agents.list` + `agents.list[].default`
 - `routing.agentToAgent` → `tools.agentToAgent`
 - `routing.transcribeAudio` → `tools.media.audio.models`
 - `bindings[].match.accountID` → `bindings[].match.accountId`
-- For channels with named `accounts` but missing `accounts.default`, move account-scoped top-level single-account channel values into `channels.<channel>.accounts.default` when present
 - `identity` → `agents.list[].identity`
-- `agent.*` → `agents.defaults` + `tools.*` (tools/elevated/exec/sandbox/subagents)
+- `agent.*` → `agents.defaults` + `tools.*`（tools/elevated/exec/sandbox/subagents）
 - `agent.model`/`allowedModels`/`modelAliases`/`modelFallbacks`/`imageModelFallbacks`
   → `agents.defaults.models` + `agents.defaults.model.primary/fallbacks` + `agents.defaults.imageModel.primary/fallbacks`
-- `browser.ssrfPolicy.allowPrivateNetwork` → `browser.ssrfPolicy.dangerouslyAllowPrivateNetwork`
 
-Doctor warnings also include account-default guidance for multi-account channels:
+### 2b）OpenCode Zen 提供商覆盖
 
-- If two or more `channels.<channel>.accounts` entries are configured without `channels.<channel>.defaultAccount` or `accounts.default`, doctor warns that fallback routing can pick an unexpected account.
-- If `channels.<channel>.defaultAccount` is set to an unknown account ID, doctor warns and lists configured account IDs.
+如果你手动添加了 `models.providers.opencode`（或 `opencode-zen`），它会覆盖 `@mariozechner/pi-ai` 中内置的 OpenCode Zen 目录。这可能会强制将每个模型放到单个 API 上或将成本归零。Doctor 会发出警告，以便你可以移除覆盖并恢复每模型 API 路由 + 成本。
 
-### 2b) OpenCode Zen provider overrides
+### 3）遗留状态迁移（磁盘布局）
 
-If you’ve added `models.providers.opencode` (or `opencode-zen`) manually, it
-overrides the built-in OpenCode Zen catalog from `@mariozechner/pi-ai`. That can
-force every model onto a single API or zero out costs. Doctor warns so you can
-remove the override and restore per-model API routing + costs.
+Doctor 可以将旧的磁盘布局迁移到当前结构：
 
-### 3) Legacy state migrations (disk layout)
+- 会话存储 + 记录：
+  - 从 `~/.openclaw/sessions/` 到 `~/.openclaw/agents/<agentId>/sessions/`
+- 智能体目录：
+  - 从 `~/.openclaw/agent/` 到 `~/.openclaw/agents/<agentId>/agent/`
+- WhatsApp 认证状态（Baileys）：
+  - 从遗留的 `~/.openclaw/credentials/*.json`（除 `oauth.json` 外）
+  - 到 `~/.openclaw/credentials/whatsapp/<accountId>/...`（默认账户 id：`default`）
 
-Doctor can migrate older on-disk layouts into the current structure:
+这些迁移是尽力而为且幂等的；当 doctor 将任何遗留文件夹作为备份保留时会发出警告。Gateway 网关/CLI 也会在启动时自动迁移遗留会话 + 智能体目录，因此历史/认证/模型会落在每智能体路径中，无需手动运行 doctor。WhatsApp 认证有意仅通过 `openclaw doctor` 迁移。
 
-- Sessions store + transcripts:
-  - from `~/.openclaw/sessions/` to `~/.openclaw/agents/<agentId>/sessions/`
-- Agent dir:
-  - from `~/.openclaw/agent/` to `~/.openclaw/agents/<agentId>/agent/`
-- WhatsApp auth state (Baileys):
-  - from legacy `~/.openclaw/credentials/*.json` (except `oauth.json`)
-  - to `~/.openclaw/credentials/whatsapp/<accountId>/...` (default account id: `default`)
+### 4）状态完整性检查（会话持久化、路由和安全）
 
-These migrations are best-effort and idempotent; doctor will emit warnings when
-it leaves any legacy folders behind as backups. The Gateway/CLI also auto-migrates
-the legacy sessions + agent dir on startup so history/auth/models land in the
-per-agent path without a manual doctor run. WhatsApp auth is intentionally only
-migrated via `openclaw doctor`.
+状态目录是操作的核心。如果它消失，你会丢失会话、凭证、日志和配置（除非你在别处有备份）。
 
-### 3b) Legacy cron store migrations
+Doctor 检查：
 
-Doctor also checks the cron job store (`~/.openclaw/cron/jobs.json` by default,
-or `cron.store` when overridden) for old job shapes that the scheduler still
-accepts for compatibility.
+- **状态目录缺失**：警告灾难性状态丢失，提示重新创建目录，并提醒你它无法恢复丢失的数据。
+- **状态目录权限**：验证可写性；提供修复权限（并在检测到所有者/组不匹配时发出 `chown` 提示）。
+- **会话目录缺失**：`sessions/` 和会话存储目录是持久化历史和避免 `ENOENT` 崩溃所必需的。
+- **记录不匹配**：当最近的会话条目缺少记录文件时发出警告。
+- **主会话"1 行 JSONL"**：当主记录只有一行时标记（历史未累积）。
+- **多个状态目录**：当多个 `~/.openclaw` 文件夹存在于不同 home 目录或当 `OPENCLAW_STATE_DIR` 指向别处时发出警告（历史可能在安装之间分裂）。
+- **远程模式提醒**：如果 `gateway.mode=remote`，doctor 会提醒你在远程主机上运行它（状态在那里）。
+- **配置文件权限**：当 `~/.openclaw/openclaw.json` 对组/其他用户可读时发出警告，并提供收紧到 `600` 的选项。
 
-Current cron cleanups include:
+### 5）模型认证健康（OAuth 过期）
 
-- `jobId` → `id`
-- `schedule.cron` → `schedule.expr`
-- top-level payload fields (`message`, `model`, `thinking`, ...) → `payload`
-- top-level delivery fields (`deliver`, `channel`, `to`, `provider`, ...) → `delivery`
-- payload `provider` delivery aliases → explicit `delivery.channel`
-- simple legacy `notify: true` webhook fallback jobs → explicit `delivery.mode="webhook"` with `delivery.to=cron.webhook`
+Doctor 检查认证存储中的 OAuth 配置文件，在 token 即将过期/已过期时发出警告，并在安全时刷新它们。如果 Anthropic Claude Code 配置文件过时，它会建议运行 `claude setup-token`（或粘贴 setup-token）。
+刷新提示仅在交互运行（TTY）时出现；`--non-interactive` 跳过刷新尝试。
 
-Doctor only auto-migrates `notify: true` jobs when it can do so without
-changing behavior. If a job combines legacy notify fallback with an existing
-non-webhook delivery mode, doctor warns and leaves that job for manual review.
+Doctor 还会报告由于以下原因暂时不可用的认证配置文件：
 
-### 4) State integrity checks (session persistence, routing, and safety)
+- 短冷却（速率限制/超时/认证失败）
+- 长禁用（账单/信用失败）
 
-The state directory is the operational brainstem. If it vanishes, you lose
-sessions, credentials, logs, and config (unless you have backups elsewhere).
+### 6）Hooks 模型验证
 
-Doctor checks:
+如果设置了 `hooks.gmail.model`，doctor 会根据目录和允许列表验证模型引用，并在无法解析或不允许时发出警告。
 
-- **State dir missing**: warns about catastrophic state loss, prompts to recreate
-  the directory, and reminds you that it cannot recover missing data.
-- **State dir permissions**: verifies writability; offers to repair permissions
-  (and emits a `chown` hint when owner/group mismatch is detected).
-- **macOS cloud-synced state dir**: warns when state resolves under iCloud Drive
-  (`~/Library/Mobile Documents/com~apple~CloudDocs/...`) or
-  `~/Library/CloudStorage/...` because sync-backed paths can cause slower I/O
-  and lock/sync races.
-- **Linux SD or eMMC state dir**: warns when state resolves to an `mmcblk*`
-  mount source, because SD or eMMC-backed random I/O can be slower and wear
-  faster under session and credential writes.
-- **Session dirs missing**: `sessions/` and the session store directory are
-  required to persist history and avoid `ENOENT` crashes.
-- **Transcript mismatch**: warns when recent session entries have missing
-  transcript files.
-- **Main session “1-line JSONL”**: flags when the main transcript has only one
-  line (history is not accumulating).
-- **Multiple state dirs**: warns when multiple `~/.openclaw` folders exist across
-  home directories or when `OPENCLAW_STATE_DIR` points elsewhere (history can
-  split between installs).
-- **Remote mode reminder**: if `gateway.mode=remote`, doctor reminds you to run
-  it on the remote host (the state lives there).
-- **Config file permissions**: warns if `~/.openclaw/openclaw.json` is
-  group/world readable and offers to tighten to `600`.
+### 7）沙箱镜像修复
 
-### 5) Model auth health (OAuth expiry)
+当启用沙箱隔离时，doctor 检查 Docker 镜像，并在当前镜像缺失时提供构建或切换到遗留名称的选项。
 
-Doctor inspects OAuth profiles in the auth store, warns when tokens are
-expiring/expired, and can refresh them when safe. If the Anthropic Claude Code
-profile is stale, it suggests running `claude setup-token` (or pasting a setup-token).
-Refresh prompts only appear when running interactively (TTY); `--non-interactive`
-skips refresh attempts.
+### 8）Gateway 网关服务迁移和清理提示
 
-Doctor also reports auth profiles that are temporarily unusable due to:
+Doctor 检测遗留的 Gateway 网关服务（launchd/systemd/schtasks），并提供删除它们并使用当前 Gateway 网关端口安装 OpenClaw 服务的选项。它还可以扫描额外的类 Gateway 网关服务并打印清理提示。
+配置文件命名的 OpenClaw Gateway 网关服务被视为一等公民，不会被标记为"额外的"。
 
-- short cooldowns (rate limits/timeouts/auth failures)
-- longer disables (billing/credit failures)
+### 9）安全警告
 
-### 6) Hooks model validation
+当提供商对私信开放而没有允许列表，或当策略以危险方式配置时，Doctor 会发出警告。
 
-If `hooks.gmail.model` is set, doctor validates the model reference against the
-catalog and allowlist and warns when it won’t resolve or is disallowed.
+### 10）systemd linger（Linux）
 
-### 7) Sandbox image repair
+如果作为 systemd 用户服务运行，doctor 确保启用 lingering，以便 Gateway 网关在注销后保持活动。
 
-When sandboxing is enabled, doctor checks Docker images and offers to build or
-switch to legacy names if the current image is missing.
+### 11）Skills 状态
 
-### 8) Gateway service migrations and cleanup hints
+Doctor 打印当前工作区符合条件/缺失/被阻止的 Skills 的快速摘要。
 
-Doctor detects legacy gateway services (launchd/systemd/schtasks) and
-offers to remove them and install the OpenClaw service using the current gateway
-port. It can also scan for extra gateway-like services and print cleanup hints.
-Profile-named OpenClaw gateway services are considered first-class and are not
-flagged as "extra."
+### 12）Gateway 网关认证检查（本地 token）
 
-### 9) Security warnings
+当本地 Gateway 网关缺少 `gateway.auth` 时，Doctor 会发出警告并提供生成 token 的选项。使用 `openclaw doctor --generate-gateway-token` 在自动化中强制创建 token。
 
-Doctor emits warnings when a provider is open to DMs without an allowlist, or
-when a policy is configured in a dangerous way.
+### 13）Gateway 网关健康检查 + 重启
 
-### 10) systemd linger (Linux)
+Doctor 运行健康检查，并在 Gateway 网关看起来不健康时提供重启选项。
 
-If running as a systemd user service, doctor ensures lingering is enabled so the
-gateway stays alive after logout.
+### 14）渠道状态警告
 
-### 11) Skills status
+如果 Gateway 网关健康，doctor 运行渠道状态探测并报告警告及建议的修复。
 
-Doctor prints a quick summary of eligible/missing/blocked skills for the current
-workspace.
+### 15）Supervisor 配置审计 + 修复
 
-### 12) Gateway auth checks (local token)
+Doctor 检查已安装的 supervisor 配置（launchd/systemd/schtasks）是否有缺失或过时的默认值（例如 systemd network-online 依赖和重启延迟）。当发现不匹配时，它会推荐更新，并可以将服务文件/任务重写为当前默认值。
 
-Doctor checks local gateway token auth readiness.
+注意事项：
 
-- If token mode needs a token and no token source exists, doctor offers to generate one.
-- If `gateway.auth.token` is SecretRef-managed but unavailable, doctor warns and does not overwrite it with plaintext.
-- `openclaw doctor --generate-gateway-token` forces generation only when no token SecretRef is configured.
+- `openclaw doctor` 在重写 supervisor 配置前提示。
+- `openclaw doctor --yes` 接受默认修复提示。
+- `openclaw doctor --repair` 无需提示应用推荐的修复。
+- `openclaw doctor --repair --force` 覆盖自定义 supervisor 配置。
+- 你始终可以通过 `openclaw gateway install --force` 强制完全重写。
 
-### 12b) Read-only SecretRef-aware repairs
+### 16）Gateway 网关运行时 + 端口诊断
 
-Some repair flows need to inspect configured credentials without weakening runtime fail-fast behavior.
+Doctor 检查服务运行时（PID、上次退出状态），并在服务已安装但实际未运行时发出警告。它还检查 Gateway 网关端口（默认 `18789`）上的端口冲突，并报告可能的原因（Gateway 网关已在运行、SSH 隧道）。
 
-- `openclaw doctor --fix` now uses the same read-only SecretRef summary model as status-family commands for targeted config repairs.
-- Example: Telegram `allowFrom` / `groupAllowFrom` `@username` repair tries to use configured bot credentials when available.
-- If the Telegram bot token is configured via SecretRef but unavailable in the current command path, doctor reports that the credential is configured-but-unavailable and skips auto-resolution instead of crashing or misreporting the token as missing.
+### 17）Gateway 网关运行时最佳实践
 
-### 13) Gateway health check + restart
+当 Gateway 网关服务在 Bun 或版本管理器管理的 Node 路径（`nvm`、`fnm`、`volta`、`asdf` 等）上运行时，Doctor 会发出警告。WhatsApp + Telegram 渠道需要 Node，版本管理器路径在升级后可能会中断，因为服务不会加载你的 shell init。Doctor 会在可用时提供迁移到系统 Node 安装的选项（Homebrew/apt/choco）。
 
-Doctor runs a health check and offers to restart the gateway when it looks
-unhealthy.
+### 18）配置写入 + 向导元数据
 
-### 14) Channel status warnings
+Doctor 持久化任何配置更改，并标记向导元数据以记录 doctor 运行。
 
-If the gateway is healthy, doctor runs a channel status probe and reports
-warnings with suggested fixes.
+### 19）工作区提示（备份 + 记忆系统）
 
-### 15) Supervisor config audit + repair
+当缺失时，Doctor 建议使用工作区记忆系统，并在工作区尚未在 git 下时打印备份提示。
 
-Doctor checks the installed supervisor config (launchd/systemd/schtasks) for
-missing or outdated defaults (e.g., systemd network-online dependencies and
-restart delay). When it finds a mismatch, it recommends an update and can
-rewrite the service file/task to the current defaults.
-
-Notes:
-
-- `openclaw doctor` prompts before rewriting supervisor config.
-- `openclaw doctor --yes` accepts the default repair prompts.
-- `openclaw doctor --repair` applies recommended fixes without prompts.
-- `openclaw doctor --repair --force` overwrites custom supervisor configs.
-- If token auth requires a token and `gateway.auth.token` is SecretRef-managed, doctor service install/repair validates the SecretRef but does not persist resolved plaintext token values into supervisor service environment metadata.
-- If token auth requires a token and the configured token SecretRef is unresolved, doctor blocks the install/repair path with actionable guidance.
-- If both `gateway.auth.token` and `gateway.auth.password` are configured and `gateway.auth.mode` is unset, doctor blocks install/repair until mode is set explicitly.
-- For Linux user-systemd units, doctor token drift checks now include both `Environment=` and `EnvironmentFile=` sources when comparing service auth metadata.
-- You can always force a full rewrite via `openclaw gateway install --force`.
-
-### 16) Gateway runtime + port diagnostics
-
-Doctor inspects the service runtime (PID, last exit status) and warns when the
-service is installed but not actually running. It also checks for port collisions
-on the gateway port (default `18789`) and reports likely causes (gateway already
-running, SSH tunnel).
-
-### 17) Gateway runtime best practices
-
-Doctor warns when the gateway service runs on Bun or a version-managed Node path
-(`nvm`, `fnm`, `volta`, `asdf`, etc.). WhatsApp + Telegram channels require Node,
-and version-manager paths can break after upgrades because the service does not
-load your shell init. Doctor offers to migrate to a system Node install when
-available (Homebrew/apt/choco).
-
-### 18) Config write + wizard metadata
-
-Doctor persists any config changes and stamps wizard metadata to record the
-doctor run.
-
-### 19) Workspace tips (backup + memory system)
-
-Doctor suggests a workspace memory system when missing and prints a backup tip
-if the workspace is not already under git.
-
-See [/concepts/agent-workspace](/concepts/agent-workspace) for a full guide to
-workspace structure and git backup (recommended private GitHub or GitLab).
+参见 [/concepts/agent-workspace](/concepts/agent-workspace) 了解工作区结构和 git 备份的完整指南（推荐私有 GitHub 或 GitLab）。

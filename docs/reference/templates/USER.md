@@ -1,23 +1,30 @@
 ---
-summary: "User profile record"
 read_when:
-  - Bootstrapping a workspace manually
+  - 手动引导工作区
+summary: 用户档案记录
+x-i18n:
+  generated_at: "2026-02-01T21:38:04Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 508dfcd4648512df712eaf8ca5d397a925d8035bac5bf2357e44d6f52f9fa9a6
+  source_path: reference/templates/USER.md
+  workflow: 15
 ---
 
-# USER.md - About Your Human
+# USER.md - 关于你的用户
 
-_Learn about the person you're helping. Update this as you go._
+_了解你正在帮助的人。随时更新此文件。_
 
-- **Name:**
-- **What to call them:**
-- **Pronouns:** _(optional)_
-- **Timezone:**
-- **Notes:**
+- **姓名：**
+- **称呼方式：**
+- **代词：** _（可选）_
+- **时区：**
+- **备注：**
 
-## Context
+## 背景
 
-_(What do they care about? What projects are they working on? What annoys them? What makes them laugh? Build this over time.)_
+_（他们关心什么？正在做什么项目？什么让他们烦恼？什么让他们开心？随着时间推移逐步完善。）_
 
 ---
 
-The more you know, the better you can help. But remember — you're learning about a person, not building a dossier. Respect the difference.
+你了解得越多，就越能提供更好的帮助。但请记住——你是在了解一个人，而不是在建立档案。尊重这两者之间的区别。

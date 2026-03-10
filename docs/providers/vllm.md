@@ -1,32 +1,32 @@
 ---
-summary: "Run OpenClaw with vLLM (OpenAI-compatible local server)"
+summary: "在 OpenClaw 中使用 vLLM（OpenAI 兼容本地服务器）"
 read_when:
-  - You want to run OpenClaw against a local vLLM server
-  - You want OpenAI-compatible /v1 endpoints with your own models
+  - 想要在本地 vLLM 服务器上运行 OpenClaw
+  - 想要使用自己模型的 OpenAI 兼容 /v1 端点
 title: "vLLM"
 ---
 
 # vLLM
 
-vLLM can serve open-source (and some custom) models via an **OpenAI-compatible** HTTP API. OpenClaw can connect to vLLM using the `openai-completions` API.
+vLLM 可以通过 **OpenAI 兼容** HTTP API 提供开源（和部分自定义）模型服务。OpenClaw 可以使用 `openai-completions` API 连接到 vLLM。
 
-OpenClaw can also **auto-discover** available models from vLLM when you opt in with `VLLM_API_KEY` (any value works if your server doesn’t enforce auth) and you do not define an explicit `models.providers.vllm` entry.
+OpenClaw 还可以从 vLLM **自动发现**可用模型，前提是您通过 `VLLM_API_KEY` 选择加入（如果服务器不强制认证，任何值都可以）且未定义显式的 `models.providers.vllm` 条目。
 
-## Quick start
+## 快速开始
 
-1. Start vLLM with an OpenAI-compatible server.
+1. 启动具有 OpenAI 兼容服务器的 vLLM。
 
-Your base URL should expose `/v1` endpoints (e.g. `/v1/models`, `/v1/chat/completions`). vLLM commonly runs on:
+您的基础 URL 应暴露 `/v1` 端点（例如 `/v1/models`、`/v1/chat/completions`）。vLLM 通常运行在：
 
 - `http://127.0.0.1:8000/v1`
 
-2. Opt in (any value works if no auth is configured):
+2. 选择加入（如果未配置认证，任何值都可以）：
 
 ```bash
 export VLLM_API_KEY="vllm-local"
 ```
 
-3. Select a model (replace with one of your vLLM model IDs):
+3. 选择模型（替换为您的 vLLM 模型 ID）：
 
 ```json5
 {
@@ -38,23 +38,23 @@ export VLLM_API_KEY="vllm-local"
 }
 ```
 
-## Model discovery (implicit provider)
+## 模型发现（隐式提供商）
 
-When `VLLM_API_KEY` is set (or an auth profile exists) and you **do not** define `models.providers.vllm`, OpenClaw will query:
+当设置了 `VLLM_API_KEY`（或存在认证配置文件）且您**未**定义 `models.providers.vllm` 时，OpenClaw 将查询：
 
 - `GET http://127.0.0.1:8000/v1/models`
 
-…and convert the returned IDs into model entries.
+…并将返回的 ID 转换为模型条目。
 
-If you set `models.providers.vllm` explicitly, auto-discovery is skipped and you must define models manually.
+如果您显式设置了 `models.providers.vllm`，则跳过自动发现，您必须手动定义模型。
 
-## Explicit configuration (manual models)
+## 显式配置（手动模型）
 
-Use explicit config when:
+在以下情况下使用显式配置：
 
-- vLLM runs on a different host/port.
-- You want to pin `contextWindow`/`maxTokens` values.
-- Your server requires a real API key (or you want to control headers).
+- vLLM 运行在不同的主机/端口上。
+- 您想要固定 `contextWindow`/`maxTokens` 值。
+- 您的服务器需要真实的 API 密钥（或您想控制请求头）。
 
 ```json5
 {
@@ -67,7 +67,7 @@ Use explicit config when:
         models: [
           {
             id: "your-model-id",
-            name: "Local vLLM Model",
+            name: "本地 vLLM 模型",
             reasoning: false,
             input: ["text"],
             cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
@@ -81,12 +81,12 @@ Use explicit config when:
 }
 ```
 
-## Troubleshooting
+## 故障排除
 
-- Check the server is reachable:
+- 检查服务器是否可达：
 
 ```bash
 curl http://127.0.0.1:8000/v1/models
 ```
 
-- If requests fail with auth errors, set a real `VLLM_API_KEY` that matches your server configuration, or configure the provider explicitly under `models.providers.vllm`.
+- 如果请求因认证错误失败，设置与您服务器配置匹配的真实 `VLLM_API_KEY`，或在 `models.providers.vllm` 下显式配置提供商。

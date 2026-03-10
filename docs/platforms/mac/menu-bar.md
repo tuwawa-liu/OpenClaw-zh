@@ -1,81 +1,88 @@
 ---
-summary: "Menu bar status logic and what is surfaced to users"
 read_when:
-  - Tweaking mac menu UI or status logic
-title: "Menu Bar"
+  - 调整 Mac 菜单 UI 或状态逻辑
+summary: 菜单栏状态逻辑及向用户展示的内容
+title: 菜单栏
+x-i18n:
+  generated_at: "2026-02-01T21:33:00Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 8eb73c0e671a76aae4ebb653c65147610bf3e6d3c9c0943d150e292e7761d16d
+  source_path: platforms/mac/menu-bar.md
+  workflow: 15
 ---
 
-# Menu Bar Status Logic
+# 菜单栏状态逻辑
 
-## What is shown
+## 显示内容
 
-- We surface the current agent work state in the menu bar icon and in the first status row of the menu.
-- Health status is hidden while work is active; it returns when all sessions are idle.
-- The “Nodes” block in the menu lists **devices** only (paired nodes via `node.list`), not client/presence entries.
-- A “Usage” section appears under Context when provider usage snapshots are available.
+- 我们在菜单栏图标和菜单的第一行状态行中展示当前智能体的工作状态。
+- 工作活跃时隐藏健康状态；当所有会话空闲时恢复显示。
+- 菜单中的"节点"区块仅列出**设备**（通过 `node.list` 配对的节点），不包括客户端/在线状态条目。
+- 当提供商用量快照可用时，"用量"部分会显示在上下文下方。
 
-## State model
+## 状态模型
 
-- Sessions: events arrive with `runId` (per-run) plus `sessionKey` in the payload. The “main” session is the key `main`; if absent, we fall back to the most recently updated session.
-- Priority: main always wins. If main is active, its state is shown immediately. If main is idle, the most recently active non‑main session is shown. We do not flip‑flop mid‑activity; we only switch when the current session goes idle or main becomes active.
-- Activity kinds:
-  - `job`: high‑level command execution (`state: started|streaming|done|error`).
-  - `tool`: `phase: start|result` with `toolName` and `meta/args`.
+- 会话：事件携带 `runId`（每次运行）以及载荷中的 `sessionKey`。"main" 会话的键为 `main`；如果不存在，则回退到最近更新的会话。
+- 优先级：main 始终优先。如果 main 处于活跃状态，立即显示其状态。如果 main 空闲，则显示最近活跃的非 main 会话。活动进行中不会来回切换；仅在当前会话进入空闲或 main 变为活跃时才切换。
+- 活动类型：
+  - `job`：高层命令执行（`state: started|streaming|done|error`）。
+  - `tool`：`phase: start|result`，包含 `toolName` 和 `meta/args`。
 
-## IconState enum (Swift)
+## IconState 枚举（Swift）
 
 - `idle`
 - `workingMain(ActivityKind)`
 - `workingOther(ActivityKind)`
-- `overridden(ActivityKind)` (debug override)
+- `overridden(ActivityKind)`（调试覆盖）
 
-### ActivityKind → glyph
+### ActivityKind → 图标符号
 
 - `exec` → 💻
 - `read` → 📄
 - `write` → ✍️
 - `edit` → 📝
 - `attach` → 📎
-- default → 🛠️
+- 默认 → 🛠️
 
-### Visual mapping
+### 视觉映射
 
-- `idle`: normal critter.
-- `workingMain`: badge with glyph, full tint, leg “working” animation.
-- `workingOther`: badge with glyph, muted tint, no scurry.
-- `overridden`: uses the chosen glyph/tint regardless of activity.
+- `idle`：正常小动物图标。
+- `workingMain`：带图标符号的徽章，完整色调，腿部"工作"动画。
+- `workingOther`：带图标符号的徽章，柔和色调，无快跑动画。
+- `overridden`：无论活动状态如何，使用所选的图标符号/色调。
 
-## Status row text (menu)
+## 状态行文本（菜单）
 
-- While work is active: `<Session role> · <activity label>`
-  - Examples: `Main · exec: pnpm test`, `Other · read: apps/macos/Sources/OpenClaw/AppState.swift`.
-- When idle: falls back to the health summary.
+- 工作活跃时：`<会话角色> · <活动标签>`
+  - 示例：`Main · exec: pnpm test`、`Other · read: apps/macos/Sources/OpenClaw/AppState.swift`。
+- 空闲时：回退显示健康摘要。
 
-## Event ingestion
+## 事件接收
 
-- Source: control‑channel `agent` events (`ControlChannel.handleAgentEvent`).
-- Parsed fields:
-  - `stream: "job"` with `data.state` for start/stop.
-  - `stream: "tool"` with `data.phase`, `name`, optional `meta`/`args`.
-- Labels:
-  - `exec`: first line of `args.command`.
-  - `read`/`write`: shortened path.
-  - `edit`: path plus inferred change kind from `meta`/diff counts.
-  - fallback: tool name.
+- 来源：控制渠道 `agent` 事件（`ControlChannel.handleAgentEvent`）。
+- 解析字段：
+  - `stream: "job"`，包含 `data.state` 用于启动/停止。
+  - `stream: "tool"`，包含 `data.phase`、`name`，可选 `meta`/`args`。
+- 标签：
+  - `exec`：`args.command` 的第一行。
+  - `read`/`write`：缩短的路径。
+  - `edit`：路径加上从 `meta`/diff 计数推断的变更类型。
+  - 回退：工具名称。
 
-## Debug override
+## 调试覆盖
 
-- Settings ▸ Debug ▸ “Icon override” picker:
-  - `System (auto)` (default)
-  - `Working: main` (per tool kind)
-  - `Working: other` (per tool kind)
-  - `Idle`
-- Stored via `@AppStorage("iconOverride")`; mapped to `IconState.overridden`.
+- 设置 ▸ 调试 ▸ "图标覆盖" 选择器：
+  - `系统（自动）`（默认）
+  - `工作中：main`（按工具类型）
+  - `工作中：other`（按工具类型）
+  - `空闲`
+- 通过 `@AppStorage("iconOverride")` 存储；映射到 `IconState.overridden`。
 
-## Testing checklist
+## 测试清单
 
-- Trigger main session job: verify icon switches immediately and status row shows main label.
-- Trigger non‑main session job while main idle: icon/status shows non‑main; stays stable until it finishes.
-- Start main while other active: icon flips to main instantly.
-- Rapid tool bursts: ensure badge does not flicker (TTL grace on tool results).
-- Health row reappears once all sessions idle.
+- 触发 main 会话任务：验证图标立即切换且状态行显示 main 标签。
+- main 空闲时触发非 main 会话任务：图标/状态显示非 main；保持稳定直到完成。
+- 在 other 活跃时启动 main：图标立即切换到 main。
+- 快速连续工具调用：确保徽章不会闪烁（工具结果的 TTL 宽限期）。
+- 所有会话空闲后健康行重新出现。

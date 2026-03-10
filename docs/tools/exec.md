@@ -1,67 +1,62 @@
 ---
-summary: "Exec tool usage, stdin modes, and TTY support"
 read_when:
-  - Using or modifying the exec tool
-  - Debugging stdin or TTY behavior
-title: "Exec Tool"
+  - 使用或修改 exec 工具
+  - 调试 stdin 或 TTY 行为
+summary: Exec 工具用法、stdin 模式和 TTY 支持
+title: Exec 工具
+x-i18n:
+  generated_at: "2026-02-03T09:26:51Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 3b32238dd8dce93d4f24100eaa521ce9f8485eff6d8498e2680ce9ed6045d25f
+  source_path: tools/exec.md
+  workflow: 15
 ---
 
-# Exec tool
+# Exec 工具
 
-Run shell commands in the workspace. Supports foreground + background execution via `process`.
-If `process` is disallowed, `exec` runs synchronously and ignores `yieldMs`/`background`.
-Background sessions are scoped per agent; `process` only sees sessions from the same agent.
+在工作区中运行 shell 命令。通过 `process` 支持前台和后台执行。
+如果 `process` 被禁用，`exec` 将同步运行并忽略 `yieldMs`/`background`。
+后台会话按智能体隔离；`process` 只能看到同一智能体的会话。
 
-## Parameters
+## 参数
 
-- `command` (required)
-- `workdir` (defaults to cwd)
-- `env` (key/value overrides)
-- `yieldMs` (default 10000): auto-background after delay
-- `background` (bool): background immediately
-- `timeout` (seconds, default 1800): kill on expiry
-- `pty` (bool): run in a pseudo-terminal when available (TTY-only CLIs, coding agents, terminal UIs)
-- `host` (`sandbox | gateway | node`): where to execute
-- `security` (`deny | allowlist | full`): enforcement mode for `gateway`/`node`
-- `ask` (`off | on-miss | always`): approval prompts for `gateway`/`node`
-- `node` (string): node id/name for `host=node`
-- `elevated` (bool): request elevated mode (gateway host); `security=full` is only forced when elevated resolves to `full`
+- `command`（必填）
+- `workdir`（默认为当前工作目录）
+- `env`（键值对覆盖）
+- `yieldMs`（默认 10000）：延迟后自动转入后台
+- `background`（布尔值）：立即转入后台
+- `timeout`（秒，默认 1800）：超时后终止
+- `pty`（布尔值）：在可用时使用伪终端运行（仅限 TTY 的 CLI、编程智能体、终端 UI）
+- `host`（`sandbox | gateway | node`）：执行位置
+- `security`（`deny | allowlist | full`）：`gateway`/`node` 的执行策略
+- `ask`（`off | on-miss | always`）：`gateway`/`node` 的审批提示
+- `node`（字符串）：`host=node` 时的节点 id/名称
+- `elevated`（布尔值）：请求提升模式（gateway 主机）；仅当 elevated 解析为 `full` 时才强制 `security=full`
 
-Notes:
+注意事项：
 
-- `host` defaults to `sandbox`.
-- `elevated` is ignored when sandboxing is off (exec already runs on the host).
-- `gateway`/`node` approvals are controlled by `~/.openclaw/exec-approvals.json`.
-- `node` requires a paired node (companion app or headless node host).
-- If multiple nodes are available, set `exec.node` or `tools.exec.node` to select one.
-- On non-Windows hosts, exec uses `SHELL` when set; if `SHELL` is `fish`, it prefers `bash` (or `sh`)
-  from `PATH` to avoid fish-incompatible scripts, then falls back to `SHELL` if neither exists.
-- On Windows hosts, exec prefers PowerShell 7 (`pwsh`) discovery (Program Files, ProgramW6432, then PATH),
-  then falls back to Windows PowerShell 5.1.
-- Host execution (`gateway`/`node`) rejects `env.PATH` and loader overrides (`LD_*`/`DYLD_*`) to
-  prevent binary hijacking or injected code.
-- OpenClaw sets `OPENCLAW_SHELL=exec` in the spawned command environment (including PTY and sandbox execution) so shell/profile rules can detect exec-tool context.
-- Important: sandboxing is **off by default**. If sandboxing is off and `host=sandbox` is explicitly
-  configured/requested, exec now fails closed instead of silently running on the gateway host.
-  Enable sandboxing or use `host=gateway` with approvals.
-- Script preflight checks (for common Python/Node shell-syntax mistakes) only inspect files inside the
-  effective `workdir` boundary. If a script path resolves outside `workdir`, preflight is skipped for
-  that file.
+- `host` 默认为 `sandbox`。
+- 当沙箱隔离关闭时，`elevated` 会被忽略（exec 已在主机上运行）。
+- `gateway`/`node` 审批由 `~/.openclaw/exec-approvals.json` 控制。
+- `node` 需要已配对的节点（配套应用或无头节点主机）。
+- 如果有多个可用节点，设置 `exec.node` 或 `tools.exec.node` 来选择一个。
+- 在非 Windows 主机上，exec 会使用已设置的 `SHELL`；如果 `SHELL` 是 `fish`，它会优先从 `PATH` 中选择 `bash`（或 `sh`）以避免 fish 不兼容的脚本，如果两者都不存在则回退到 `SHELL`。
+- 主机执行（`gateway`/`node`）会拒绝 `env.PATH` 和加载器覆盖（`LD_*`/`DYLD_*`），以防止二进制劫持或代码注入。
+- 重要提示：沙箱隔离**默认关闭**。如果沙箱隔离关闭，`host=sandbox` 将直接在 Gateway 网关主机上运行（无容器）且**不需要审批**。如需审批，请使用 `host=gateway` 运行并配置 exec 审批（或启用沙箱隔离）。
 
-## Config
+## 配置
 
-- `tools.exec.notifyOnExit` (default: true): when true, backgrounded exec sessions enqueue a system event and request a heartbeat on exit.
-- `tools.exec.approvalRunningNoticeMs` (default: 10000): emit a single “running” notice when an approval-gated exec runs longer than this (0 disables).
-- `tools.exec.host` (default: `sandbox`)
-- `tools.exec.security` (default: `deny` for sandbox, `allowlist` for gateway + node when unset)
-- `tools.exec.ask` (default: `on-miss`)
-- `tools.exec.node` (default: unset)
-- `tools.exec.pathPrepend`: list of directories to prepend to `PATH` for exec runs (gateway + sandbox only).
-- `tools.exec.safeBins`: stdin-only safe binaries that can run without explicit allowlist entries. For behavior details, see [Safe bins](/tools/exec-approvals#safe-bins-stdin-only).
-- `tools.exec.safeBinTrustedDirs`: additional explicit directories trusted for `safeBins` path checks. `PATH` entries are never auto-trusted. Built-in defaults are `/bin` and `/usr/bin`.
-- `tools.exec.safeBinProfiles`: optional custom argv policy per safe bin (`minPositional`, `maxPositional`, `allowedValueFlags`, `deniedFlags`).
+- `tools.exec.notifyOnExit`（默认：true）：为 true 时，后台 exec 会话在退出时会入队系统事件并请求心跳。
+- `tools.exec.approvalRunningNoticeMs`（默认：10000）：当需要审批的 exec 运行时间超过此值时发出单次"运行中"通知（0 表示禁用）。
+- `tools.exec.host`（默认：`sandbox`）
+- `tools.exec.security`（默认：sandbox 为 `deny`，gateway + node 未设置时为 `allowlist`）
+- `tools.exec.ask`（默认：`on-miss`）
+- `tools.exec.node`（默认：未设置）
+- `tools.exec.pathPrepend`：exec 运行时添加到 `PATH` 前面的目录列表。
+- `tools.exec.safeBins`：仅限 stdin 的安全二进制文件，无需显式白名单条目即可运行。
 
-Example:
+示例：
 
 ```json5
 {
@@ -73,95 +68,66 @@ Example:
 }
 ```
 
-### PATH handling
+### PATH 处理
 
-- `host=gateway`: merges your login-shell `PATH` into the exec environment. `env.PATH` overrides are
-  rejected for host execution. The daemon itself still runs with a minimal `PATH`:
-  - macOS: `/opt/homebrew/bin`, `/usr/local/bin`, `/usr/bin`, `/bin`
-  - Linux: `/usr/local/bin`, `/usr/bin`, `/bin`
-- `host=sandbox`: runs `sh -lc` (login shell) inside the container, so `/etc/profile` may reset `PATH`.
-  OpenClaw prepends `env.PATH` after profile sourcing via an internal env var (no shell interpolation);
-  `tools.exec.pathPrepend` applies here too.
-- `host=node`: only non-blocked env overrides you pass are sent to the node. `env.PATH` overrides are
-  rejected for host execution and ignored by node hosts. If you need additional PATH entries on a node,
-  configure the node host service environment (systemd/launchd) or install tools in standard locations.
+- `host=gateway`：将你的登录 shell `PATH` 合并到 exec 环境中。主机执行时会拒绝 `env.PATH` 覆盖。守护进程本身仍使用最小 `PATH` 运行：
+  - macOS：`/opt/homebrew/bin`、`/usr/local/bin`、`/usr/bin`、`/bin`
+  - Linux：`/usr/local/bin`、`/usr/bin`、`/bin`
+- `host=sandbox`：在容器内运行 `sh -lc`（登录 shell），因此 `/etc/profile` 可能会重置 `PATH`。OpenClaw 在 profile 加载后通过内部环境变量将 `env.PATH` 添加到前面（无 shell 插值）；`tools.exec.pathPrepend` 在此也适用。
+- `host=node`：只有你传递的未被阻止的 env 覆盖会发送到节点。主机执行时会拒绝 `env.PATH` 覆盖。无头节点主机仅在 `PATH` 添加到节点主机 PATH 前面时才接受（不允许替换）。macOS 节点完全丢弃 `PATH` 覆盖。
 
-Per-agent node binding (use the agent list index in config):
+按智能体绑定节点（在配置中使用智能体列表索引）：
 
 ```bash
 openclaw config get agents.list
 openclaw config set agents.list[0].tools.exec.node "node-id-or-name"
 ```
 
-Control UI: the Nodes tab includes a small “Exec node binding” panel for the same settings.
+控制 UI：Nodes 标签页包含一个小的"Exec 节点绑定"面板用于相同的设置。
 
-## Session overrides (`/exec`)
+## 会话覆盖（`/exec`）
 
-Use `/exec` to set **per-session** defaults for `host`, `security`, `ask`, and `node`.
-Send `/exec` with no arguments to show the current values.
+使用 `/exec` 为 `host`、`security`、`ask` 和 `node` 设置**每会话**默认值。
+不带参数发送 `/exec` 可显示当前值。
 
-Example:
+示例：
 
 ```
 /exec host=gateway security=allowlist ask=on-miss node=mac-1
 ```
 
-## Authorization model
+## 授权模型
 
-`/exec` is only honored for **authorized senders** (channel allowlists/pairing plus `commands.useAccessGroups`).
-It updates **session state only** and does not write config. To hard-disable exec, deny it via tool
-policy (`tools.deny: ["exec"]` or per-agent). Host approvals still apply unless you explicitly set
-`security=full` and `ask=off`.
+`/exec` 仅对**已授权发送者**（渠道白名单/配对加 `commands.useAccessGroups`）生效。
+它仅更新**会话状态**，不写入配置。要彻底禁用 exec，请通过工具策略拒绝它（`tools.deny: ["exec"]` 或按智能体配置）。除非你显式设置 `security=full` 和 `ask=off`，否则主机审批仍然适用。
 
-## Exec approvals (companion app / node host)
+## Exec 审批（配套应用/节点主机）
 
-Sandboxed agents can require per-request approval before `exec` runs on the gateway or node host.
-See [Exec approvals](/tools/exec-approvals) for the policy, allowlist, and UI flow.
+沙箱隔离的智能体可以要求在 `exec` 于 Gateway 网关或节点主机上运行前进行逐请求审批。
+参阅 [Exec 审批](/tools/exec-approvals) 了解策略、白名单和 UI 流程。
 
-When approvals are required, the exec tool returns immediately with
-`status: "approval-pending"` and an approval id. Once approved (or denied / timed out),
-the Gateway emits system events (`Exec finished` / `Exec denied`). If the command is still
-running after `tools.exec.approvalRunningNoticeMs`, a single `Exec running` notice is emitted.
+当需要审批时，exec 工具会立即返回 `status: "approval-pending"` 和审批 id。一旦被批准（或拒绝/超时），Gateway 网关会发出系统事件（`Exec finished` / `Exec denied`）。如果命令在 `tools.exec.approvalRunningNoticeMs` 之后仍在运行，会发出单次 `Exec running` 通知。
 
-## Allowlist + safe bins
+## 白名单 + 安全二进制文件
 
-Manual allowlist enforcement matches **resolved binary paths only** (no basename matches). When
-`security=allowlist`, shell commands are auto-allowed only if every pipeline segment is
-allowlisted or a safe bin. Chaining (`;`, `&&`, `||`) and redirections are rejected in
-allowlist mode unless every top-level segment satisfies the allowlist (including safe bins).
-Redirections remain unsupported.
+白名单执行仅匹配**解析后的二进制路径**（不匹配基本名称）。当 `security=allowlist` 时，仅当每个管道段都在白名单中或是安全二进制文件时，shell 命令才会自动允许。在白名单模式下，链式命令（`;`、`&&`、`||`）和重定向会被拒绝。
 
-`autoAllowSkills` is a separate convenience path in exec approvals. It is not the same as
-manual path allowlist entries. For strict explicit trust, keep `autoAllowSkills` disabled.
+## 示例
 
-Use the two controls for different jobs:
-
-- `tools.exec.safeBins`: small, stdin-only stream filters.
-- `tools.exec.safeBinTrustedDirs`: explicit extra trusted directories for safe-bin executable paths.
-- `tools.exec.safeBinProfiles`: explicit argv policy for custom safe bins.
-- allowlist: explicit trust for executable paths.
-
-Do not treat `safeBins` as a generic allowlist, and do not add interpreter/runtime binaries (for example `python3`, `node`, `ruby`, `bash`). If you need those, use explicit allowlist entries and keep approval prompts enabled.
-`openclaw security audit` warns when interpreter/runtime `safeBins` entries are missing explicit profiles, and `openclaw doctor --fix` can scaffold missing custom `safeBinProfiles` entries.
-
-For full policy details and examples, see [Exec approvals](/tools/exec-approvals#safe-bins-stdin-only) and [Safe bins versus allowlist](/tools/exec-approvals#safe-bins-versus-allowlist).
-
-## Examples
-
-Foreground:
+前台：
 
 ```json
 { "tool": "exec", "command": "ls -la" }
 ```
 
-Background + poll:
+后台 + 轮询：
 
 ```json
 {"tool":"exec","command":"npm run build","yieldMs":1000}
 {"tool":"process","action":"poll","sessionId":"<id>"}
 ```
 
-Send keys (tmux-style):
+发送按键（tmux 风格）：
 
 ```json
 {"tool":"process","action":"send-keys","sessionId":"<id>","keys":["Enter"]}
@@ -169,36 +135,35 @@ Send keys (tmux-style):
 {"tool":"process","action":"send-keys","sessionId":"<id>","keys":["Up","Up","Enter"]}
 ```
 
-Submit (send CR only):
+提交（仅发送 CR）：
 
 ```json
 { "tool": "process", "action": "submit", "sessionId": "<id>" }
 ```
 
-Paste (bracketed by default):
+粘贴（默认带括号）：
 
 ```json
 { "tool": "process", "action": "paste", "sessionId": "<id>", "text": "line1\nline2\n" }
 ```
 
-## apply_patch (experimental)
+## apply_patch（实验性）
 
-`apply_patch` is a subtool of `exec` for structured multi-file edits.
-Enable it explicitly:
+`apply_patch` 是 `exec` 的子工具，用于结构化多文件编辑。
+需显式启用：
 
 ```json5
 {
   tools: {
     exec: {
-      applyPatch: { enabled: true, workspaceOnly: true, allowModels: ["gpt-5.2"] },
+      applyPatch: { enabled: true, allowModels: ["gpt-5.2"] },
     },
   },
 }
 ```
 
-Notes:
+注意事项：
 
-- Only available for OpenAI/OpenAI Codex models.
-- Tool policy still applies; `allow: ["exec"]` implicitly allows `apply_patch`.
-- Config lives under `tools.exec.applyPatch`.
-- `tools.exec.applyPatch.workspaceOnly` defaults to `true` (workspace-contained). Set it to `false` only if you intentionally want `apply_patch` to write/delete outside the workspace directory.
+- 仅适用于 OpenAI/OpenAI Codex 模型。
+- 工具策略仍然适用；`allow: ["exec"]` 隐式允许 `apply_patch`。
+- 配置位于 `tools.exec.applyPatch` 下。

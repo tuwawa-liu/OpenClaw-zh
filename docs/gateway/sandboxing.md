@@ -1,86 +1,78 @@
 ---
-summary: "How OpenClaw sandboxing works: modes, scopes, workspace access, and images"
-title: Sandboxing
-read_when: "You want a dedicated explanation of sandboxing or need to tune agents.defaults.sandbox."
+read_when: You want a dedicated explanation of sandboxing or need to tune agents.defaults.sandbox.
 status: active
+summary: OpenClaw 沙箱隔离的工作原理：模式、作用域、工作区访问和镜像
+title: 沙箱隔离
+x-i18n:
+  generated_at: "2026-02-03T07:49:29Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 184fc53001fc6b2847bbb1963cc9c54475d62f74555a581a262a448a0333a209
+  source_path: gateway/sandboxing.md
+  workflow: 15
 ---
 
-# Sandboxing
+# 沙箱隔离
 
-OpenClaw can run **tools inside Docker containers** to reduce blast radius.
-This is **optional** and controlled by configuration (`agents.defaults.sandbox` or
-`agents.list[].sandbox`). If sandboxing is off, tools run on the host.
-The Gateway stays on the host; tool execution runs in an isolated sandbox
-when enabled.
+OpenClaw 可以**在 Docker 容器内运行工具**以减少影响范围。
+这是**可选的**，由配置控制（`agents.defaults.sandbox` 或 `agents.list[].sandbox`）。如果沙箱隔离关闭，工具在主机上运行。
+Gateway 网关保留在主机上；启用时工具执行在隔离的沙箱中运行。
 
-This is not a perfect security boundary, but it materially limits filesystem
-and process access when the model does something dumb.
+这不是完美的安全边界，但当模型做出愚蠢行为时，它实质性地限制了文件系统和进程访问。
 
-## What gets sandboxed
+## 什么会被沙箱隔离
 
-- Tool execution (`exec`, `read`, `write`, `edit`, `apply_patch`, `process`, etc.).
-- Optional sandboxed browser (`agents.defaults.sandbox.browser`).
-  - By default, the sandbox browser auto-starts (ensures CDP is reachable) when the browser tool needs it.
-    Configure via `agents.defaults.sandbox.browser.autoStart` and `agents.defaults.sandbox.browser.autoStartTimeoutMs`.
-  - By default, sandbox browser containers use a dedicated Docker network (`openclaw-sandbox-browser`) instead of the global `bridge` network.
-    Configure with `agents.defaults.sandbox.browser.network`.
-  - Optional `agents.defaults.sandbox.browser.cdpSourceRange` restricts container-edge CDP ingress with a CIDR allowlist (for example `172.21.0.1/32`).
-  - noVNC observer access is password-protected by default; OpenClaw emits a short-lived token URL that serves a local bootstrap page and opens noVNC with password in URL fragment (not query/header logs).
-  - `agents.defaults.sandbox.browser.allowHostControl` lets sandboxed sessions target the host browser explicitly.
-  - Optional allowlists gate `target: "custom"`: `allowedControlUrls`, `allowedControlHosts`, `allowedControlPorts`.
+- 工具执行（`exec`、`read`、`write`、`edit`、`apply_patch`、`process` 等）。
+- 可选的沙箱浏览器（`agents.defaults.sandbox.browser`）。
+  - 默认情况下，当浏览器工具需要时，沙箱浏览器会自动启动（确保 CDP 可达）。
+    通过 `agents.defaults.sandbox.browser.autoStart` 和 `agents.defaults.sandbox.browser.autoStartTimeoutMs` 配置。
+  - `agents.defaults.sandbox.browser.allowHostControl` 允许沙箱会话显式定位主机浏览器。
+  - 可选的允许列表限制 `target: "custom"`：`allowedControlUrls`、`allowedControlHosts`、`allowedControlPorts`。
 
-Not sandboxed:
+不被沙箱隔离：
 
-- The Gateway process itself.
-- Any tool explicitly allowed to run on the host (e.g. `tools.elevated`).
-  - **Elevated exec runs on the host and bypasses sandboxing.**
-  - If sandboxing is off, `tools.elevated` does not change execution (already on host). See [Elevated Mode](/tools/elevated).
+- Gateway 网关进程本身。
+- 任何明确允许在主机上运行的工具（例如 `tools.elevated`）。
+  - **提权 exec 在主机上运行并绕过沙箱隔离。**
+  - 如果沙箱隔离关闭，`tools.elevated` 不会改变执行（已经在主机上）。参见[提权模式](/tools/elevated)。
 
-## Modes
+## 模式
 
-`agents.defaults.sandbox.mode` controls **when** sandboxing is used:
+`agents.defaults.sandbox.mode` 控制**何时**使用沙箱隔离：
 
-- `"off"`: no sandboxing.
-- `"non-main"`: sandbox only **non-main** sessions (default if you want normal chats on host).
-- `"all"`: every session runs in a sandbox.
-  Note: `"non-main"` is based on `session.mainKey` (default `"main"`), not agent id.
-  Group/channel sessions use their own keys, so they count as non-main and will be sandboxed.
+- `"off"`：不使用沙箱隔离。
+- `"non-main"`：仅沙箱隔离**非主**会话（如果你想让普通聊天在主机上运行，这是默认值）。
+- `"all"`：每个会话都在沙箱中运行。
+  注意：`"non-main"` 基于 `session.mainKey`（默认 `"main"`），而不是智能体 ID。
+  群组/频道会话使用它们自己的键，因此它们算作非主会话并将被沙箱隔离。
 
-## Scope
+## 作用域
 
-`agents.defaults.sandbox.scope` controls **how many containers** are created:
+`agents.defaults.sandbox.scope` 控制**创建多少容器**：
 
-- `"session"` (default): one container per session.
-- `"agent"`: one container per agent.
-- `"shared"`: one container shared by all sandboxed sessions.
+- `"session"`（默认）：每个会话一个容器。
+- `"agent"`：每个智能体一个容器。
+- `"shared"`：所有沙箱会话共享一个容器。
 
-## Workspace access
+## 工作区访问
 
-`agents.defaults.sandbox.workspaceAccess` controls **what the sandbox can see**:
+`agents.defaults.sandbox.workspaceAccess` 控制**沙箱可以看到什么**：
 
-- `"none"` (default): tools see a sandbox workspace under `~/.openclaw/sandboxes`.
-- `"ro"`: mounts the agent workspace read-only at `/agent` (disables `write`/`edit`/`apply_patch`).
-- `"rw"`: mounts the agent workspace read/write at `/workspace`.
+- `"none"`（默认）：工具看到 `~/.openclaw/sandboxes` 下的沙箱工作区。
+- `"ro"`：以只读方式在 `/agent` 挂载智能体工作区（禁用 `write`/`edit`/`apply_patch`）。
+- `"rw"`：以读写方式在 `/workspace` 挂载智能体工作区。
 
-Inbound media is copied into the active sandbox workspace (`media/inbound/*`).
-Skills note: the `read` tool is sandbox-rooted. With `workspaceAccess: "none"`,
-OpenClaw mirrors eligible skills into the sandbox workspace (`.../skills`) so
-they can be read. With `"rw"`, workspace skills are readable from
-`/workspace/skills`.
+入站媒体被复制到活动沙箱工作区（`media/inbound/*`）。
+Skills 注意事项：`read` 工具以沙箱为根。使用 `workspaceAccess: "none"` 时，OpenClaw 将符合条件的 Skills 镜像到沙箱工作区（`.../skills`）以便可以读取。使用 `"rw"` 时，工作区 Skills 可从 `/workspace/skills` 读取。
 
-## Custom bind mounts
+## 自定义绑定挂载
 
-`agents.defaults.sandbox.docker.binds` mounts additional host directories into the container.
-Format: `host:container:mode` (e.g., `"/home/user/source:/source:rw"`).
+`agents.defaults.sandbox.docker.binds` 将额外的主机目录挂载到容器中。
+格式：`host:container:mode`（例如 `"/home/user/source:/source:rw"`）。
 
-Global and per-agent binds are **merged** (not replaced). Under `scope: "shared"`, per-agent binds are ignored.
+全局和每智能体的绑定是**合并**的（不是替换）。在 `scope: "shared"` 下，每智能体的绑定被忽略。
 
-`agents.defaults.sandbox.browser.binds` mounts additional host directories into the **sandbox browser** container only.
-
-- When set (including `[]`), it replaces `agents.defaults.sandbox.docker.binds` for the browser container.
-- When omitted, the browser container falls back to `agents.defaults.sandbox.docker.binds` (backwards compatible).
-
-Example (read-only source + an extra data directory):
+示例（只读源码 + docker 套接字）：
 
 ```json5
 {
@@ -88,7 +80,7 @@ Example (read-only source + an extra data directory):
     defaults: {
       sandbox: {
         docker: {
-          binds: ["/home/user/source:/source:ro", "/var/data/myapp:/data:ro"],
+          binds: ["/home/user/source:/source:ro", "/var/run/docker.sock:/var/run/docker.sock"],
         },
       },
     },
@@ -106,137 +98,74 @@ Example (read-only source + an extra data directory):
 }
 ```
 
-Security notes:
+安全注意事项：
 
-- Binds bypass the sandbox filesystem: they expose host paths with whatever mode you set (`:ro` or `:rw`).
-- OpenClaw blocks dangerous bind sources (for example: `docker.sock`, `/etc`, `/proc`, `/sys`, `/dev`, and parent mounts that would expose them).
-- Sensitive mounts (secrets, SSH keys, service credentials) should be `:ro` unless absolutely required.
-- Combine with `workspaceAccess: "ro"` if you only need read access to the workspace; bind modes stay independent.
-- See [Sandbox vs Tool Policy vs Elevated](/gateway/sandbox-vs-tool-policy-vs-elevated) for how binds interact with tool policy and elevated exec.
+- 绑定绕过沙箱文件系统：它们以你设置的任何模式（`:ro` 或 `:rw`）暴露主机路径。
+- 敏感挂载（例如 `docker.sock`、密钥、SSH 密钥）应该是 `:ro`，除非绝对必要。
+- 如果你只需要对工作区的读取访问，请结合 `workspaceAccess: "ro"`；绑定模式保持独立。
+- 参见[沙箱 vs 工具策略 vs 提权](/gateway/sandbox-vs-tool-policy-vs-elevated)了解绑定如何与工具策略和提权 exec 交互。
 
-## Images + setup
+## 镜像 + 设置
 
-Default image: `openclaw-sandbox:bookworm-slim`
+默认镜像：`openclaw-sandbox:bookworm-slim`
 
-Build it once:
+构建一次：
 
 ```bash
 scripts/sandbox-setup.sh
 ```
 
-Note: the default image does **not** include Node. If a skill needs Node (or
-other runtimes), either bake a custom image or install via
-`sandbox.docker.setupCommand` (requires network egress + writable root +
-root user).
+注意：默认镜像**不**包含 Node。如果 Skills 需要 Node（或其他运行时），要么构建自定义镜像，要么通过 `sandbox.docker.setupCommand` 安装（需要网络出口 + 可写根 + root 用户）。
 
-If you want a more functional sandbox image with common tooling (for example
-`curl`, `jq`, `nodejs`, `python3`, `git`), build:
-
-```bash
-scripts/sandbox-common-setup.sh
-```
-
-Then set `agents.defaults.sandbox.docker.image` to
-`openclaw-sandbox-common:bookworm-slim`.
-
-Sandboxed browser image:
+沙箱浏览器镜像：
 
 ```bash
 scripts/sandbox-browser-setup.sh
 ```
 
-By default, sandbox containers run with **no network**.
-Override with `agents.defaults.sandbox.docker.network`.
+默认情况下，沙箱容器运行时**没有网络**。
+通过 `agents.defaults.sandbox.docker.network` 覆盖。
 
-The bundled sandbox browser image also applies conservative Chromium startup defaults
-for containerized workloads. Current container defaults include:
-
-- `--remote-debugging-address=127.0.0.1`
-- `--remote-debugging-port=<derived from OPENCLAW_BROWSER_CDP_PORT>`
-- `--user-data-dir=${HOME}/.chrome`
-- `--no-first-run`
-- `--no-default-browser-check`
-- `--disable-3d-apis`
-- `--disable-gpu`
-- `--disable-dev-shm-usage`
-- `--disable-background-networking`
-- `--disable-extensions`
-- `--disable-features=TranslateUI`
-- `--disable-breakpad`
-- `--disable-crash-reporter`
-- `--disable-software-rasterizer`
-- `--no-zygote`
-- `--metrics-recording-only`
-- `--renderer-process-limit=2`
-- `--no-sandbox` and `--disable-setuid-sandbox` when `noSandbox` is enabled.
-- The three graphics hardening flags (`--disable-3d-apis`,
-  `--disable-software-rasterizer`, `--disable-gpu`) are optional and are useful
-  when containers lack GPU support. Set `OPENCLAW_BROWSER_DISABLE_GRAPHICS_FLAGS=0`
-  if your workload requires WebGL or other 3D/browser features.
-- `--disable-extensions` is enabled by default and can be disabled with
-  `OPENCLAW_BROWSER_DISABLE_EXTENSIONS=0` for extension-reliant flows.
-- `--renderer-process-limit=2` is controlled by
-  `OPENCLAW_BROWSER_RENDERER_PROCESS_LIMIT=<N>`, where `0` keeps Chromium's default.
-
-If you need a different runtime profile, use a custom browser image and provide
-your own entrypoint. For local (non-container) Chromium profiles, use
-`browser.extraArgs` to append additional startup flags.
-
-Security defaults:
-
-- `network: "host"` is blocked.
-- `network: "container:<id>"` is blocked by default (namespace join bypass risk).
-- Break-glass override: `agents.defaults.sandbox.docker.dangerouslyAllowContainerNamespaceJoin: true`.
-
-Docker installs and the containerized gateway live here:
+Docker 安装和容器化 Gateway 网关在此：
 [Docker](/install/docker)
 
-For Docker gateway deployments, `docker-setup.sh` can bootstrap sandbox config.
-Set `OPENCLAW_SANDBOX=1` (or `true`/`yes`/`on`) to enable that path. You can
-override socket location with `OPENCLAW_DOCKER_SOCKET`. Full setup and env
-reference: [Docker](/install/docker#enable-agent-sandbox-for-docker-gateway-opt-in).
+## setupCommand（一次性容器设置）
 
-## setupCommand (one-time container setup)
+`setupCommand` 在沙箱容器创建后**运行一次**（不是每次运行）。
+它通过 `sh -lc` 在容器内执行。
 
-`setupCommand` runs **once** after the sandbox container is created (not on every run).
-It executes inside the container via `sh -lc`.
+路径：
 
-Paths:
+- 全局：`agents.defaults.sandbox.docker.setupCommand`
+- 每智能体：`agents.list[].sandbox.docker.setupCommand`
 
-- Global: `agents.defaults.sandbox.docker.setupCommand`
-- Per-agent: `agents.list[].sandbox.docker.setupCommand`
+常见陷阱：
 
-Common pitfalls:
+- 默认 `docker.network` 是 `"none"`（无出口），因此包安装会失败。
+- `readOnlyRoot: true` 阻止写入；设置 `readOnlyRoot: false` 或构建自定义镜像。
+- `user` 必须是 root 才能安装包（省略 `user` 或设置 `user: "0:0"`）。
+- 沙箱 exec **不**继承主机 `process.env`。使用 `agents.defaults.sandbox.docker.env`（或自定义镜像）设置 Skills API 密钥。
 
-- Default `docker.network` is `"none"` (no egress), so package installs will fail.
-- `docker.network: "container:<id>"` requires `dangerouslyAllowContainerNamespaceJoin: true` and is break-glass only.
-- `readOnlyRoot: true` prevents writes; set `readOnlyRoot: false` or bake a custom image.
-- `user` must be root for package installs (omit `user` or set `user: "0:0"`).
-- Sandbox exec does **not** inherit host `process.env`. Use
-  `agents.defaults.sandbox.docker.env` (or a custom image) for skill API keys.
+## 工具策略 + 逃逸通道
 
-## Tool policy + escape hatches
+工具允许/拒绝策略仍在沙箱规则之前应用。如果工具在全局或每智能体被拒绝，沙箱隔离不会恢复它。
 
-Tool allow/deny policies still apply before sandbox rules. If a tool is denied
-globally or per-agent, sandboxing doesn’t bring it back.
+`tools.elevated` 是一个显式的逃逸通道，在主机上运行 `exec`。
+`/exec` 指令仅适用于授权发送者并按会话持久化；要硬禁用 `exec`，使用工具策略拒绝（参见[沙箱 vs 工具策略 vs 提权](/gateway/sandbox-vs-tool-policy-vs-elevated)）。
 
-`tools.elevated` is an explicit escape hatch that runs `exec` on the host.
-`/exec` directives only apply for authorized senders and persist per session; to hard-disable
-`exec`, use tool policy deny (see [Sandbox vs Tool Policy vs Elevated](/gateway/sandbox-vs-tool-policy-vs-elevated)).
+调试：
 
-Debugging:
+- 使用 `openclaw sandbox explain` 检查生效的沙箱模式、工具策略和修复配置键。
+- 参见[沙箱 vs 工具策略 vs 提权](/gateway/sandbox-vs-tool-policy-vs-elevated)了解"为什么被阻止？"的心智模型。
+  保持锁定。
 
-- Use `openclaw sandbox explain` to inspect effective sandbox mode, tool policy, and fix-it config keys.
-- See [Sandbox vs Tool Policy vs Elevated](/gateway/sandbox-vs-tool-policy-vs-elevated) for the “why is this blocked?” mental model.
-  Keep it locked down.
+## 多智能体覆盖
 
-## Multi-agent overrides
+每个智能体可以覆盖沙箱 + 工具：
+`agents.list[].sandbox` 和 `agents.list[].tools`（加上 `agents.list[].tools.sandbox.tools` 用于沙箱工具策略）。
+参见[多智能体沙箱与工具](/tools/multi-agent-sandbox-tools)了解优先级。
 
-Each agent can override sandbox + tools:
-`agents.list[].sandbox` and `agents.list[].tools` (plus `agents.list[].tools.sandbox.tools` for sandbox tool policy).
-See [Multi-Agent Sandbox & Tools](/tools/multi-agent-sandbox-tools) for precedence.
-
-## Minimal enable example
+## 最小启用示例
 
 ```json5
 {
@@ -252,8 +181,8 @@ See [Multi-Agent Sandbox & Tools](/tools/multi-agent-sandbox-tools) for preceden
 }
 ```
 
-## Related docs
+## 相关文档
 
-- [Sandbox Configuration](/gateway/configuration#agentsdefaults-sandbox)
-- [Multi-Agent Sandbox & Tools](/tools/multi-agent-sandbox-tools)
-- [Security](/gateway/security)
+- [沙箱配置](/gateway/configuration#agentsdefaults-sandbox)
+- [多智能体沙箱与工具](/tools/multi-agent-sandbox-tools)
+- [安全](/gateway/security)

@@ -1,82 +1,63 @@
 ---
-summary: "Pairing overview: approve who can DM you + which nodes can join"
 read_when:
-  - Setting up DM access control
-  - Pairing a new iOS/Android node
-  - Reviewing OpenClaw security posture
-title: "Pairing"
+  - 设置私信访问控制
+  - 配对新的 iOS/Android 节点
+  - 审查 OpenClaw 安全态势
+summary: 配对概述：批准谁可以向你发送私信 + 哪些节点可以加入
+title: 配对
+x-i18n:
+  generated_at: "2026-02-03T07:54:19Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: c46a5c39f289c8fd0783baacd927f550c3d3ae8889a7bc7de133b795f16fa08a
+  source_path: channels/pairing.md
+  workflow: 15
 ---
 
-# Pairing
+# 配对
 
-“Pairing” is OpenClaw’s explicit **owner approval** step.
-It is used in two places:
+"配对"是 OpenClaw 的显式**所有者批准**步骤。它用于两个地方：
 
-1. **DM pairing** (who is allowed to talk to the bot)
-2. **Node pairing** (which devices/nodes are allowed to join the gateway network)
+1. **私信配对**（谁被允许与机器人对话）
+2. **节点配对**（哪些设备/节点被允许加入 Gateway 网关网络）
 
-Security context: [Security](/gateway/security)
+安全上下文：[安全](/gateway/security)
 
-## 1) DM pairing (inbound chat access)
+## 1）私信配对（入站聊天访问）
 
-When a channel is configured with DM policy `pairing`, unknown senders get a short code and their message is **not processed** until you approve.
+当渠道配置为私信策略 `pairing` 时，未知发送者会收到一个短代码，他们的消息**不会被处理**，直到你批准。
 
-Default DM policies are documented in: [Security](/gateway/security)
+默认私信策略记录在：[安全](/gateway/security)
 
-Pairing codes:
+配对代码：
 
-- 8 characters, uppercase, no ambiguous chars (`0O1I`).
-- **Expire after 1 hour**. The bot only sends the pairing message when a new request is created (roughly once per hour per sender).
-- Pending DM pairing requests are capped at **3 per channel** by default; additional requests are ignored until one expires or is approved.
+- 8 个字符，大写，无歧义字符（`0O1I`）。
+- **1 小时后过期**。机器人仅在创建新请求时发送配对消息（大约每个发送者每小时一次）。
+- 待处理的私信配对请求默认上限为**每个渠道 3 个**；在一个过期或被批准之前，额外的请求将被忽略。
 
-### Approve a sender
+### 批准发送者
 
 ```bash
 openclaw pairing list telegram
 openclaw pairing approve telegram <CODE>
 ```
 
-Supported channels: `telegram`, `whatsapp`, `signal`, `imessage`, `discord`, `slack`, `feishu`.
+支持的渠道：`telegram`、`whatsapp`、`signal`、`imessage`、`discord`、`slack`。
 
-### Where the state lives
+### 状态存储位置
 
-Stored under `~/.openclaw/credentials/`:
+存储在 `~/.openclaw/credentials/` 下：
 
-- Pending requests: `<channel>-pairing.json`
-- Approved allowlist store:
-  - Default account: `<channel>-allowFrom.json`
-  - Non-default account: `<channel>-<accountId>-allowFrom.json`
+- 待处理请求：`<channel>-pairing.json`
+- 已批准允许列表存储：`<channel>-allowFrom.json`
 
-Account scoping behavior:
+将这些视为敏感信息（它们控制对你助手的访问）。
 
-- Non-default accounts read/write only their scoped allowlist file.
-- Default account uses the channel-scoped unscoped allowlist file.
+## 2）节点设备配对（iOS/Android/macOS/无头节点）
 
-Treat these as sensitive (they gate access to your assistant).
+节点作为 `role: node` 的**设备**连接到 Gateway 网关。Gateway 网关创建一个必须被批准的设备配对请求。
 
-## 2) Node device pairing (iOS/Android/macOS/headless nodes)
-
-Nodes connect to the Gateway as **devices** with `role: node`. The Gateway
-creates a device pairing request that must be approved.
-
-### Pair via Telegram (recommended for iOS)
-
-If you use the `device-pair` plugin, you can do first-time device pairing entirely from Telegram:
-
-1. In Telegram, message your bot: `/pair`
-2. The bot replies with two messages: an instruction message and a separate **setup code** message (easy to copy/paste in Telegram).
-3. On your phone, open the OpenClaw iOS app → Settings → Gateway.
-4. Paste the setup code and connect.
-5. Back in Telegram: `/pair approve`
-
-The setup code is a base64-encoded JSON payload that contains:
-
-- `url`: the Gateway WebSocket URL (`ws://...` or `wss://...`)
-- `token`: a short-lived pairing token
-
-Treat the setup code like a password while it is valid.
-
-### Approve a node device
+### 批准节点设备
 
 ```bash
 openclaw devices list
@@ -84,27 +65,25 @@ openclaw devices approve <requestId>
 openclaw devices reject <requestId>
 ```
 
-### Node pairing state storage
+### 状态存储位置
 
-Stored under `~/.openclaw/devices/`:
+存储在 `~/.openclaw/devices/` 下：
 
-- `pending.json` (short-lived; pending requests expire)
-- `paired.json` (paired devices + tokens)
+- `pending.json`（短期；待处理请求会过期）
+- `paired.json`（已配对设备 + 令牌）
 
-### Notes
+### 说明
 
-- The legacy `node.pair.*` API (CLI: `openclaw nodes pending/approve`) is a
-  separate gateway-owned pairing store. WS nodes still require device pairing.
+- 旧版 `node.pair.*` API（CLI：`openclaw nodes pending/approve`）是一个单独的 Gateway 网关拥有的配对存储。WS 节点仍然需要设备配对。
 
-## Related docs
+## 相关文档
 
-- Security model + prompt injection: [Security](/gateway/security)
-- Updating safely (run doctor): [Updating](/install/updating)
-- Channel configs:
-  - Telegram: [Telegram](/channels/telegram)
-  - WhatsApp: [WhatsApp](/channels/whatsapp)
-  - Signal: [Signal](/channels/signal)
-  - BlueBubbles (iMessage): [BlueBubbles](/channels/bluebubbles)
-  - iMessage (legacy): [iMessage](/channels/imessage)
-  - Discord: [Discord](/channels/discord)
-  - Slack: [Slack](/channels/slack)
+- 安全模型 + 提示注入：[安全](/gateway/security)
+- 安全更新（运行 doctor）：[更新](/install/updating)
+- 渠道配置：
+  - Telegram：[Telegram](/channels/telegram)
+  - WhatsApp：[WhatsApp](/channels/whatsapp)
+  - Signal：[Signal](/channels/signal)
+  - iMessage：[iMessage](/channels/imessage)
+  - Discord：[Discord](/channels/discord)
+  - Slack：[Slack](/channels/slack)

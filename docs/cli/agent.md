@@ -1,20 +1,26 @@
 ---
-summary: "CLI reference for `openclaw agent` (send one agent turn via the Gateway)"
 read_when:
-  - You want to run one agent turn from scripts (optionally deliver reply)
-title: "agent"
+  - 你想从脚本运行一个智能体回合（可选发送回复）
+summary: "`openclaw agent` 的 CLI 参考（通过 Gateway 网关发送一个智能体回合）"
+title: agent
+x-i18n:
+  generated_at: "2026-02-03T07:44:38Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: dcf12fb94e207c68645f58235792596d65afecf8216b8f9ab3acb01e03b50a33
+  source_path: cli/agent.md
+  workflow: 15
 ---
 
 # `openclaw agent`
 
-Run an agent turn via the Gateway (use `--local` for embedded).
-Use `--agent <id>` to target a configured agent directly.
+通过 Gateway 网关运行智能体回合（使用 `--local` 进行嵌入式运行）。使用 `--agent <id>` 直接指定已配置的智能体。
 
-Related:
+相关内容：
 
-- Agent send tool: [Agent send](/tools/agent-send)
+- 智能体发送工具：[Agent send](/tools/agent-send)
 
-## Examples
+## 示例
 
 ```bash
 openclaw agent --to +15555550123 --message "status update" --deliver
@@ -22,7 +28,3 @@ openclaw agent --agent ops --message "Summarize logs"
 openclaw agent --session-id 1234 --message "Summarize inbox" --thinking medium
 openclaw agent --agent ops --message "Generate report" --deliver --reply-channel slack --reply-to "#reports"
 ```
-
-## Notes
-
-- When this command triggers `models.json` regeneration, SecretRef-managed provider credentials are persisted as non-secret markers (for example env var names or `secretref-managed`), not resolved secret plaintext.

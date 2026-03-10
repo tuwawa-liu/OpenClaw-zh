@@ -1,66 +1,52 @@
 ---
-summary: "CLI reference for `openclaw memory` (status/index/search)"
 read_when:
-  - You want to index or search semantic memory
-  - You’re debugging memory availability or indexing
-title: "memory"
+  - 你想要索引或搜索语义记忆
+  - 你正在调试记忆可用性或索引问题
+summary: "`openclaw memory`（status/index/search）的 CLI 参考"
+title: memory
+x-i18n:
+  generated_at: "2026-02-01T20:21:11Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 95a9e94306f95be2218a909be59be5bbaa5d31322b71b23564c71a89c3a3941a
+  source_path: cli/memory.md
+  workflow: 14
 ---
 
 # `openclaw memory`
 
-Manage semantic memory indexing and search.
-Provided by the active memory plugin (default: `memory-core`; set `plugins.slots.memory = "none"` to disable).
+管理语义记忆的索引和搜索。
+由活跃的记忆插件提供（默认：`memory-core`；设置 `plugins.slots.memory = "none"` 可禁用）。
 
-Related:
+相关内容：
 
-- Memory concept: [Memory](/concepts/memory)
-- Plugins: [Plugins](/tools/plugin)
+- 记忆概念：[记忆](/concepts/memory)
+- 插件：[插件](/tools/plugin)
 
-## Examples
+## 示例
 
 ```bash
 openclaw memory status
 openclaw memory status --deep
-openclaw memory index --force
-openclaw memory search "meeting notes"
-openclaw memory search --query "deployment" --max-results 20
-openclaw memory status --json
 openclaw memory status --deep --index
 openclaw memory status --deep --index --verbose
+openclaw memory index
+openclaw memory index --verbose
+openclaw memory search "release checklist"
 openclaw memory status --agent main
 openclaw memory index --agent main --verbose
 ```
 
-## Options
+## 选项
 
-`memory status` and `memory index`:
+通用选项：
 
-- `--agent <id>`: scope to a single agent. Without it, these commands run for each configured agent; if no agent list is configured, they fall back to the default agent.
-- `--verbose`: emit detailed logs during probes and indexing.
+- `--agent <id>`：限定到单个智能体（默认：所有已配置的智能体）。
+- `--verbose`：在探测和索引期间输出详细日志。
 
-`memory status`:
+说明：
 
-- `--deep`: probe vector + embedding availability.
-- `--index`: run a reindex if the store is dirty (implies `--deep`).
-- `--json`: print JSON output.
-
-`memory index`:
-
-- `--force`: force a full reindex.
-
-`memory search`:
-
-- Query input: pass either positional `[query]` or `--query <text>`.
-- If both are provided, `--query` wins.
-- If neither is provided, the command exits with an error.
-- `--agent <id>`: scope to a single agent (default: the default agent).
-- `--max-results <n>`: limit the number of results returned.
-- `--min-score <n>`: filter out low-score matches.
-- `--json`: print JSON results.
-
-Notes:
-
-- `memory index --verbose` prints per-phase details (provider, model, sources, batch activity).
-- `memory status` includes any extra paths configured via `memorySearch.extraPaths`.
-- If effectively active memory remote API key fields are configured as SecretRefs, the command resolves those values from the active gateway snapshot. If gateway is unavailable, the command fails fast.
-- Gateway version skew note: this command path requires a gateway that supports `secrets.resolve`; older gateways return an unknown-method error.
+- `memory status --deep` 探测向量存储和嵌入模型的可用性。
+- `memory status --deep --index` 在存储有未同步变更时运行重新索引。
+- `memory index --verbose` 打印每个阶段的详细信息（提供商、模型、数据源、批处理活动）。
+- `memory status` 包含通过 `memorySearch.extraPaths` 配置的所有额外路径。

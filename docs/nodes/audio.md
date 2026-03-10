@@ -1,42 +1,48 @@
 ---
-summary: "How inbound audio/voice notes are downloaded, transcribed, and injected into replies"
 read_when:
-  - Changing audio transcription or media handling
-title: "Audio and Voice Notes"
+  - 更改音频转录或媒体处理方式
+summary: 入站音频/语音消息如何被下载、转录并注入回复
+title: 音频与语音消息
+x-i18n:
+  generated_at: "2026-02-01T21:17:35Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: b926c47989ab0d1ee1fb8ae6372c51d27515b53d6fefe211a85856d372f14569
+  source_path: nodes/audio.md
+  workflow: 15
 ---
 
-# Audio / Voice Notes — 2026-01-17
+# 音频 / 语音消息 — 2026-01-17
 
-## What works
+## 已支持的功能
 
-- **Media understanding (audio)**: If audio understanding is enabled (or auto‑detected), OpenClaw:
-  1. Locates the first audio attachment (local path or URL) and downloads it if needed.
-  2. Enforces `maxBytes` before sending to each model entry.
-  3. Runs the first eligible model entry in order (provider or CLI).
-  4. If it fails or skips (size/timeout), it tries the next entry.
-  5. On success, it replaces `Body` with an `[Audio]` block and sets `{{Transcript}}`.
-- **Command parsing**: When transcription succeeds, `CommandBody`/`RawBody` are set to the transcript so slash commands still work.
-- **Verbose logging**: In `--verbose`, we log when transcription runs and when it replaces the body.
+- **媒体理解（音频）**：如果音频理解已启用（或自动检测），OpenClaw 会：
+  1. 找到第一个音频附件（本地路径或 URL），如有需要则下载。
+  2. 在发送给每个模型条目之前执行 `maxBytes` 限制。
+  3. 按顺序运行第一个符合条件的模型条目（提供商或 CLI）。
+  4. 如果失败或跳过（大小/超时），则尝试下一个条目。
+  5. 成功后，将 `Body` 替换为 `[Audio]` 块并设置 `{{Transcript}}`。
+- **命令解析**：转录成功时，`CommandBody`/`RawBody` 会设置为转录文本，因此斜杠命令仍然有效。
+- **详细日志**：在 `--verbose` 模式下，我们会在转录运行和替换正文时记录日志。
 
-## Auto-detection (default)
+## 自动检测（默认）
 
-If you **don’t configure models** and `tools.media.audio.enabled` is **not** set to `false`,
-OpenClaw auto-detects in this order and stops at the first working option:
+如果你**未配置模型**且 `tools.media.audio.enabled` **未**设置为 `false`，OpenClaw 会按以下顺序自动检测，并在找到第一个可用选项时停止：
 
-1. **Local CLIs** (if installed)
-   - `sherpa-onnx-offline` (requires `SHERPA_ONNX_MODEL_DIR` with encoder/decoder/joiner/tokens)
-   - `whisper-cli` (from `whisper-cpp`; uses `WHISPER_CPP_MODEL` or the bundled tiny model)
-   - `whisper` (Python CLI; downloads models automatically)
-2. **Gemini CLI** (`gemini`) using `read_many_files`
-3. **Provider keys** (OpenAI → Groq → Deepgram → Google)
+1. **本地 CLI**（如已安装）
+   - `sherpa-onnx-offline`（需要 `SHERPA_ONNX_MODEL_DIR` 包含 encoder/decoder/joiner/tokens）
+   - `whisper-cli`（来自 `whisper-cpp`；使用 `WHISPER_CPP_MODEL` 或内置的 tiny 模型）
+   - `whisper`（Python CLI；自动下载模型）
+2. **Gemini CLI**（`gemini`）使用 `read_many_files`
+3. **提供商密钥**（OpenAI → Groq → Deepgram → Google）
 
-To disable auto-detection, set `tools.media.audio.enabled: false`.
-To customize, set `tools.media.audio.models`.
-Note: Binary detection is best-effort across macOS/Linux/Windows; ensure the CLI is on `PATH` (we expand `~`), or set an explicit CLI model with a full command path.
+要禁用自动检测，请设置 `tools.media.audio.enabled: false`。
+要自定义，请设置 `tools.media.audio.models`。
+注意：二进制检测在 macOS/Linux/Windows 上采用尽力而为的方式；请确保 CLI 在 `PATH` 中（我们会展开 `~`），或通过完整命令路径设置显式 CLI 模型。
 
-## Config examples
+## 配置示例
 
-### Provider + CLI fallback (OpenAI + Whisper CLI)
+### 提供商 + CLI 回退（OpenAI + Whisper CLI）
 
 ```json5
 {
@@ -60,7 +66,7 @@ Note: Binary detection is best-effort across macOS/Linux/Windows; ensure the CLI
 }
 ```
 
-### Provider-only with scope gating
+### 仅提供商 + 作用域控制
 
 ```json5
 {
@@ -79,7 +85,7 @@ Note: Binary detection is best-effort across macOS/Linux/Windows; ensure the CLI
 }
 ```
 
-### Provider-only (Deepgram)
+### 仅提供商（Deepgram）
 
 ```json5
 {
@@ -94,94 +100,21 @@ Note: Binary detection is best-effort across macOS/Linux/Windows; ensure the CLI
 }
 ```
 
-### Provider-only (Mistral Voxtral)
+## 注意事项与限制
 
-```json5
-{
-  tools: {
-    media: {
-      audio: {
-        enabled: true,
-        models: [{ provider: "mistral", model: "voxtral-mini-latest" }],
-      },
-    },
-  },
-}
-```
+- 提供商认证遵循标准的模型认证顺序（认证配置文件、环境变量、`models.providers.*.apiKey`）。
+- 当使用 `provider: "deepgram"` 时，Deepgram 会读取 `DEEPGRAM_API_KEY`。
+- Deepgram 设置详情：[Deepgram（音频转录）](/providers/deepgram)。
+- 音频提供商可以通过 `tools.media.audio` 覆盖 `baseUrl`、`headers` 和 `providerOptions`。
+- 默认大小限制为 20MB（`tools.media.audio.maxBytes`）。超大音频会跳过该模型并尝试下一个条目。
+- 音频的默认 `maxChars` **未设置**（完整转录文本）。设置 `tools.media.audio.maxChars` 或每个条目的 `maxChars` 来裁剪输出。
+- OpenAI 自动检测默认使用 `gpt-4o-mini-transcribe`；设置 `model: "gpt-4o-transcribe"` 可获得更高准确度。
+- 使用 `tools.media.audio.attachments` 处理多条语音消息（`mode: "all"` + `maxAttachments`）。
+- 转录文本可在模板中通过 `{{Transcript}}` 使用。
+- CLI 标准输出有上限（5MB）；请保持 CLI 输出简洁。
 
-### Echo transcript to chat (opt-in)
+## 常见陷阱
 
-```json5
-{
-  tools: {
-    media: {
-      audio: {
-        enabled: true,
-        echoTranscript: true, // default is false
-        echoFormat: '📝 "{transcript}"', // optional, supports {transcript}
-        models: [{ provider: "openai", model: "gpt-4o-mini-transcribe" }],
-      },
-    },
-  },
-}
-```
-
-## Notes & limits
-
-- Provider auth follows the standard model auth order (auth profiles, env vars, `models.providers.*.apiKey`).
-- Deepgram picks up `DEEPGRAM_API_KEY` when `provider: "deepgram"` is used.
-- Deepgram setup details: [Deepgram (audio transcription)](/providers/deepgram).
-- Mistral setup details: [Mistral](/providers/mistral).
-- Audio providers can override `baseUrl`, `headers`, and `providerOptions` via `tools.media.audio`.
-- Default size cap is 20MB (`tools.media.audio.maxBytes`). Oversize audio is skipped for that model and the next entry is tried.
-- Tiny/empty audio files below 1024 bytes are skipped before provider/CLI transcription.
-- Default `maxChars` for audio is **unset** (full transcript). Set `tools.media.audio.maxChars` or per-entry `maxChars` to trim output.
-- OpenAI auto default is `gpt-4o-mini-transcribe`; set `model: "gpt-4o-transcribe"` for higher accuracy.
-- Use `tools.media.audio.attachments` to process multiple voice notes (`mode: "all"` + `maxAttachments`).
-- Transcript is available to templates as `{{Transcript}}`.
-- `tools.media.audio.echoTranscript` is off by default; enable it to send transcript confirmation back to the originating chat before agent processing.
-- `tools.media.audio.echoFormat` customizes the echo text (placeholder: `{transcript}`).
-- CLI stdout is capped (5MB); keep CLI output concise.
-
-### Proxy environment support
-
-Provider-based audio transcription honors standard outbound proxy env vars:
-
-- `HTTPS_PROXY`
-- `HTTP_PROXY`
-- `https_proxy`
-- `http_proxy`
-
-If no proxy env vars are set, direct egress is used. If proxy config is malformed, OpenClaw logs a warning and falls back to direct fetch.
-
-## Mention Detection in Groups
-
-When `requireMention: true` is set for a group chat, OpenClaw now transcribes audio **before** checking for mentions. This allows voice notes to be processed even when they contain mentions.
-
-**How it works:**
-
-1. If a voice message has no text body and the group requires mentions, OpenClaw performs a "preflight" transcription.
-2. The transcript is checked for mention patterns (e.g., `@BotName`, emoji triggers).
-3. If a mention is found, the message proceeds through the full reply pipeline.
-4. The transcript is used for mention detection so voice notes can pass the mention gate.
-
-**Fallback behavior:**
-
-- If transcription fails during preflight (timeout, API error, etc.), the message is processed based on text-only mention detection.
-- This ensures that mixed messages (text + audio) are never incorrectly dropped.
-
-**Opt-out per Telegram group/topic:**
-
-- Set `channels.telegram.groups.<chatId>.disableAudioPreflight: true` to skip preflight transcript mention checks for that group.
-- Set `channels.telegram.groups.<chatId>.topics.<threadId>.disableAudioPreflight` to override per-topic (`true` to skip, `false` to force-enable).
-- Default is `false` (preflight enabled when mention-gated conditions match).
-
-**Example:** A user sends a voice note saying "Hey @Claude, what's the weather?" in a Telegram group with `requireMention: true`. The voice note is transcribed, the mention is detected, and the agent replies.
-
-## Gotchas
-
-- Scope rules use first-match wins. `chatType` is normalized to `direct`, `group`, or `room`.
-- Ensure your CLI exits 0 and prints plain text; JSON needs to be massaged via `jq -r .text`.
-- For `parakeet-mlx`, if you pass `--output-dir`, OpenClaw reads `<output-dir>/<media-basename>.txt` when `--output-format` is `txt` (or omitted); non-`txt` output formats fall back to stdout parsing.
-- Keep timeouts reasonable (`timeoutSeconds`, default 60s) to avoid blocking the reply queue.
-- Preflight transcription only processes the **first** audio attachment for mention detection. Additional audio is processed during the main media understanding phase.
+- 作用域规则采用首次匹配优先。`chatType` 会被规范化为 `direct`、`group` 或 `room`。
+- 确保你的 CLI 以退出码 0 退出并输出纯文本；JSON 格式需要通过 `jq -r .text` 进行转换。
+- 保持合理的超时时间（`timeoutSeconds`，默认 60 秒），以避免阻塞回复队列。

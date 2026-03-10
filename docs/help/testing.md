@@ -1,411 +1,375 @@
 ---
-summary: "Testing kit: unit/e2e/live suites, Docker runners, and what each test covers"
 read_when:
-  - Running tests locally or in CI
-  - Adding regressions for model/provider bugs
-  - Debugging gateway + agent behavior
-title: "Testing"
+  - 在本地或 CI 中运行测试
+  - 为模型/提供商问题添加回归测试
+  - 调试 Gateway 网关 + 智能体行为
+summary: 测试套件：单元/端到端/实时测试套件、Docker 运行器，以及每个测试的覆盖范围
+title: 测试
+x-i18n:
+  generated_at: "2026-02-03T09:23:12Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 8c236673838731c49464622ac54bf0336acf787b857677c8c2d2aa52949c8ad5
+  source_path: help/testing.md
+  workflow: 15
 ---
 
-# Testing
+# 测试
 
-OpenClaw has three Vitest suites (unit/integration, e2e, live) and a small set of Docker runners.
+OpenClaw 包含三个 Vitest 测试套件（单元/集成、端到端、实时）以及一小组 Docker 运行器。
 
-This doc is a “how we test” guide:
+本文档是一份"我们如何测试"的指南：
 
-- What each suite covers (and what it deliberately does _not_ cover)
-- Which commands to run for common workflows (local, pre-push, debugging)
-- How live tests discover credentials and select models/providers
-- How to add regressions for real-world model/provider issues
+- 每个套件覆盖什么（以及它刻意*不*覆盖什么）
+- 常见工作流程应运行哪些命令（本地、推送前、调试）
+- 实时测试如何发现凭证并选择模型/提供商
+- 如何为现实中的模型/提供商问题添加回归测试
 
-## Quick start
+## 快速开始
 
-Most days:
+日常使用：
 
-- Full gate (expected before push): `pnpm build && pnpm check && pnpm test`
+- 完整检查（推送前的预期流程）：`pnpm build && pnpm check && pnpm test`
 
-When you touch tests or want extra confidence:
+当你修改测试或需要额外的信心时：
 
-- Coverage gate: `pnpm test:coverage`
-- E2E suite: `pnpm test:e2e`
+- 覆盖率检查：`pnpm test:coverage`
+- 端到端套件：`pnpm test:e2e`
 
-When debugging real providers/models (requires real creds):
+调试真实提供商/模型时（需要真实凭证）：
 
-- Live suite (models + gateway tool/image probes): `pnpm test:live`
+- 实时套件（模型 + Gateway 网关工具/图像探测）：`pnpm test:live`
 
-Tip: when you only need one failing case, prefer narrowing live tests via the allowlist env vars described below.
+提示：当你只需要一个失败用例时，建议使用下文描述的允许列表环境变量来缩小实时测试范围。
 
-## Test suites (what runs where)
+## 测试套件（在哪里运行什么）
 
-Think of the suites as “increasing realism” (and increasing flakiness/cost):
+可以将这些套件理解为"逐渐增强的真实性"（以及逐渐增加的不稳定性/成本）：
 
-### Unit / integration (default)
+### 单元/集成测试（默认）
 
-- Command: `pnpm test`
-- Config: `scripts/test-parallel.mjs` (runs `vitest.unit.config.ts`, `vitest.extensions.config.ts`, `vitest.gateway.config.ts`)
-- Files: `src/**/*.test.ts`, `extensions/**/*.test.ts`
-- Scope:
-  - Pure unit tests
-  - In-process integration tests (gateway auth, routing, tooling, parsing, config)
-  - Deterministic regressions for known bugs
-- Expectations:
-  - Runs in CI
-  - No real keys required
-  - Should be fast and stable
-- Pool note:
-  - OpenClaw uses Vitest `vmForks` on Node 22/23 for faster unit shards.
-  - On Node 24+, OpenClaw automatically falls back to regular `forks` to avoid Node VM linking errors (`ERR_VM_MODULE_LINK_FAILURE` / `module is already linked`).
-  - Override manually with `OPENCLAW_TEST_VM_FORKS=0` (force `forks`) or `OPENCLAW_TEST_VM_FORKS=1` (force `vmForks`).
+- 命令：`pnpm test`
+- 配置：`vitest.config.ts`
+- 文件：`src/**/*.test.ts`
+- 范围：
+  - 纯单元测试
+  - 进程内集成测试（Gateway 网关认证、路由、工具、解析、配置）
+  - 已知问题的确定性回归测试
+- 预期：
+  - 在 CI 中运行
+  - 不需要真实密钥
+  - 应该快速且稳定
 
-### E2E (gateway smoke)
+### 端到端测试（Gateway 网关冒烟测试）
 
-- Command: `pnpm test:e2e`
-- Config: `vitest.e2e.config.ts`
-- Files: `src/**/*.e2e.test.ts`
-- Runtime defaults:
-  - Uses Vitest `vmForks` for faster file startup.
-  - Uses adaptive workers (CI: 2-4, local: 4-8).
-  - Runs in silent mode by default to reduce console I/O overhead.
-- Useful overrides:
-  - `OPENCLAW_E2E_WORKERS=<n>` to force worker count (capped at 16).
-  - `OPENCLAW_E2E_VERBOSE=1` to re-enable verbose console output.
-- Scope:
-  - Multi-instance gateway end-to-end behavior
-  - WebSocket/HTTP surfaces, node pairing, and heavier networking
-- Expectations:
-  - Runs in CI (when enabled in the pipeline)
-  - No real keys required
-  - More moving parts than unit tests (can be slower)
+- 命令：`pnpm test:e2e`
+- 配置：`vitest.e2e.config.ts`
+- 文件：`src/**/*.e2e.test.ts`
+- 范围：
+  - 多实例 Gateway 网关端到端行为
+  - WebSocket/HTTP 接口、节点配对和较重的网络操作
+- 预期：
+  - 在 CI 中运行（当在流水线中启用时）
+  - 不需要真实密钥
+  - 比单元测试有更多活动部件（可能较慢）
 
-### Live (real providers + real models)
+### 实时测试（真实提供商 + 真实模型）
 
-- Command: `pnpm test:live`
-- Config: `vitest.live.config.ts`
-- Files: `src/**/*.live.test.ts`
-- Default: **enabled** by `pnpm test:live` (sets `OPENCLAW_LIVE_TEST=1`)
-- Scope:
-  - “Does this provider/model actually work _today_ with real creds?”
-  - Catch provider format changes, tool-calling quirks, auth issues, and rate limit behavior
-- Expectations:
-  - Not CI-stable by design (real networks, real provider policies, quotas, outages)
-  - Costs money / uses rate limits
-  - Prefer running narrowed subsets instead of “everything”
-  - Live runs will source `~/.profile` to pick up missing API keys
-- API key rotation (provider-specific): set `*_API_KEYS` with comma/semicolon format or `*_API_KEY_1`, `*_API_KEY_2` (for example `OPENAI_API_KEYS`, `ANTHROPIC_API_KEYS`, `GEMINI_API_KEYS`) or per-live override via `OPENCLAW_LIVE_*_KEY`; tests retry on rate limit responses.
+- 命令：`pnpm test:live`
+- 配置：`vitest.live.config.ts`
+- 文件：`src/**/*.live.test.ts`
+- 默认：通过 `pnpm test:live` **启用**（设置 `OPENCLAW_LIVE_TEST=1`）
+- 范围：
+  - "这个提供商/模型用真实凭证*今天*实际能工作吗？"
+  - 捕获提供商格式变更、工具调用怪癖、认证问题和速率限制行为
+- 预期：
+  - 设计上不适合 CI 稳定运行（真实网络、真实提供商策略、配额、故障）
+  - 花费金钱/使用速率限制
+  - 建议运行缩小范围的子集而非"全部"
+  - 实时运行会加载 `~/.profile` 以获取缺失的 API 密钥
+  - Anthropic 密钥轮换：设置 `OPENCLAW_LIVE_ANTHROPIC_KEYS="sk-...,sk-..."`（或 `OPENCLAW_LIVE_ANTHROPIC_KEY=sk-...`）或多个 `ANTHROPIC_API_KEY*` 变量；测试会在遇到速率限制时重试
 
-## Which suite should I run?
+## 我应该运行哪个套件？
 
-Use this decision table:
+使用这个决策表：
 
-- Editing logic/tests: run `pnpm test` (and `pnpm test:coverage` if you changed a lot)
-- Touching gateway networking / WS protocol / pairing: add `pnpm test:e2e`
-- Debugging “my bot is down” / provider-specific failures / tool calling: run a narrowed `pnpm test:live`
+- 编辑逻辑/测试：运行 `pnpm test`（如果改动较大，加上 `pnpm test:coverage`）
+- 涉及 Gateway 网关网络/WS 协议/配对：加上 `pnpm test:e2e`
+- 调试"我的机器人挂了"/提供商特定故障/工具调用：运行缩小范围的 `pnpm test:live`
 
-## Live: Android node capability sweep
+## 实时测试：模型冒烟测试（配置文件密钥）
 
-- Test: `src/gateway/android-node.capabilities.live.test.ts`
-- Script: `pnpm android:test:integration`
-- Goal: invoke **every command currently advertised** by a connected Android node and assert command contract behavior.
-- Scope:
-  - Preconditioned/manual setup (the suite does not install/run/pair the app).
-  - Command-by-command gateway `node.invoke` validation for the selected Android node.
-- Required pre-setup:
-  - Android app already connected + paired to the gateway.
-  - App kept in foreground.
-  - Permissions/capture consent granted for capabilities you expect to pass.
-- Optional target overrides:
-  - `OPENCLAW_ANDROID_NODE_ID` or `OPENCLAW_ANDROID_NODE_NAME`.
-  - `OPENCLAW_ANDROID_GATEWAY_URL` / `OPENCLAW_ANDROID_GATEWAY_TOKEN` / `OPENCLAW_ANDROID_GATEWAY_PASSWORD`.
-- Full Android setup details: [Android App](/platforms/android)
+实时测试分为两层，以便隔离故障：
 
-## Live: model smoke (profile keys)
+- "直接模型"告诉我们提供商/模型是否能用给定的密钥正常响应。
+- "Gateway 网关冒烟测试"告诉我们完整的 Gateway 网关 + 智能体管道是否对该模型正常工作（会话、历史记录、工具、沙箱策略等）。
 
-Live tests are split into two layers so we can isolate failures:
+### 第一层：直接模型补全（无 Gateway 网关）
 
-- “Direct model” tells us the provider/model can answer at all with the given key.
-- “Gateway smoke” tells us the full gateway+agent pipeline works for that model (sessions, history, tools, sandbox policy, etc.).
+- 测试：`src/agents/models.profiles.live.test.ts`
+- 目标：
+  - 枚举发现的模型
+  - 使用 `getApiKeyForModel` 选择你有凭证的模型
+  - 每个模型运行一个小型补全（以及需要时的针对性回归测试）
+- 如何启用：
+  - `pnpm test:live`（或直接调用 Vitest 时使用 `OPENCLAW_LIVE_TEST=1`）
+- 设置 `OPENCLAW_LIVE_MODELS=modern`（或 `all`，modern 的别名）以实际运行此套件；否则会跳过以保持 `pnpm test:live` 专注于 Gateway 网关冒烟测试
+- 如何选择模型：
+  - `OPENCLAW_LIVE_MODELS=modern` 运行现代允许列表（Opus/Sonnet/Haiku 4.5、GPT-5.x + Codex、Gemini 3、GLM 4.7、MiniMax M2.1、Grok 4）
+  - `OPENCLAW_LIVE_MODELS=all` 是现代允许列表的别名
+  - 或 `OPENCLAW_LIVE_MODELS="openai/gpt-5.2,anthropic/claude-opus-4-5,..."`（逗号分隔的允许列表）
+- 如何选择提供商：
+  - `OPENCLAW_LIVE_PROVIDERS="google,google-antigravity,google-gemini-cli"`（逗号分隔的允许列表）
+- 密钥来源：
+  - 默认：配置文件存储和环境变量回退
+  - 设置 `OPENCLAW_LIVE_REQUIRE_PROFILE_KEYS=1` 以强制**仅使用配置文件存储**
+- 为什么存在这个测试：
+  - 将"提供商 API 损坏/密钥无效"与"Gateway 网关智能体管道损坏"分离
+  - 包含小型、隔离的回归测试（例如：OpenAI Responses/Codex Responses 推理重放 + 工具调用流程）
 
-### Layer 1: Direct model completion (no gateway)
+### 第二层：Gateway 网关 + 开发智能体冒烟测试（"@openclaw"实际做的事）
 
-- Test: `src/agents/models.profiles.live.test.ts`
-- Goal:
-  - Enumerate discovered models
-  - Use `getApiKeyForModel` to select models you have creds for
-  - Run a small completion per model (and targeted regressions where needed)
-- How to enable:
-  - `pnpm test:live` (or `OPENCLAW_LIVE_TEST=1` if invoking Vitest directly)
-- Set `OPENCLAW_LIVE_MODELS=modern` (or `all`, alias for modern) to actually run this suite; otherwise it skips to keep `pnpm test:live` focused on gateway smoke
-- How to select models:
-  - `OPENCLAW_LIVE_MODELS=modern` to run the modern allowlist (Opus/Sonnet/Haiku 4.5, GPT-5.x + Codex, Gemini 3, GLM 4.7, MiniMax M2.5, Grok 4)
-  - `OPENCLAW_LIVE_MODELS=all` is an alias for the modern allowlist
-  - or `OPENCLAW_LIVE_MODELS="openai/gpt-5.2,anthropic/claude-opus-4-6,..."` (comma allowlist)
-- How to select providers:
-  - `OPENCLAW_LIVE_PROVIDERS="google,google-antigravity,google-gemini-cli"` (comma allowlist)
-- Where keys come from:
-  - By default: profile store and env fallbacks
-  - Set `OPENCLAW_LIVE_REQUIRE_PROFILE_KEYS=1` to enforce **profile store** only
-- Why this exists:
-  - Separates “provider API is broken / key is invalid” from “gateway agent pipeline is broken”
-  - Contains small, isolated regressions (example: OpenAI Responses/Codex Responses reasoning replay + tool-call flows)
+- 测试：`src/gateway/gateway-models.profiles.live.test.ts`
+- 目标：
+  - 启动一个进程内 Gateway 网关
+  - 创建/修补一个 `agent:dev:*` 会话（每次运行覆盖模型）
+  - 遍历有密钥的模型并断言：
+    - "有意义的"响应（无工具）
+    - 真实的工具调用工作正常（读取探测）
+    - 可选的额外工具探测（执行+读取探测）
+    - OpenAI 回归路径（仅工具调用 → 后续）保持工作
+- 探测详情（以便你能快速解释故障）：
+  - `read` 探测：测试在工作区写入一个随机数文件，要求智能体 `read` 它并回显随机数。
+  - `exec+read` 探测：测试要求智能体 `exec` 将随机数写入临时文件，然后 `read` 回来。
+  - 图像探测：测试附加一个生成的 PNG（猫 + 随机代码），期望模型返回 `cat <CODE>`。
+  - 实现参考：`src/gateway/gateway-models.profiles.live.test.ts` 和 `src/gateway/live-image-probe.ts`。
+- 如何启用：
+  - `pnpm test:live`（或直接调用 Vitest 时使用 `OPENCLAW_LIVE_TEST=1`）
+- 如何选择模型：
+  - 默认：现代允许列表（Opus/Sonnet/Haiku 4.5、GPT-5.x + Codex、Gemini 3、GLM 4.7、MiniMax M2.1、Grok 4）
+  - `OPENCLAW_LIVE_GATEWAY_MODELS=all` 是现代允许列表的别名
+  - 或设置 `OPENCLAW_LIVE_GATEWAY_MODELS="provider/model"`（或逗号分隔列表）来缩小范围
+- 如何选择提供商（避免"OpenRouter 全部"）：
+  - `OPENCLAW_LIVE_GATEWAY_PROVIDERS="google,google-antigravity,google-gemini-cli,openai,anthropic,zai,minimax"`（逗号分隔的允许列表）
+- 工具 + 图像探测在此实时测试中始终开启：
+  - `read` 探测 + `exec+read` 探测（工具压力测试）
+  - 当模型声明支持图像输入时运行图像探测
+  - 流程（高层次）：
+    - 测试生成一个带有"CAT"+ 随机代码的小型 PNG（`src/gateway/live-image-probe.ts`）
+    - 通过 `agent` `attachments: [{ mimeType: "image/png", content: "<base64>" }]` 发送
+    - Gateway 网关将附件解析为 `images[]`（`src/gateway/server-methods/agent.ts` + `src/gateway/chat-attachments.ts`）
+    - 嵌入式智能体将多模态用户消息转发给模型
+    - 断言：回复包含 `cat` + 代码（OCR 容差：允许轻微错误）
 
-### Layer 2: Gateway + dev agent smoke (what “@openclaw” actually does)
-
-- Test: `src/gateway/gateway-models.profiles.live.test.ts`
-- Goal:
-  - Spin up an in-process gateway
-  - Create/patch a `agent:dev:*` session (model override per run)
-  - Iterate models-with-keys and assert:
-    - “meaningful” response (no tools)
-    - a real tool invocation works (read probe)
-    - optional extra tool probes (exec+read probe)
-    - OpenAI regression paths (tool-call-only → follow-up) keep working
-- Probe details (so you can explain failures quickly):
-  - `read` probe: the test writes a nonce file in the workspace and asks the agent to `read` it and echo the nonce back.
-  - `exec+read` probe: the test asks the agent to `exec`-write a nonce into a temp file, then `read` it back.
-  - image probe: the test attaches a generated PNG (cat + randomized code) and expects the model to return `cat <CODE>`.
-  - Implementation reference: `src/gateway/gateway-models.profiles.live.test.ts` and `src/gateway/live-image-probe.ts`.
-- How to enable:
-  - `pnpm test:live` (or `OPENCLAW_LIVE_TEST=1` if invoking Vitest directly)
-- How to select models:
-  - Default: modern allowlist (Opus/Sonnet/Haiku 4.5, GPT-5.x + Codex, Gemini 3, GLM 4.7, MiniMax M2.5, Grok 4)
-  - `OPENCLAW_LIVE_GATEWAY_MODELS=all` is an alias for the modern allowlist
-  - Or set `OPENCLAW_LIVE_GATEWAY_MODELS="provider/model"` (or comma list) to narrow
-- How to select providers (avoid “OpenRouter everything”):
-  - `OPENCLAW_LIVE_GATEWAY_PROVIDERS="google,google-antigravity,google-gemini-cli,openai,anthropic,zai,minimax"` (comma allowlist)
-- Tool + image probes are always on in this live test:
-  - `read` probe + `exec+read` probe (tool stress)
-  - image probe runs when the model advertises image input support
-  - Flow (high level):
-    - Test generates a tiny PNG with “CAT” + random code (`src/gateway/live-image-probe.ts`)
-    - Sends it via `agent` `attachments: [{ mimeType: "image/png", content: "<base64>" }]`
-    - Gateway parses attachments into `images[]` (`src/gateway/server-methods/agent.ts` + `src/gateway/chat-attachments.ts`)
-    - Embedded agent forwards a multimodal user message to the model
-    - Assertion: reply contains `cat` + the code (OCR tolerance: minor mistakes allowed)
-
-Tip: to see what you can test on your machine (and the exact `provider/model` ids), run:
+提示：要查看你的机器上可以测试什么（以及确切的 `provider/model` ID），运行：
 
 ```bash
 openclaw models list
 openclaw models list --json
 ```
 
-## Live: Anthropic setup-token smoke
+## 实时测试：Anthropic 设置令牌冒烟测试
 
-- Test: `src/agents/anthropic.setup-token.live.test.ts`
-- Goal: verify Claude Code CLI setup-token (or a pasted setup-token profile) can complete an Anthropic prompt.
-- Enable:
-  - `pnpm test:live` (or `OPENCLAW_LIVE_TEST=1` if invoking Vitest directly)
+- 测试：`src/agents/anthropic.setup-token.live.test.ts`
+- 目标：验证 Claude Code CLI 设置令牌（或粘贴的设置令牌配置文件）能完成 Anthropic 提示。
+- 启用：
+  - `pnpm test:live`（或直接调用 Vitest 时使用 `OPENCLAW_LIVE_TEST=1`）
   - `OPENCLAW_LIVE_SETUP_TOKEN=1`
-- Token sources (pick one):
-  - Profile: `OPENCLAW_LIVE_SETUP_TOKEN_PROFILE=anthropic:setup-token-test`
-  - Raw token: `OPENCLAW_LIVE_SETUP_TOKEN_VALUE=sk-ant-oat01-...`
-- Model override (optional):
-  - `OPENCLAW_LIVE_SETUP_TOKEN_MODEL=anthropic/claude-opus-4-6`
+- 令牌来源（选择一个）：
+  - 配置文件：`OPENCLAW_LIVE_SETUP_TOKEN_PROFILE=anthropic:setup-token-test`
+  - 原始令牌：`OPENCLAW_LIVE_SETUP_TOKEN_VALUE=sk-ant-oat01-...`
+- 模型覆盖（可选）：
+  - `OPENCLAW_LIVE_SETUP_TOKEN_MODEL=anthropic/claude-opus-4-5`
 
-Setup example:
+设置示例：
 
 ```bash
 openclaw models auth paste-token --provider anthropic --profile-id anthropic:setup-token-test
 OPENCLAW_LIVE_SETUP_TOKEN=1 OPENCLAW_LIVE_SETUP_TOKEN_PROFILE=anthropic:setup-token-test pnpm test:live src/agents/anthropic.setup-token.live.test.ts
 ```
 
-## Live: CLI backend smoke (Claude Code CLI or other local CLIs)
+## 实时测试：CLI 后端冒烟测试（Claude Code CLI 或其他本地 CLI）
 
-- Test: `src/gateway/gateway-cli-backend.live.test.ts`
-- Goal: validate the Gateway + agent pipeline using a local CLI backend, without touching your default config.
-- Enable:
-  - `pnpm test:live` (or `OPENCLAW_LIVE_TEST=1` if invoking Vitest directly)
+- 测试：`src/gateway/gateway-cli-backend.live.test.ts`
+- 目标：使用本地 CLI 后端验证 Gateway 网关 + 智能体管道，而不影响你的默认配置。
+- 启用：
+  - `pnpm test:live`（或直接调用 Vitest 时使用 `OPENCLAW_LIVE_TEST=1`）
   - `OPENCLAW_LIVE_CLI_BACKEND=1`
-- Defaults:
-  - Model: `claude-cli/claude-sonnet-4-6`
-  - Command: `claude`
-  - Args: `["-p","--output-format","json","--permission-mode","bypassPermissions"]`
-- Overrides (optional):
-  - `OPENCLAW_LIVE_CLI_BACKEND_MODEL="claude-cli/claude-opus-4-6"`
-  - `OPENCLAW_LIVE_CLI_BACKEND_MODEL="codex-cli/gpt-5.4"`
+- 默认值：
+  - 模型：`claude-cli/claude-sonnet-4-5`
+  - 命令：`claude`
+  - 参数：`["-p","--output-format","json","--dangerously-skip-permissions"]`
+- 覆盖（可选）：
+  - `OPENCLAW_LIVE_CLI_BACKEND_MODEL="claude-cli/claude-opus-4-5"`
+  - `OPENCLAW_LIVE_CLI_BACKEND_MODEL="codex-cli/gpt-5.2-codex"`
   - `OPENCLAW_LIVE_CLI_BACKEND_COMMAND="/full/path/to/claude"`
   - `OPENCLAW_LIVE_CLI_BACKEND_ARGS='["-p","--output-format","json","--permission-mode","bypassPermissions"]'`
   - `OPENCLAW_LIVE_CLI_BACKEND_CLEAR_ENV='["ANTHROPIC_API_KEY","ANTHROPIC_API_KEY_OLD"]'`
-  - `OPENCLAW_LIVE_CLI_BACKEND_IMAGE_PROBE=1` to send a real image attachment (paths are injected into the prompt).
-  - `OPENCLAW_LIVE_CLI_BACKEND_IMAGE_ARG="--image"` to pass image file paths as CLI args instead of prompt injection.
-  - `OPENCLAW_LIVE_CLI_BACKEND_IMAGE_MODE="repeat"` (or `"list"`) to control how image args are passed when `IMAGE_ARG` is set.
-  - `OPENCLAW_LIVE_CLI_BACKEND_RESUME_PROBE=1` to send a second turn and validate resume flow.
-- `OPENCLAW_LIVE_CLI_BACKEND_DISABLE_MCP_CONFIG=0` to keep Claude Code CLI MCP config enabled (default disables MCP config with a temporary empty file).
+  - `OPENCLAW_LIVE_CLI_BACKEND_IMAGE_PROBE=1` 发送真实图像附件（路径注入到提示中）。
+  - `OPENCLAW_LIVE_CLI_BACKEND_IMAGE_ARG="--image"` 将图像文件路径作为 CLI 参数传递而非提示注入。
+  - `OPENCLAW_LIVE_CLI_BACKEND_IMAGE_MODE="repeat"`（或 `"list"`）控制设置 `IMAGE_ARG` 时如何传递图像参数。
+  - `OPENCLAW_LIVE_CLI_BACKEND_RESUME_PROBE=1` 发送第二轮并验证恢复流程。
+- `OPENCLAW_LIVE_CLI_BACKEND_DISABLE_MCP_CONFIG=0` 保持 Claude Code CLI MCP 配置启用（默认使用临时空文件禁用 MCP 配置）。
 
-Example:
+示例：
 
 ```bash
 OPENCLAW_LIVE_CLI_BACKEND=1 \
-  OPENCLAW_LIVE_CLI_BACKEND_MODEL="claude-cli/claude-sonnet-4-6" \
+  OPENCLAW_LIVE_CLI_BACKEND_MODEL="claude-cli/claude-sonnet-4-5" \
   pnpm test:live src/gateway/gateway-cli-backend.live.test.ts
 ```
 
-### Recommended live recipes
+### 推荐的实时测试配方
 
-Narrow, explicit allowlists are fastest and least flaky:
+缩小范围的显式允许列表最快且最不易出错：
 
-- Single model, direct (no gateway):
+- 单个模型，直接测试（无 Gateway 网关）：
   - `OPENCLAW_LIVE_MODELS="openai/gpt-5.2" pnpm test:live src/agents/models.profiles.live.test.ts`
 
-- Single model, gateway smoke:
+- 单个模型，Gateway 网关冒烟测试：
   - `OPENCLAW_LIVE_GATEWAY_MODELS="openai/gpt-5.2" pnpm test:live src/gateway/gateway-models.profiles.live.test.ts`
 
-- Tool calling across several providers:
-  - `OPENCLAW_LIVE_GATEWAY_MODELS="openai/gpt-5.2,anthropic/claude-opus-4-6,google/gemini-3-flash-preview,zai/glm-4.7,minimax/minimax-m2.5" pnpm test:live src/gateway/gateway-models.profiles.live.test.ts`
+- 跨多个提供商的工具调用：
+  - `OPENCLAW_LIVE_GATEWAY_MODELS="openai/gpt-5.2,anthropic/claude-opus-4-5,google/gemini-3-flash-preview,zai/glm-4.7,minimax/minimax-m2.1" pnpm test:live src/gateway/gateway-models.profiles.live.test.ts`
 
-- Google focus (Gemini API key + Antigravity):
-  - Gemini (API key): `OPENCLAW_LIVE_GATEWAY_MODELS="google/gemini-3-flash-preview" pnpm test:live src/gateway/gateway-models.profiles.live.test.ts`
-  - Antigravity (OAuth): `OPENCLAW_LIVE_GATEWAY_MODELS="google-antigravity/claude-opus-4-6-thinking,google-antigravity/gemini-3-pro-high" pnpm test:live src/gateway/gateway-models.profiles.live.test.ts`
+- Google 专项（Gemini API 密钥 + Antigravity）：
+  - Gemini（API 密钥）：`OPENCLAW_LIVE_GATEWAY_MODELS="google/gemini-3-flash-preview" pnpm test:live src/gateway/gateway-models.profiles.live.test.ts`
+  - Antigravity（OAuth）：`OPENCLAW_LIVE_GATEWAY_MODELS="google-antigravity/claude-opus-4-6-thinking,google-antigravity/gemini-3-pro-high" pnpm test:live src/gateway/gateway-models.profiles.live.test.ts`
 
-Notes:
+注意：
 
-- `google/...` uses the Gemini API (API key).
-- `google-antigravity/...` uses the Antigravity OAuth bridge (Cloud Code Assist-style agent endpoint).
-- `google-gemini-cli/...` uses the local Gemini CLI on your machine (separate auth + tooling quirks).
-- Gemini API vs Gemini CLI:
-  - API: OpenClaw calls Google’s hosted Gemini API over HTTP (API key / profile auth); this is what most users mean by “Gemini”.
-  - CLI: OpenClaw shells out to a local `gemini` binary; it has its own auth and can behave differently (streaming/tool support/version skew).
+- `google/...` 使用 Gemini API（API 密钥）。
+- `google-antigravity/...` 使用 Antigravity OAuth 桥接（Cloud Code Assist 风格的智能体端点）。
+- `google-gemini-cli/...` 使用你机器上的本地 Gemini CLI（独立的认证 + 工具怪癖）。
+- Gemini API 与 Gemini CLI：
+  - API：OpenClaw 通过 HTTP 调用 Google 托管的 Gemini API（API 密钥/配置文件认证）；这是大多数用户说的"Gemini"。
+  - CLI：OpenClaw 调用本地 `gemini` 二进制文件；它有自己的认证，行为可能不同（流式传输/工具支持/版本差异）。
 
-## Live: model matrix (what we cover)
+## 实时测试：模型矩阵（我们覆盖什么）
 
-There is no fixed “CI model list” (live is opt-in), but these are the **recommended** models to cover regularly on a dev machine with keys.
+没有固定的"CI 模型列表"（实时测试是可选的），但这些是建议在有密钥的开发机器上定期覆盖的**推荐**模型。
 
-### Modern smoke set (tool calling + image)
+### 现代冒烟测试集（工具调用 + 图像）
 
-This is the “common models” run we expect to keep working:
+这是我们期望保持工作的"常用模型"运行：
 
-- OpenAI (non-Codex): `openai/gpt-5.2` (optional: `openai/gpt-5.1`)
-- OpenAI Codex: `openai-codex/gpt-5.4`
-- Anthropic: `anthropic/claude-opus-4-6` (or `anthropic/claude-sonnet-4-5`)
-- Google (Gemini API): `google/gemini-3.1-pro-preview` and `google/gemini-3-flash-preview` (avoid older Gemini 2.x models)
-- Google (Antigravity): `google-antigravity/claude-opus-4-6-thinking` and `google-antigravity/gemini-3-flash`
-- Z.AI (GLM): `zai/glm-4.7`
-- MiniMax: `minimax/minimax-m2.5`
+- OpenAI（非 Codex）：`openai/gpt-5.2`（可选：`openai/gpt-5.1`）
+- OpenAI Codex：`openai-codex/gpt-5.2`（可选：`openai-codex/gpt-5.2-codex`）
+- Anthropic：`anthropic/claude-opus-4-5`（或 `anthropic/claude-sonnet-4-5`）
+- Google（Gemini API）：`google/gemini-3-pro-preview` 和 `google/gemini-3-flash-preview`（避免较旧的 Gemini 2.x 模型）
+- Google（Antigravity）：`google-antigravity/claude-opus-4-6-thinking` 和 `google-antigravity/gemini-3-flash`
+- Z.AI（GLM）：`zai/glm-4.7`
+- MiniMax：`minimax/minimax-m2.1`
 
-Run gateway smoke with tools + image:
-`OPENCLAW_LIVE_GATEWAY_MODELS="openai/gpt-5.2,openai-codex/gpt-5.4,anthropic/claude-opus-4-6,google/gemini-3.1-pro-preview,google/gemini-3-flash-preview,google-antigravity/claude-opus-4-6-thinking,google-antigravity/gemini-3-flash,zai/glm-4.7,minimax/minimax-m2.5" pnpm test:live src/gateway/gateway-models.profiles.live.test.ts`
+运行带工具 + 图像的 Gateway 网关冒烟测试：
+`OPENCLAW_LIVE_GATEWAY_MODELS="openai/gpt-5.2,openai-codex/gpt-5.2,anthropic/claude-opus-4-5,google/gemini-3-pro-preview,google/gemini-3-flash-preview,google-antigravity/claude-opus-4-6-thinking,google-antigravity/gemini-3-flash,zai/glm-4.7,minimax/minimax-m2.1" pnpm test:live src/gateway/gateway-models.profiles.live.test.ts`
 
-### Baseline: tool calling (Read + optional Exec)
+### 基线：工具调用（Read + 可选 Exec）
 
-Pick at least one per provider family:
+每个提供商系列至少选择一个：
 
-- OpenAI: `openai/gpt-5.2` (or `openai/gpt-5-mini`)
-- Anthropic: `anthropic/claude-opus-4-6` (or `anthropic/claude-sonnet-4-5`)
-- Google: `google/gemini-3-flash-preview` (or `google/gemini-3.1-pro-preview`)
-- Z.AI (GLM): `zai/glm-4.7`
-- MiniMax: `minimax/minimax-m2.5`
+- OpenAI：`openai/gpt-5.2`（或 `openai/gpt-5-mini`）
+- Anthropic：`anthropic/claude-opus-4-5`（或 `anthropic/claude-sonnet-4-5`）
+- Google：`google/gemini-3-flash-preview`（或 `google/gemini-3-pro-preview`）
+- Z.AI（GLM）：`zai/glm-4.7`
+- MiniMax：`minimax/minimax-m2.1`
 
-Optional additional coverage (nice to have):
+可选的额外覆盖（锦上添花）：
 
-- xAI: `xai/grok-4` (or latest available)
-- Mistral: `mistral/`… (pick one “tools” capable model you have enabled)
-- Cerebras: `cerebras/`… (if you have access)
-- LM Studio: `lmstudio/`… (local; tool calling depends on API mode)
+- xAI：`xai/grok-4`（或最新可用版本）
+- Mistral：`mistral/`…（选择一个你已启用的"工具"能力模型）
+- Cerebras：`cerebras/`…（如果你有访问权限）
+- LM Studio：`lmstudio/`…（本地；工具调用取决于 API 模式）
 
-### Vision: image send (attachment → multimodal message)
+### 视觉：图像发送（附件 → 多模态消息）
 
-Include at least one image-capable model in `OPENCLAW_LIVE_GATEWAY_MODELS` (Claude/Gemini/OpenAI vision-capable variants, etc.) to exercise the image probe.
+在 `OPENCLAW_LIVE_GATEWAY_MODELS` 中至少包含一个支持图像的模型（Claude/Gemini/OpenAI 视觉能力变体等）以测试图像探测。
 
-### Aggregators / alternate gateways
+### 聚合器/替代 Gateway 网关
 
-If you have keys enabled, we also support testing via:
+如果你启用了密钥，我们也支持通过以下方式测试：
 
-- OpenRouter: `openrouter/...` (hundreds of models; use `openclaw models scan` to find tool+image capable candidates)
-- OpenCode Zen: `opencode/...` (auth via `OPENCODE_API_KEY` / `OPENCODE_ZEN_API_KEY`)
+- OpenRouter：`openrouter/...`（数百个模型；使用 `openclaw models scan` 查找支持工具+图像的候选模型）
+- OpenCode Zen：`opencode/...`（通过 `OPENCODE_API_KEY` / `OPENCODE_ZEN_API_KEY` 认证）
 
-More providers you can include in the live matrix (if you have creds/config):
+如果你有凭证/配置，可以在实时矩阵中包含更多提供商：
 
-- Built-in: `openai`, `openai-codex`, `anthropic`, `google`, `google-vertex`, `google-antigravity`, `google-gemini-cli`, `zai`, `openrouter`, `opencode`, `xai`, `groq`, `cerebras`, `mistral`, `github-copilot`
-- Via `models.providers` (custom endpoints): `minimax` (cloud/API), plus any OpenAI/Anthropic-compatible proxy (LM Studio, vLLM, LiteLLM, etc.)
+- 内置：`openai`、`openai-codex`、`anthropic`、`google`、`google-vertex`、`google-antigravity`、`google-gemini-cli`、`zai`、`openrouter`、`opencode`、`xai`、`groq`、`cerebras`、`mistral`、`github-copilot`
+- 通过 `models.providers`（自定义端点）：`minimax`（云/API），以及任何 OpenAI/Anthropic 兼容代理（LM Studio、vLLM、LiteLLM 等）
 
-Tip: don’t try to hardcode “all models” in docs. The authoritative list is whatever `discoverModels(...)` returns on your machine + whatever keys are available.
+提示：不要试图在文档中硬编码"所有模型"。权威列表是你机器上 `discoverModels(...)` 返回的内容 + 可用的密钥。
 
-## Credentials (never commit)
+## 凭证（绝不提交）
 
-Live tests discover credentials the same way the CLI does. Practical implications:
+实时测试以与 CLI 相同的方式发现凭证。实际含义：
 
-- If the CLI works, live tests should find the same keys.
-- If a live test says “no creds”, debug the same way you’d debug `openclaw models list` / model selection.
+- 如果 CLI 能工作，实时测试应该能找到相同的密钥。
+- 如果实时测试说"无凭证"，用调试 `openclaw models list`/模型选择相同的方式调试。
 
-- Profile store: `~/.openclaw/credentials/` (preferred; what “profile keys” means in the tests)
-- Config: `~/.openclaw/openclaw.json` (or `OPENCLAW_CONFIG_PATH`)
+- 配置文件存储：`~/.openclaw/credentials/`（首选；测试中"配置文件密钥"的含义）
+- 配置：`~/.openclaw/openclaw.json`（或 `OPENCLAW_CONFIG_PATH`）
 
-If you want to rely on env keys (e.g. exported in your `~/.profile`), run local tests after `source ~/.profile`, or use the Docker runners below (they can mount `~/.profile` into the container).
+如果你想依赖环境变量密钥（例如在 `~/.profile` 中导出的），在 `source ~/.profile` 后运行本地测试，或使用下面的 Docker 运行器（它们可以将 `~/.profile` 挂载到容器中）。
 
-## Deepgram live (audio transcription)
+## Deepgram 实时测试（音频转录）
 
-- Test: `src/media-understanding/providers/deepgram/audio.live.test.ts`
-- Enable: `DEEPGRAM_API_KEY=... DEEPGRAM_LIVE_TEST=1 pnpm test:live src/media-understanding/providers/deepgram/audio.live.test.ts`
+- 测试：`src/media-understanding/providers/deepgram/audio.live.test.ts`
+- 启用：`DEEPGRAM_API_KEY=... DEEPGRAM_LIVE_TEST=1 pnpm test:live src/media-understanding/providers/deepgram/audio.live.test.ts`
 
-## BytePlus coding plan live
+## Docker 运行器（可选的"在 Linux 中工作"检查）
 
-- Test: `src/agents/byteplus.live.test.ts`
-- Enable: `BYTEPLUS_API_KEY=... BYTEPLUS_LIVE_TEST=1 pnpm test:live src/agents/byteplus.live.test.ts`
-- Optional model override: `BYTEPLUS_CODING_MODEL=ark-code-latest`
+这些在仓库 Docker 镜像内运行 `pnpm test:live`，挂载你的本地配置目录和工作区（如果挂载了 `~/.profile` 则会加载它）：
 
-## Docker runners (optional “works in Linux” checks)
+- 直接模型：`pnpm test:docker:live-models`（脚本：`scripts/test-live-models-docker.sh`）
+- Gateway 网关 + 开发智能体：`pnpm test:docker:live-gateway`（脚本：`scripts/test-live-gateway-models-docker.sh`）
+- 新手引导向导（TTY，完整脚手架）：`pnpm test:docker:onboard`（脚本：`scripts/e2e/onboard-docker.sh`）
+- Gateway 网关网络（两个容器，WS 认证 + 健康检查）：`pnpm test:docker:gateway-network`（脚本：`scripts/e2e/gateway-network-docker.sh`）
+- 插件（自定义扩展加载 + 注册表冒烟测试）：`pnpm test:docker:plugins`（脚本：`scripts/e2e/plugins-docker.sh`）
 
-These run `pnpm test:live` inside the repo Docker image, mounting your local config dir and workspace (and sourcing `~/.profile` if mounted):
+有用的环境变量：
 
-- Direct models: `pnpm test:docker:live-models` (script: `scripts/test-live-models-docker.sh`)
-- Gateway + dev agent: `pnpm test:docker:live-gateway` (script: `scripts/test-live-gateway-models-docker.sh`)
-- Onboarding wizard (TTY, full scaffolding): `pnpm test:docker:onboard` (script: `scripts/e2e/onboard-docker.sh`)
-- Gateway networking (two containers, WS auth + health): `pnpm test:docker:gateway-network` (script: `scripts/e2e/gateway-network-docker.sh`)
-- Plugins (custom extension load + registry smoke): `pnpm test:docker:plugins` (script: `scripts/e2e/plugins-docker.sh`)
+- `OPENCLAW_CONFIG_DIR=...`（默认：`~/.openclaw`）挂载到 `/home/node/.openclaw`
+- `OPENCLAW_WORKSPACE_DIR=...`（默认：`~/.openclaw/workspace`）挂载到 `/home/node/.openclaw/workspace`
+- `OPENCLAW_PROFILE_FILE=...`（默认：`~/.profile`）挂载到 `/home/node/.profile` 并在运行测试前加载
+- `OPENCLAW_LIVE_GATEWAY_MODELS=...` / `OPENCLAW_LIVE_MODELS=...` 用于缩小运行范围
+- `OPENCLAW_LIVE_REQUIRE_PROFILE_KEYS=1` 确保凭证来自配置文件存储（而非环境变量）
 
-The live-model Docker runners also bind-mount the current checkout read-only and
-stage it into a temporary workdir inside the container. This keeps the runtime
-image slim while still running Vitest against your exact local source/config.
+## 文档完整性检查
 
-Manual ACP plain-language thread smoke (not CI):
+文档编辑后运行文档检查：`pnpm docs:list`。
 
-- `bun scripts/dev/discord-acp-plain-language-smoke.ts --channel <discord-channel-id> ...`
-- Keep this script for regression/debug workflows. It may be needed again for ACP thread routing validation, so do not delete it.
+## 离线回归测试（CI 安全）
 
-Useful env vars:
+这些是没有真实提供商的"真实管道"回归测试：
 
-- `OPENCLAW_CONFIG_DIR=...` (default: `~/.openclaw`) mounted to `/home/node/.openclaw`
-- `OPENCLAW_WORKSPACE_DIR=...` (default: `~/.openclaw/workspace`) mounted to `/home/node/.openclaw/workspace`
-- `OPENCLAW_PROFILE_FILE=...` (default: `~/.profile`) mounted to `/home/node/.profile` and sourced before running tests
-- `OPENCLAW_LIVE_GATEWAY_MODELS=...` / `OPENCLAW_LIVE_MODELS=...` to narrow the run
-- `OPENCLAW_LIVE_REQUIRE_PROFILE_KEYS=1` to ensure creds come from the profile store (not env)
+- Gateway 网关工具调用（模拟 OpenAI，真实 Gateway 网关 + 智能体循环）：`src/gateway/gateway.tool-calling.mock-openai.test.ts`
+- Gateway 网关向导（WS `wizard.start`/`wizard.next`，写入配置 + 强制认证）：`src/gateway/gateway.wizard.e2e.test.ts`
 
-## Docs sanity
+## 智能体可靠性评估（Skills）
 
-Run docs checks after doc edits: `pnpm docs:list`.
+我们已经有一些 CI 安全的测试，它们的行为类似于"智能体可靠性评估"：
 
-## Offline regression (CI-safe)
+- 通过真实 Gateway 网关 + 智能体循环的模拟工具调用（`src/gateway/gateway.tool-calling.mock-openai.test.ts`）。
+- 验证会话连接和配置效果的端到端向导流程（`src/gateway/gateway.wizard.e2e.test.ts`）。
 
-These are “real pipeline” regressions without real providers:
+对于 Skills 仍然缺少的内容（参见 [Skills](/tools/skills)）：
 
-- Gateway tool calling (mock OpenAI, real gateway + agent loop): `src/gateway/gateway.test.ts` (case: "runs a mock OpenAI tool call end-to-end via gateway agent loop")
-- Gateway wizard (WS `wizard.start`/`wizard.next`, writes config + auth enforced): `src/gateway/gateway.test.ts` (case: "runs wizard over ws and writes auth token config")
+- **决策：** 当 Skills 在提示中列出时，智能体是否选择正确的 skill（或避免不相关的）？
+- **合规性：** 智能体是否在使用前读取 `SKILL.md` 并遵循所需的步骤/参数？
+- **工作流契约：** 断言工具顺序、会话历史延续和沙箱边界的多轮场景。
 
-## Agent reliability evals (skills)
+未来的评估应该首先保持确定性：
 
-We already have a few CI-safe tests that behave like “agent reliability evals”:
+- 使用模拟提供商来断言工具调用 + 顺序、skill 文件读取和会话连接的场景运行器。
+- 一小套专注于 skill 的场景（使用 vs 避免、门控、提示注入）。
+- 可选的实时评估（可选的，环境变量门控），仅在 CI 安全套件就位后。
 
-- Mock tool-calling through the real gateway + agent loop (`src/gateway/gateway.test.ts`).
-- End-to-end wizard flows that validate session wiring and config effects (`src/gateway/gateway.test.ts`).
+## 添加回归测试（指导）
 
-What’s still missing for skills (see [Skills](/tools/skills)):
+当你修复在实时测试中发现的提供商/模型问题时：
 
-- **Decisioning:** when skills are listed in the prompt, does the agent pick the right skill (or avoid irrelevant ones)?
-- **Compliance:** does the agent read `SKILL.md` before use and follow required steps/args?
-- **Workflow contracts:** multi-turn scenarios that assert tool order, session history carryover, and sandbox boundaries.
-
-Future evals should stay deterministic first:
-
-- A scenario runner using mock providers to assert tool calls + order, skill file reads, and session wiring.
-- A small suite of skill-focused scenarios (use vs avoid, gating, prompt injection).
-- Optional live evals (opt-in, env-gated) only after the CI-safe suite is in place.
-
-## Adding regressions (guidance)
-
-When you fix a provider/model issue discovered in live:
-
-- Add a CI-safe regression if possible (mock/stub provider, or capture the exact request-shape transformation)
-- If it’s inherently live-only (rate limits, auth policies), keep the live test narrow and opt-in via env vars
-- Prefer targeting the smallest layer that catches the bug:
-  - provider request conversion/replay bug → direct models test
-  - gateway session/history/tool pipeline bug → gateway live smoke or CI-safe gateway mock test
+- 如果可能，添加 CI 安全的回归测试（模拟/存根提供商，或捕获确切的请求形状转换）
+- 如果它本质上是仅限实时的（速率限制、认证策略），保持实时测试范围小且通过环境变量可选
+- 优先针对能捕获问题的最小层：
+  - 提供商请求转换/重放问题 → 直接模型测试
+  - Gateway 网关会话/历史/工具管道问题 → Gateway 网关实时冒烟测试或 CI 安全的 Gateway 网关模拟测试

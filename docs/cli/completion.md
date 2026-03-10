@@ -1,16 +1,16 @@
 ---
-summary: "CLI reference for `openclaw completion` (generate/install shell completion scripts)"
+summary: "`openclaw completion` 的 CLI 参考（生成/安装 Shell 补全脚本）"
 read_when:
-  - You want shell completions for zsh/bash/fish/PowerShell
-  - You need to cache completion scripts under OpenClaw state
+  - 想要 zsh/bash/fish/PowerShell 的 Shell 补全
+  - 需要将补全脚本缓存到 OpenClaw 状态目录
 title: "completion"
 ---
 
 # `openclaw completion`
 
-Generate shell completion scripts and optionally install them into your shell profile.
+生成 Shell 补全脚本并可选择性地安装到你的 Shell 配置文件中。
 
-## Usage
+## 用法
 
 ```bash
 openclaw completion
@@ -21,15 +21,15 @@ openclaw completion --write-state
 openclaw completion --shell bash --write-state
 ```
 
-## Options
+## 选项
 
-- `-s, --shell <shell>`: shell target (`zsh`, `bash`, `powershell`, `fish`; default: `zsh`)
-- `-i, --install`: install completion by adding a source line to your shell profile
-- `--write-state`: write completion script(s) to `$OPENCLAW_STATE_DIR/completions` without printing to stdout
-- `-y, --yes`: skip install confirmation prompts
+- `-s, --shell <shell>`：Shell 目标（`zsh`、`bash`、`powershell`、`fish`；默认：`zsh`）
+- `-i, --install`：通过在 Shell 配置文件中添加 source 行来安装补全
+- `--write-state`：将补全脚本写入 `$OPENCLAW_STATE_DIR/completions`，不输出到 stdout
+- `-y, --yes`：跳过安装确认提示
 
-## Notes
+## 说明
 
-- `--install` writes a small "OpenClaw Completion" block into your shell profile and points it at the cached script.
-- Without `--install` or `--write-state`, the command prints the script to stdout.
-- Completion generation eagerly loads command trees so nested subcommands are included.
+- `--install` 会在你的 Shell 配置文件中写入一个小的 "OpenClaw Completion" 块，并指向缓存的脚本。
+- 不使用 `--install` 或 `--write-state` 时，命令将脚本输出到 stdout。
+- 补全生成会预先加载命令树，以包含嵌套的子命令。

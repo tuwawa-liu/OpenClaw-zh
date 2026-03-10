@@ -1,68 +1,57 @@
 ---
-summary: "CLI reference for `openclaw config` (get/set/unset/file/validate)"
 read_when:
-  - You want to read or edit config non-interactively
-title: "config"
+  - 你想以非交互方式读取或编辑配置
+summary: "`openclaw config` 的 CLI 参考（获取/设置/取消设置配置值）"
+title: config
+x-i18n:
+  generated_at: "2026-02-03T10:04:13Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: d60a35f5330f22bc99a0df090590586109d329ddd2ca294aeed191a22560c1c2
+  source_path: cli/config.md
+  workflow: 15
 ---
 
 # `openclaw config`
 
-Config helpers: get/set/unset/validate values by path and print the active
-config file. Run without a subcommand to open
-the configure wizard (same as `openclaw configure`).
+配置辅助命令：通过路径获取/设置/取消设置值。不带子命令运行将打开
+配置向导（与 `openclaw configure` 相同）。
 
-## Examples
+## 示例
 
 ```bash
-openclaw config file
 openclaw config get browser.executablePath
 openclaw config set browser.executablePath "/usr/bin/google-chrome"
 openclaw config set agents.defaults.heartbeat.every "2h"
 openclaw config set agents.list[0].tools.exec.node "node-id-or-name"
 openclaw config unset tools.web.search.apiKey
-openclaw config validate
-openclaw config validate --json
 ```
 
-## Paths
+## 路径
 
-Paths use dot or bracket notation:
+路径使用点号或括号表示法：
 
 ```bash
 openclaw config get agents.defaults.workspace
 openclaw config get agents.list[0].id
 ```
 
-Use the agent list index to target a specific agent:
+使用智能体列表索引来定位特定智能体：
 
 ```bash
 openclaw config get agents.list
 openclaw config set agents.list[1].tools.exec.node "node-id-or-name"
 ```
 
-## Values
+## 值
 
-Values are parsed as JSON5 when possible; otherwise they are treated as strings.
-Use `--strict-json` to require JSON5 parsing. `--json` remains supported as a legacy alias.
+值会尽可能解析为 JSON5；否则将被视为字符串。
+使用 `--json` 强制要求 JSON5 解析。
 
 ```bash
 openclaw config set agents.defaults.heartbeat.every "0m"
-openclaw config set gateway.port 19001 --strict-json
-openclaw config set channels.whatsapp.groups '["*"]' --strict-json
+openclaw config set gateway.port 19001 --json
+openclaw config set channels.whatsapp.groups '["*"]' --json
 ```
 
-## Subcommands
-
-- `config file`: Print the active config file path (resolved from `OPENCLAW_CONFIG_PATH` or default location).
-
-Restart the gateway after edits.
-
-## Validate
-
-Validate the current config against the active schema without starting the
-gateway.
-
-```bash
-openclaw config validate
-openclaw config validate --json
-```
+编辑后请重启 Gateway 网关。

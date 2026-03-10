@@ -1,46 +1,50 @@
 ---
-summary: "Tlon/Urbit support status, capabilities, and configuration"
 read_when:
-  - Working on Tlon/Urbit channel features
-title: "Tlon"
+  - 开发 Tlon/Urbit 渠道功能
+summary: Tlon/Urbit 支持状态、功能和配置
+title: Tlon
+x-i18n:
+  generated_at: "2026-02-03T07:44:17Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 19d7ffe23e82239fd2a2e35913e0d52c809b2c2b939dd39184e6c27a539ed97d
+  source_path: channels/tlon.md
+  workflow: 15
 ---
 
-# Tlon (plugin)
+# Tlon（插件）
 
-Tlon is a decentralized messenger built on Urbit. OpenClaw connects to your Urbit ship and can
-respond to DMs and group chat messages. Group replies require an @ mention by default and can
-be further restricted via allowlists.
+Tlon 是一个基于 Urbit 构建的去中心化即时通讯工具。OpenClaw 连接到你的 Urbit ship，可以响应私信和群聊消息。群组回复默认需要 @ 提及，并可通过允许列表进一步限制。
 
-Status: supported via plugin. DMs, group mentions, thread replies, rich text formatting, and
-image uploads are supported. Reactions and polls are not yet supported.
+状态：通过插件支持。支持私信、群组提及、话题回复和纯文本媒体回退（URL 附加到说明文字）。不支持表情回应、投票和原生媒体上传。
 
-## Plugin required
+## 需要插件
 
-Tlon ships as a plugin and is not bundled with the core install.
+Tlon 作为插件提供，不包含在核心安装中。
 
-Install via CLI (npm registry):
+通过 CLI 安装（npm 仓库）：
 
 ```bash
 openclaw plugins install @openclaw/tlon
 ```
 
-Local checkout (when running from a git repo):
+本地检出（从 git 仓库运行时）：
 
 ```bash
 openclaw plugins install ./extensions/tlon
 ```
 
-Details: [Plugins](/tools/plugin)
+详情：[插件](/tools/plugin)
 
-## Setup
+## 设置
 
-1. Install the Tlon plugin.
-2. Gather your ship URL and login code.
-3. Configure `channels.tlon`.
-4. Restart the gateway.
-5. DM the bot or mention it in a group channel.
+1. 安装 Tlon 插件。
+2. 获取你的 ship URL 和登录代码。
+3. 配置 `channels.tlon`。
+4. 重启 Gateway 网关。
+5. 私信机器人或在群组频道中提及它。
 
-Minimal config (single account):
+最小配置（单账户）：
 
 ```json5
 {
@@ -50,41 +54,14 @@ Minimal config (single account):
       ship: "~sampel-palnet",
       url: "https://your-ship-host",
       code: "lidlut-tabwed-pillex-ridrup",
-      ownerShip: "~your-main-ship", // recommended: your ship, always allowed
     },
   },
 }
 ```
 
-## Private/LAN ships
+## 群组频道
 
-By default, OpenClaw blocks private/internal hostnames and IP ranges for SSRF protection.
-If your ship is running on a private network (localhost, LAN IP, or internal hostname),
-you must explicitly opt in:
-
-```json5
-{
-  channels: {
-    tlon: {
-      url: "http://localhost:8080",
-      allowPrivateNetwork: true,
-    },
-  },
-}
-```
-
-This applies to URLs like:
-
-- `http://localhost:8080`
-- `http://192.168.x.x:8080`
-- `http://my-ship.local:8080`
-
-⚠️ Only enable this if you trust your local network. This setting disables SSRF protections
-for requests to your ship URL.
-
-## Group channels
-
-Auto-discovery is enabled by default. You can also pin channels manually:
+默认启用自动发现。你也可以手动固定频道：
 
 ```json5
 {
@@ -96,7 +73,7 @@ Auto-discovery is enabled by default. You can also pin channels manually:
 }
 ```
 
-Disable auto-discovery:
+禁用自动发现：
 
 ```json5
 {
@@ -108,9 +85,9 @@ Disable auto-discovery:
 }
 ```
 
-## Access control
+## 访问控制
 
-DM allowlist (empty = no DMs allowed, use `ownerShip` for approval flow):
+私信允许列表（空 = 允许全部）：
 
 ```json5
 {
@@ -122,7 +99,7 @@ DM allowlist (empty = no DMs allowed, use `ownerShip` for approval flow):
 }
 ```
 
-Group authorization (restricted by default):
+群组授权（默认受限）：
 
 ```json5
 {
@@ -145,132 +122,15 @@ Group authorization (restricted by default):
 }
 ```
 
-## Owner and approval system
+## 投递目标（CLI/cron）
 
-Set an owner ship to receive approval requests when unauthorized users try to interact:
+与 `openclaw message send` 或 cron 投递一起使用：
 
-```json5
-{
-  channels: {
-    tlon: {
-      ownerShip: "~your-main-ship",
-    },
-  },
-}
-```
+- 私信：`~sampel-palnet` 或 `dm/~sampel-palnet`
+- 群组：`chat/~host-ship/channel` 或 `group:~host-ship/channel`
 
-The owner ship is **automatically authorized everywhere** — DM invites are auto-accepted and
-channel messages are always allowed. You don't need to add the owner to `dmAllowlist` or
-`defaultAuthorizedShips`.
+## 注意事项
 
-When set, the owner receives DM notifications for:
-
-- DM requests from ships not in the allowlist
-- Mentions in channels without authorization
-- Group invite requests
-
-## Auto-accept settings
-
-Auto-accept DM invites (for ships in dmAllowlist):
-
-```json5
-{
-  channels: {
-    tlon: {
-      autoAcceptDmInvites: true,
-    },
-  },
-}
-```
-
-Auto-accept group invites:
-
-```json5
-{
-  channels: {
-    tlon: {
-      autoAcceptGroupInvites: true,
-    },
-  },
-}
-```
-
-## Delivery targets (CLI/cron)
-
-Use these with `openclaw message send` or cron delivery:
-
-- DM: `~sampel-palnet` or `dm/~sampel-palnet`
-- Group: `chat/~host-ship/channel` or `group:~host-ship/channel`
-
-## Bundled skill
-
-The Tlon plugin includes a bundled skill ([`@tloncorp/tlon-skill`](https://github.com/tloncorp/tlon-skill))
-that provides CLI access to Tlon operations:
-
-- **Contacts**: get/update profiles, list contacts
-- **Channels**: list, create, post messages, fetch history
-- **Groups**: list, create, manage members
-- **DMs**: send messages, react to messages
-- **Reactions**: add/remove emoji reactions to posts and DMs
-- **Settings**: manage plugin permissions via slash commands
-
-The skill is automatically available when the plugin is installed.
-
-## Capabilities
-
-| Feature         | Status                                  |
-| --------------- | --------------------------------------- |
-| Direct messages | ✅ Supported                            |
-| Groups/channels | ✅ Supported (mention-gated by default) |
-| Threads         | ✅ Supported (auto-replies in thread)   |
-| Rich text       | ✅ Markdown converted to Tlon format    |
-| Images          | ✅ Uploaded to Tlon storage             |
-| Reactions       | ✅ Via [bundled skill](#bundled-skill)  |
-| Polls           | ❌ Not yet supported                    |
-| Native commands | ✅ Supported (owner-only by default)    |
-
-## Troubleshooting
-
-Run this ladder first:
-
-```bash
-openclaw status
-openclaw gateway status
-openclaw logs --follow
-openclaw doctor
-```
-
-Common failures:
-
-- **DMs ignored**: sender not in `dmAllowlist` and no `ownerShip` configured for approval flow.
-- **Group messages ignored**: channel not discovered or sender not authorized.
-- **Connection errors**: check ship URL is reachable; enable `allowPrivateNetwork` for local ships.
-- **Auth errors**: verify login code is current (codes rotate).
-
-## Configuration reference
-
-Full configuration: [Configuration](/gateway/configuration)
-
-Provider options:
-
-- `channels.tlon.enabled`: enable/disable channel startup.
-- `channels.tlon.ship`: bot's Urbit ship name (e.g. `~sampel-palnet`).
-- `channels.tlon.url`: ship URL (e.g. `https://sampel-palnet.tlon.network`).
-- `channels.tlon.code`: ship login code.
-- `channels.tlon.allowPrivateNetwork`: allow localhost/LAN URLs (SSRF bypass).
-- `channels.tlon.ownerShip`: owner ship for approval system (always authorized).
-- `channels.tlon.dmAllowlist`: ships allowed to DM (empty = none).
-- `channels.tlon.autoAcceptDmInvites`: auto-accept DMs from allowlisted ships.
-- `channels.tlon.autoAcceptGroupInvites`: auto-accept all group invites.
-- `channels.tlon.autoDiscoverChannels`: auto-discover group channels (default: true).
-- `channels.tlon.groupChannels`: manually pinned channel nests.
-- `channels.tlon.defaultAuthorizedShips`: ships authorized for all channels.
-- `channels.tlon.authorization.channelRules`: per-channel auth rules.
-- `channels.tlon.showModelSignature`: append model name to messages.
-
-## Notes
-
-- Group replies require a mention (e.g. `~your-bot-ship`) to respond.
-- Thread replies: if the inbound message is in a thread, OpenClaw replies in-thread.
-- Rich text: Markdown formatting (bold, italic, code, headers, lists) is converted to Tlon's native format.
-- Images: URLs are uploaded to Tlon storage and embedded as image blocks.
+- 群组回复需要提及（例如 `~your-bot-ship`）才能响应。
+- 话题回复：如果入站消息在话题中，OpenClaw 会在话题内回复。
+- 媒体：`sendMedia` 回退为文本 + URL（无原生上传）。

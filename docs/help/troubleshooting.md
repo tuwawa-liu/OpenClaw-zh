@@ -1,297 +1,104 @@
 ---
-summary: "Symptom first troubleshooting hub for OpenClaw"
 read_when:
-  - OpenClaw is not working and you need the fastest path to a fix
-  - You want a triage flow before diving into deep runbooks
-title: "Troubleshooting"
+  - 你看到错误并想要修复路径
+  - 安装程序显示“成功”但 CLI 不工作
+summary: 故障排除中心：症状 → 检查 → 修复
+title: 故障排除
+x-i18n:
+  generated_at: "2026-02-03T07:49:14Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 00ba2a20732fa22ccf9bcba264ab06ea940e9d6e96b31290811ff21a670eaad2
+  source_path: help/troubleshooting.md
+  workflow: 15
 ---
 
-# Troubleshooting
+# 故障排除
 
-If you only have 2 minutes, use this page as a triage front door.
+## 最初的六十秒
 
-## First 60 seconds
-
-Run this exact ladder in order:
+按顺序运行这些命令：
 
 ```bash
 openclaw status
 openclaw status --all
 openclaw gateway probe
-openclaw gateway status
-openclaw doctor
-openclaw channels status --probe
 openclaw logs --follow
+openclaw doctor
 ```
 
-Good output in one line:
+如果 Gateway 网关可达，进行深度探测：
 
-- `openclaw status` → shows configured channels and no obvious auth errors.
-- `openclaw status --all` → full report is present and shareable.
-- `openclaw gateway probe` → expected gateway target is reachable.
-- `openclaw gateway status` → `Runtime: running` and `RPC probe: ok`.
-- `openclaw doctor` → no blocking config/service errors.
-- `openclaw channels status --probe` → channels report `connected` or `ready`.
-- `openclaw logs --follow` → steady activity, no repeating fatal errors.
-
-## Anthropic long context 429
-
-If you see:
-`HTTP 429: rate_limit_error: Extra usage is required for long context requests`,
-go to [/gateway/troubleshooting#anthropic-429-extra-usage-required-for-long-context](/gateway/troubleshooting#anthropic-429-extra-usage-required-for-long-context).
-
-## Plugin install fails with missing openclaw extensions
-
-If install fails with `package.json missing openclaw.extensions`, the plugin package
-is using an old shape that OpenClaw no longer accepts.
-
-Fix in the plugin package:
-
-1. Add `openclaw.extensions` to `package.json`.
-2. Point entries at built runtime files (usually `./dist/index.js`).
-3. Republish the plugin and run `openclaw plugins install <npm-spec>` again.
-
-Example:
-
-```json
-{
-  "name": "@openclaw/my-plugin",
-  "version": "1.2.3",
-  "openclaw": {
-    "extensions": ["./dist/index.js"]
-  }
-}
+```bash
+openclaw status --deep
 ```
 
-Reference: [/tools/plugin#distribution-npm](/tools/plugin#distribution-npm)
+## 常见的“它坏了”情况
 
-## Decision tree
+### `openclaw: command not found`
 
-```mermaid
-flowchart TD
-  A[OpenClaw is not working] --> B{What breaks first}
-  B --> C[No replies]
-  B --> D[Dashboard or Control UI will not connect]
-  B --> E[Gateway will not start or service not running]
-  B --> F[Channel connects but messages do not flow]
-  B --> G[Cron or heartbeat did not fire or did not deliver]
-  B --> H[Node is paired but camera canvas screen exec fails]
-  B --> I[Browser tool fails]
+几乎总是 Node/npm PATH 问题。从这里开始：
 
-  C --> C1[/No replies section/]
-  D --> D1[/Control UI section/]
-  E --> E1[/Gateway section/]
-  F --> F1[/Channel flow section/]
-  G --> G1[/Automation section/]
-  H --> H1[/Node tools section/]
-  I --> I1[/Browser section/]
+- [安装（Node/npm PATH 安装完整性检查）](/install#nodejs--npm-path-sanity)
+
+### 安装程序失败（或你需要完整日志）
+
+以详细模式重新运行安装程序以查看完整跟踪和 npm 输出：
+
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash -s -- --verbose
 ```
 
-<AccordionGroup>
-  <Accordion title="No replies">
-    ```bash
-    openclaw status
-    openclaw gateway status
-    openclaw channels status --probe
-    openclaw pairing list --channel <channel> [--account <id>]
-    openclaw logs --follow
-    ```
+对于 beta 安装：
 
-    Good output looks like:
+```bash
+curl -fsSL https://openclaw.ai/install.sh | bash -s -- --beta --verbose
+```
 
-    - `Runtime: running`
-    - `RPC probe: ok`
-    - Your channel shows connected/ready in `channels status --probe`
-    - Sender appears approved (or DM policy is open/allowlist)
+你也可以设置 `OPENCLAW_VERBOSE=1` 代替标志。
 
-    Common log signatures:
+### Gateway 网关“unauthorized”、无法连接或持续重连
 
-    - `drop guild message (mention required` → mention gating blocked the message in Discord.
-    - `pairing request` → sender is unapproved and waiting for DM pairing approval.
-    - `blocked` / `allowlist` in channel logs → sender, room, or group is filtered.
+- [Gateway 网关故障排除](/gateway/troubleshooting)
+- [Gateway 网关认证](/gateway/authentication)
 
-    Deep pages:
+### 控制 UI 在 HTTP 上失败（需要设备身份）
 
-    - [/gateway/troubleshooting#no-replies](/gateway/troubleshooting#no-replies)
-    - [/channels/troubleshooting](/channels/troubleshooting)
-    - [/channels/pairing](/channels/pairing)
+- [Gateway 网关故障排除](/gateway/troubleshooting)
+- [控制 UI](/web/control-ui#insecure-http)
 
-  </Accordion>
+### `docs.openclaw.ai` 显示 SSL 错误（Comcast/Xfinity）
 
-  <Accordion title="Dashboard or Control UI will not connect">
-    ```bash
-    openclaw status
-    openclaw gateway status
-    openclaw logs --follow
-    openclaw doctor
-    openclaw channels status --probe
-    ```
+一些 Comcast/Xfinity 连接通过 Xfinity Advanced Security 阻止 `docs.openclaw.ai`。
+禁用 Advanced Security 或将 `docs.openclaw.ai` 添加到允许列表，然后重试。
 
-    Good output looks like:
+- Xfinity Advanced Security 帮助：https://www.xfinity.com/support/articles/using-xfinity-xfi-advanced-security
+- 快速检查：尝试移动热点或 VPN 以确认这是 ISP 级别的过滤
 
-    - `Dashboard: http://...` is shown in `openclaw gateway status`
-    - `RPC probe: ok`
-    - No auth loop in logs
+### 服务显示运行中，但 RPC 探测失败
 
-    Common log signatures:
+- [Gateway 网关故障排除](/gateway/troubleshooting)
+- [后台进程/服务](/gateway/background-process)
 
-    - `device identity required` → HTTP/non-secure context cannot complete device auth.
-    - `unauthorized` / reconnect loop → wrong token/password or auth mode mismatch.
-    - `gateway connect failed:` → UI is targeting the wrong URL/port or unreachable gateway.
+### 模型/认证失败（速率限制、账单、“all models failed”）
 
-    Deep pages:
+- [模型](/cli/models)
+- [OAuth / 认证概念](/concepts/oauth)
 
-    - [/gateway/troubleshooting#dashboard-control-ui-connectivity](/gateway/troubleshooting#dashboard-control-ui-connectivity)
-    - [/web/control-ui](/web/control-ui)
-    - [/gateway/authentication](/gateway/authentication)
+### `/model` 显示 `model not allowed`
 
-  </Accordion>
+这通常意味着 `agents.defaults.models` 配置为允许列表。当它非空时，只能选择那些提供商/模型键。
 
-  <Accordion title="Gateway will not start or service installed but not running">
-    ```bash
-    openclaw status
-    openclaw gateway status
-    openclaw logs --follow
-    openclaw doctor
-    openclaw channels status --probe
-    ```
+- 检查允许列表：`openclaw config get agents.defaults.models`
+- 添加你想要的模型（或清除允许列表）然后重试 `/model`
+- 使用 `/models` 浏览允许的提供商/模型
 
-    Good output looks like:
+### 提交问题时
 
-    - `Service: ... (loaded)`
-    - `Runtime: running`
-    - `RPC probe: ok`
+粘贴一份安全报告：
 
-    Common log signatures:
+```bash
+openclaw status --all
+```
 
-    - `Gateway start blocked: set gateway.mode=local` → gateway mode is unset/remote.
-    - `refusing to bind gateway ... without auth` → non-loopback bind without token/password.
-    - `another gateway instance is already listening` or `EADDRINUSE` → port already taken.
-
-    Deep pages:
-
-    - [/gateway/troubleshooting#gateway-service-not-running](/gateway/troubleshooting#gateway-service-not-running)
-    - [/gateway/background-process](/gateway/background-process)
-    - [/gateway/configuration](/gateway/configuration)
-
-  </Accordion>
-
-  <Accordion title="Channel connects but messages do not flow">
-    ```bash
-    openclaw status
-    openclaw gateway status
-    openclaw logs --follow
-    openclaw doctor
-    openclaw channels status --probe
-    ```
-
-    Good output looks like:
-
-    - Channel transport is connected.
-    - Pairing/allowlist checks pass.
-    - Mentions are detected where required.
-
-    Common log signatures:
-
-    - `mention required` → group mention gating blocked processing.
-    - `pairing` / `pending` → DM sender is not approved yet.
-    - `not_in_channel`, `missing_scope`, `Forbidden`, `401/403` → channel permission token issue.
-
-    Deep pages:
-
-    - [/gateway/troubleshooting#channel-connected-messages-not-flowing](/gateway/troubleshooting#channel-connected-messages-not-flowing)
-    - [/channels/troubleshooting](/channels/troubleshooting)
-
-  </Accordion>
-
-  <Accordion title="Cron or heartbeat did not fire or did not deliver">
-    ```bash
-    openclaw status
-    openclaw gateway status
-    openclaw cron status
-    openclaw cron list
-    openclaw cron runs --id <jobId> --limit 20
-    openclaw logs --follow
-    ```
-
-    Good output looks like:
-
-    - `cron.status` shows enabled with a next wake.
-    - `cron runs` shows recent `ok` entries.
-    - Heartbeat is enabled and not outside active hours.
-
-    Common log signatures:
-
-    - `cron: scheduler disabled; jobs will not run automatically` → cron is disabled.
-    - `heartbeat skipped` with `reason=quiet-hours` → outside configured active hours.
-    - `requests-in-flight` → main lane busy; heartbeat wake was deferred.
-    - `unknown accountId` → heartbeat delivery target account does not exist.
-
-    Deep pages:
-
-    - [/gateway/troubleshooting#cron-and-heartbeat-delivery](/gateway/troubleshooting#cron-and-heartbeat-delivery)
-    - [/automation/troubleshooting](/automation/troubleshooting)
-    - [/gateway/heartbeat](/gateway/heartbeat)
-
-  </Accordion>
-
-  <Accordion title="Node is paired but tool fails camera canvas screen exec">
-    ```bash
-    openclaw status
-    openclaw gateway status
-    openclaw nodes status
-    openclaw nodes describe --node <idOrNameOrIp>
-    openclaw logs --follow
-    ```
-
-    Good output looks like:
-
-    - Node is listed as connected and paired for role `node`.
-    - Capability exists for the command you are invoking.
-    - Permission state is granted for the tool.
-
-    Common log signatures:
-
-    - `NODE_BACKGROUND_UNAVAILABLE` → bring node app to foreground.
-    - `*_PERMISSION_REQUIRED` → OS permission was denied/missing.
-    - `SYSTEM_RUN_DENIED: approval required` → exec approval is pending.
-    - `SYSTEM_RUN_DENIED: allowlist miss` → command not on exec allowlist.
-
-    Deep pages:
-
-    - [/gateway/troubleshooting#node-paired-tool-fails](/gateway/troubleshooting#node-paired-tool-fails)
-    - [/nodes/troubleshooting](/nodes/troubleshooting)
-    - [/tools/exec-approvals](/tools/exec-approvals)
-
-  </Accordion>
-
-  <Accordion title="Browser tool fails">
-    ```bash
-    openclaw status
-    openclaw gateway status
-    openclaw browser status
-    openclaw logs --follow
-    openclaw doctor
-    ```
-
-    Good output looks like:
-
-    - Browser status shows `running: true` and a chosen browser/profile.
-    - `openclaw` profile starts or `chrome` relay has an attached tab.
-
-    Common log signatures:
-
-    - `Failed to start Chrome CDP on port` → local browser launch failed.
-    - `browser.executablePath not found` → configured binary path is wrong.
-    - `Chrome extension relay is running, but no tab is connected` → extension not attached.
-    - `Browser attachOnly is enabled ... not reachable` → attach-only profile has no live CDP target.
-
-    Deep pages:
-
-    - [/gateway/troubleshooting#browser-tool-fails](/gateway/troubleshooting#browser-tool-fails)
-    - [/tools/browser-linux-troubleshooting](/tools/browser-linux-troubleshooting)
-    - [/tools/browser-wsl2-windows-remote-cdp-troubleshooting](/tools/browser-wsl2-windows-remote-cdp-troubleshooting)
-    - [/tools/chrome-extension](/tools/chrome-extension)
-
-  </Accordion>
-</AccordionGroup>
+如果可以的话，包含来自 `openclaw logs --follow` 的相关日志尾部。

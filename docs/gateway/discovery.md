@@ -1,123 +1,123 @@
 ---
-summary: "Node discovery and transports (Bonjour, Tailscale, SSH) for finding the gateway"
 read_when:
-  - Implementing or changing Bonjour discovery/advertising
-  - Adjusting remote connection modes (direct vs SSH)
-  - Designing node discovery + pairing for remote nodes
-title: "Discovery and Transports"
+  - 实现或更改 Bonjour 发现/广播
+  - 调整远程连接模式（直连 vs SSH）
+  - 设计远程节点的节点发现 + 配对
+summary: 用于发现 Gateway 网关的节点发现和传输协议（Bonjour、Tailscale、SSH）
+title: 设备发现 + 传输协议
+x-i18n:
+  generated_at: "2026-02-03T10:06:11Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: e12172c181515bfa6aab8625ed3fbc335b80ba92e2b516c02c6066aeeb9f884c
+  source_path: gateway/discovery.md
+  workflow: 15
 ---
 
-# Discovery & transports
+# 设备发现 & 传输协议
 
-OpenClaw has two distinct problems that look similar on the surface:
+OpenClaw 有两个表面上看起来相似的不同问题：
 
-1. **Operator remote control**: the macOS menu bar app controlling a gateway running elsewhere.
-2. **Node pairing**: iOS/Android (and future nodes) finding a gateway and pairing securely.
+1. **操作员远程控制**：macOS 菜单栏应用控制运行在其他地方的 Gateway 网关。
+2. **节点配对**：iOS/Android（以及未来的节点）发现 Gateway 网关并安全配对。
 
-The design goal is to keep all network discovery/advertising in the **Node Gateway** (`openclaw gateway`) and keep clients (mac app, iOS) as consumers.
+设计目标是将所有网络发现/广播保留在 **Node Gateway 网关**（`openclaw gateway`）中，并让客户端（mac 应用、iOS）作为消费者。
 
-## Terms
+## 术语
 
-- **Gateway**: a single long-running gateway process that owns state (sessions, pairing, node registry) and runs channels. Most setups use one per host; isolated multi-gateway setups are possible.
-- **Gateway WS (control plane)**: the WebSocket endpoint on `127.0.0.1:18789` by default; can be bound to LAN/tailnet via `gateway.bind`.
-- **Direct WS transport**: a LAN/tailnet-facing Gateway WS endpoint (no SSH).
-- **SSH transport (fallback)**: remote control by forwarding `127.0.0.1:18789` over SSH.
-- **Legacy TCP bridge (deprecated/removed)**: older node transport (see [Bridge protocol](/gateway/bridge-protocol)); no longer advertised for discovery.
+- **Gateway 网关**：一个长期运行的 Gateway 网关进程，拥有状态（会话、配对、节点注册表）并运行渠道。大多数设置每台主机使用一个；也可以进行隔离的多 Gateway 网关设置。
+- **Gateway 网关 WS（控制平面）**：默认在 `127.0.0.1:18789` 上的 WebSocket 端点；可通过 `gateway.bind` 绑定到 LAN/tailnet。
+- **直连 WS 传输**：面向 LAN/tailnet 的 Gateway 网关 WS 端点（无 SSH）。
+- **SSH 传输（回退）**：通过 SSH 转发 `127.0.0.1:18789` 进行远程控制。
+- **旧版 TCP 桥接（已弃用/移除）**：旧的节点传输（参见 [桥接协议](/gateway/bridge-protocol)）；不再用于发现广播。
 
-Protocol details:
+协议详情：
 
-- [Gateway protocol](/gateway/protocol)
-- [Bridge protocol (legacy)](/gateway/bridge-protocol)
+- [Gateway 网关协议](/gateway/protocol)
+- [桥接协议（旧版）](/gateway/bridge-protocol)
 
-## Why we keep both “direct” and SSH
+## 为什么我们同时保留"直连"和 SSH
 
-- **Direct WS** is the best UX on the same network and within a tailnet:
-  - auto-discovery on LAN via Bonjour
-  - pairing tokens + ACLs owned by the gateway
-  - no shell access required; protocol surface can stay tight and auditable
-- **SSH** remains the universal fallback:
-  - works anywhere you have SSH access (even across unrelated networks)
-  - survives multicast/mDNS issues
-  - requires no new inbound ports besides SSH
+- **直连 WS** 在同一网络和 tailnet 内提供最佳用户体验：
+  - 通过 Bonjour 在 LAN 上自动发现
+  - 配对令牌 + ACL 由 Gateway 网关管理
+  - 无需 shell 访问；协议表面可保持紧凑和可审计
+- **SSH** 仍然是通用回退方案：
+  - 只要你有 SSH 访问权限就能工作（即使跨越不相关的网络）
+  - 能应对多播/mDNS 问题
+  - 除 SSH 外无需新的入站端口
 
-## Discovery inputs (how clients learn where the gateway is)
+## 发现输入（客户端如何了解 Gateway 网关位置）
 
-### 1) Bonjour / mDNS (LAN only)
+### 1）Bonjour / mDNS（仅限 LAN）
 
-Bonjour is best-effort and does not cross networks. It is only used for “same LAN” convenience.
+Bonjour 是尽力而为的，不会跨网络。它仅用于"同一 LAN"的便利性。
 
-Target direction:
+目标方向：
 
-- The **gateway** advertises its WS endpoint via Bonjour.
-- Clients browse and show a “pick a gateway” list, then store the chosen endpoint.
+- **Gateway 网关**通过 Bonjour 广播其 WS 端点。
+- 客户端浏览并显示"选择一个 Gateway 网关"列表，然后存储选定的端点。
 
-Troubleshooting and beacon details: [Bonjour](/gateway/bonjour).
+故障排除和信标详情：[Bonjour](/gateway/bonjour)。
 
-#### Service beacon details
+#### 服务信标详情
 
-- Service types:
-  - `_openclaw-gw._tcp` (gateway transport beacon)
-- TXT keys (non-secret):
+- 服务类型：
+  - `_openclaw-gw._tcp`（Gateway 网关传输信标）
+- TXT 键（非机密）：
   - `role=gateway`
   - `lanHost=<hostname>.local`
-  - `sshPort=22` (or whatever is advertised)
-  - `gatewayPort=18789` (Gateway WS + HTTP)
-  - `gatewayTls=1` (only when TLS is enabled)
-  - `gatewayTlsSha256=<sha256>` (only when TLS is enabled and fingerprint is available)
-  - `canvasPort=<port>` (canvas host port; currently the same as `gatewayPort` when the canvas host is enabled)
-  - `cliPath=<path>` (optional; absolute path to a runnable `openclaw` entrypoint or binary)
-  - `tailnetDns=<magicdns>` (optional hint; auto-detected when Tailscale is available)
+  - `sshPort=22`（或广播的端口）
+  - `gatewayPort=18789`（Gateway 网关 WS + HTTP）
+  - `gatewayTls=1`（仅当启用 TLS 时）
+  - `gatewayTlsSha256=<sha256>`（仅当启用 TLS 且指纹可用时）
+  - `canvasPort=18793`（默认画布主机端口；服务于 `/__openclaw__/canvas/`）
+  - `cliPath=<path>`（可选；可运行的 `openclaw` 入口点或二进制文件的绝对路径）
+  - `tailnetDns=<magicdns>`（可选提示；当 Tailscale 可用时自动检测）
 
-Security notes:
+禁用/覆盖：
 
-- Bonjour/mDNS TXT records are **unauthenticated**. Clients must treat TXT values as UX hints only.
-- Routing (host/port) should prefer the **resolved service endpoint** (SRV + A/AAAA) over TXT-provided `lanHost`, `tailnetDns`, or `gatewayPort`.
-- TLS pinning must never allow an advertised `gatewayTlsSha256` to override a previously stored pin.
-- iOS/Android nodes should treat discovery-based direct connects as **TLS-only** and require an explicit “trust this fingerprint” confirmation before storing a first-time pin (out-of-band verification).
+- `OPENCLAW_DISABLE_BONJOUR=1` 禁用广播。
+- `~/.openclaw/openclaw.json` 中的 `gateway.bind` 控制 Gateway 网关绑定模式。
+- `OPENCLAW_SSH_PORT` 覆盖 TXT 中广播的 SSH 端口（默认为 22）。
+- `OPENCLAW_TAILNET_DNS` 发布 `tailnetDns` 提示（MagicDNS）。
+- `OPENCLAW_CLI_PATH` 覆盖广播的 CLI 路径。
 
-Disable/override:
+### 2）Tailnet（跨网络）
 
-- `OPENCLAW_DISABLE_BONJOUR=1` disables advertising.
-- `gateway.bind` in `~/.openclaw/openclaw.json` controls the Gateway bind mode.
-- `OPENCLAW_SSH_PORT` overrides the SSH port advertised in TXT (defaults to 22).
-- `OPENCLAW_TAILNET_DNS` publishes a `tailnetDns` hint (MagicDNS).
-- `OPENCLAW_CLI_PATH` overrides the advertised CLI path.
+对于伦敦/维也纳风格的设置，Bonjour 无法帮助。推荐的"直连"目标是：
 
-### 2) Tailnet (cross-network)
+- Tailscale MagicDNS 名称（首选）或稳定的 tailnet IP。
 
-For London/Vienna style setups, Bonjour won’t help. The recommended “direct” target is:
+如果 Gateway 网关能检测到它正在 Tailscale 下运行，它会发布 `tailnetDns` 作为客户端的可选提示（包括广域信标）。
 
-- Tailscale MagicDNS name (preferred) or a stable tailnet IP.
+### 3）手动 / SSH 目标
 
-If the gateway can detect it is running under Tailscale, it publishes `tailnetDns` as an optional hint for clients (including wide-area beacons).
+当没有直连路由（或直连被禁用）时，客户端始终可以通过 SSH 转发本地回环 Gateway 网关端口来连接。
 
-### 3) Manual / SSH target
+参见 [远程访问](/gateway/remote)。
 
-When there is no direct route (or direct is disabled), clients can always connect via SSH by forwarding the loopback gateway port.
+## 传输选择（客户端策略）
 
-See [Remote access](/gateway/remote).
+推荐的客户端行为：
 
-## Transport selection (client policy)
+1. 如果已配置且可达已配对的直连端点，使用它。
+2. 否则，如果 Bonjour 在 LAN 上找到 Gateway 网关，提供一键"使用此 Gateway 网关"选择并将其保存为直连端点。
+3. 否则，如果配置了 tailnet DNS/IP，尝试直连。
+4. 否则，回退到 SSH。
 
-Recommended client behavior:
+## 配对 + 认证（直连传输）
 
-1. If a paired direct endpoint is configured and reachable, use it.
-2. Else, if Bonjour finds a gateway on LAN, offer a one-tap “Use this gateway” choice and save it as the direct endpoint.
-3. Else, if a tailnet DNS/IP is configured, try direct.
-4. Else, fall back to SSH.
+Gateway 网关是节点/客户端准入的唯一权威来源。
 
-## Pairing + auth (direct transport)
+- 配对请求在 Gateway 网关中创建/批准/拒绝（参见 [Gateway 网关配对](/gateway/pairing)）。
+- Gateway 网关强制执行：
+  - 认证（令牌 / 密钥对）
+  - 作用域/ACL（Gateway 网关不是每个方法的原始代理）
+  - 速率限制
 
-The gateway is the source of truth for node/client admission.
+## 各组件职责
 
-- Pairing requests are created/approved/rejected in the gateway (see [Gateway pairing](/gateway/pairing)).
-- The gateway enforces:
-  - auth (token / keypair)
-  - scopes/ACLs (the gateway is not a raw proxy to every method)
-  - rate limits
-
-## Responsibilities by component
-
-- **Gateway**: advertises discovery beacons, owns pairing decisions, and hosts the WS endpoint.
-- **macOS app**: helps you pick a gateway, shows pairing prompts, and uses SSH only as a fallback.
-- **iOS/Android nodes**: browse Bonjour as a convenience and connect to the paired Gateway WS.
+- **Gateway 网关**：广播发现信标，拥有配对决策权，并托管 WS 端点。
+- **macOS 应用**：帮助你选择 Gateway 网关，显示配对提示，仅将 SSH 作为回退方案。
+- **iOS/Android 节点**：将 Bonjour 浏览作为便利功能，连接到已配对的 Gateway 网关 WS。

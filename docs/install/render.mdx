@@ -1,30 +1,42 @@
 ---
-title: Deploy on Render
+title: 在 Render 上部署
+x-i18n:
+  generated_at: "2026-02-01T21:38:27Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 03f0f277145daf6012ce33a9e8447d2eaaf346dfdb0df57a61ebf90b18b67c65
+  source_path: render.mdx
+  workflow: 15
 ---
 
-Deploy OpenClaw on Render using Infrastructure as Code. The included `render.yaml` Blueprint defines your entire stack declaratively, service, disk, environment variables, so you can deploy with a single click and version your infrastructure alongside your code.
+使用基础设施即代码方式在 Render 上部署 OpenClaw。内置的 `render.yaml` Blueprint 以声明式方式定义了你的整个技术栈——服务、磁盘、环境变量，让你只需一键即可完成部署，并将基础设施与代码一同进行版本管理。
 
-## Prerequisites
+## 前提条件
 
-- A [Render account](https://render.com) (free tier available)
-- An API key from your preferred [model provider](/providers)
+- 一个 [Render 账户](https://render.com)（提供免费套餐）
+- 来自你首选[模型提供商](/providers)的 API 密钥
 
-## Deploy with a Render Blueprint
+## 使用 Render Blueprint 部署
 
-[Deploy to Render](https://render.com/deploy?repo=https://github.com/openclaw/openclaw)
+<a
+  href="https://render.com/deploy?repo=https://github.com/openclaw/openclaw"
+  target="_blank"
+  rel="noreferrer"
+>
+  部署到 Render
+</a>
 
-Clicking this link will:
+点击此链接将会：
 
-1. Create a new Render service from the `render.yaml` Blueprint at the root of this repo.
-2. Prompt you to set `SETUP_PASSWORD`
-3. Build the Docker image and deploy
+1. 根据本仓库根目录下的 `render.yaml` Blueprint 创建一个新的 Render 服务。
+2. 提示你设置 `SETUP_PASSWORD`
+3. 构建 Docker 镜像并部署
 
-Once deployed, your service URL follows the pattern `https://<service-name>.onrender.com`.
+部署完成后，你的服务 URL 格式为 `https://<service-name>.onrender.com`。
 
-## Understanding the Blueprint
+## 了解 Blueprint
 
-Render Blueprints are YAML files that define your infrastructure. The `render.yaml` in this
-repository configures everything needed to run OpenClaw:
+Render Blueprint 是定义基础设施的 YAML 文件。本仓库中的 `render.yaml` 配置了运行 OpenClaw 所需的一切：
 
 ```yaml
 services:
@@ -50,110 +62,108 @@ services:
       sizeGB: 1
 ```
 
-Key Blueprint features used:
+使用的关键 Blueprint 功能：
 
-| Feature               | Purpose                                                    |
-| --------------------- | ---------------------------------------------------------- |
-| `runtime: docker`     | Builds from the repo's Dockerfile                          |
-| `healthCheckPath`     | Render monitors `/health` and restarts unhealthy instances |
-| `sync: false`         | Prompts for value during deploy (secrets)                  |
-| `generateValue: true` | Auto-generates a cryptographically secure value            |
-| `disk`                | Persistent storage that survives redeploys                 |
+| 功能                  | 用途                                     |
+| --------------------- | ---------------------------------------- |
+| `runtime: docker`     | 从仓库的 Dockerfile 进行构建             |
+| `healthCheckPath`     | Render 监控 `/health` 并重启不健康的实例 |
+| `sync: false`         | 在部署时提示输入值（用于密钥）           |
+| `generateValue: true` | 自动生成加密安全的值                     |
+| `disk`                | 持久化存储，在重新部署后数据仍然保留     |
 
-## Choosing a plan
+## 选择套餐
 
-| Plan      | Spin-down         | Disk          | Best for                      |
-| --------- | ----------------- | ------------- | ----------------------------- |
-| Free      | After 15 min idle | Not available | Testing, demos                |
-| Starter   | Never             | 1GB+          | Personal use, small teams     |
-| Standard+ | Never             | 1GB+          | Production, multiple channels |
+| 套餐      | 休眠机制           | 磁盘   | 适用场景         |
+| --------- | ------------------ | ------ | ---------------- |
+| Free      | 空闲 15 分钟后休眠 | 不可用 | 测试、演示       |
+| Starter   | 永不休眠           | 1GB+   | 个人使用、小团队 |
+| Standard+ | 永不休眠           | 1GB+   | 生产环境、多渠道 |
 
-The Blueprint defaults to `starter`. To use free tier, change `plan: free` in your fork's
-`render.yaml` (but note: no persistent disk means config resets on each deploy).
+Blueprint 默认使用 `starter`。如需使用免费套餐，请在你 fork 的 `render.yaml` 中将 `plan: free`（但请注意：没有持久化磁盘意味着每次部署后配置都会重置）。
 
-## After deployment
+## 部署完成后
 
-### Complete the setup wizard
+### 完成设置向导
 
-1. Navigate to `https://<your-service>.onrender.com/setup`
-2. Enter your `SETUP_PASSWORD`
-3. Select a model provider and paste your API key
-4. Optionally configure messaging channels (Telegram, Discord, Slack)
-5. Click **Run setup**
+1. 访问 `https://<your-service>.onrender.com/setup`
+2. 输入你的 `SETUP_PASSWORD`
+3. 选择模型提供商并粘贴你的 API 密钥
+4. 可选配置消息渠道（Telegram、Discord、Slack）
+5. 点击 **Run setup**
 
-### Access the Control UI
+### 访问控制面板
 
-The web dashboard is available at `https://<your-service>.onrender.com/openclaw`.
+Web 管理面板位于 `https://<your-service>.onrender.com/openclaw`。
 
-## Render Dashboard features
+## Render 仪表盘功能
 
-### Logs
+### 日志
 
-View real-time logs in **Dashboard → your service → Logs**. Filter by:
+在 **Dashboard → 你的服务 → Logs** 中查看实时日志。可按以下类型筛选：
 
-- Build logs (Docker image creation)
-- Deploy logs (service startup)
-- Runtime logs (application output)
+- 构建日志（Docker 镜像创建）
+- 部署日志（服务启动）
+- 运行时日志（应用输出）
 
-### Shell access
+### Shell 访问
 
-For debugging, open a shell session via **Dashboard → your service → Shell**. The persistent disk is mounted at `/data`.
+如需调试，可通过 **Dashboard → 你的服务 → Shell** 打开 shell 会话。持久化磁盘挂载在 `/data`。
 
-### Environment variables
+### 环境变量
 
-Modify variables in **Dashboard → your service → Environment**. Changes trigger an automatic redeploy.
+在 **Dashboard → 你的服务 → Environment** 中修改变量。更改会触发自动重新部署。
 
-### Auto-deploy
+### 自动部署
 
-If you use the original OpenClaw repository, Render will not auto-deploy your OpenClaw. To update it, run a manual Blueprint sync from the dashboard.
+如果你使用的是原始 OpenClaw 仓库，Render 不会自动部署你的 OpenClaw。要更新它，请在仪表盘中手动执行 Blueprint 同步。
 
-## Custom domain
+## 自定义域名
 
-1. Go to **Dashboard → your service → Settings → Custom Domains**
-2. Add your domain
-3. Configure DNS as instructed (CNAME to `*.onrender.com`)
-4. Render provisions a TLS certificate automatically
+1. 前往 **Dashboard → 你的服务 → Settings → Custom Domains**
+2. 添加你的域名
+3. 按照指引配置 DNS（CNAME 指向 `*.onrender.com`）
+4. Render 会自动配置 TLS 证书
 
-## Scaling
+## 扩展
 
-Render supports horizontal and vertical scaling:
+Render 支持水平和垂直扩展：
 
-- **Vertical**: Change the plan to get more CPU/RAM
-- **Horizontal**: Increase instance count (Standard plan and above)
+- **垂直扩展**：更改套餐以获取更多 CPU/内存
+- **水平扩展**：增加实例数量（Standard 套餐及以上）
 
-For OpenClaw, vertical scaling is usually sufficient. Horizontal scaling requires sticky sessions or external state management.
+对于 OpenClaw，垂直扩展通常就足够了。水平扩展需要粘性会话或外部状态管理。
 
-## Backups and migration
+## 备份与迁移
 
-Export your configuration and workspace at any time:
+随时导出你的配置和工作区：
 
 ```
 https://<your-service>.onrender.com/setup/export
 ```
 
-This downloads a portable backup you can restore on any OpenClaw host.
+这将下载一个可移植的备份文件，你可以在任何 OpenClaw 主机上恢复。
 
-## Troubleshooting
+## 故障排除
 
-### Service won't start
+### 服务无法启动
 
-Check the deploy logs in the Render Dashboard. Common issues:
+在 Render 仪表盘中检查部署日志。常见问题：
 
-- Missing `SETUP_PASSWORD` — the Blueprint prompts for this, but verify it's set
-- Port mismatch — ensure `PORT=8080` matches the Dockerfile's exposed port
+- 缺少 `SETUP_PASSWORD` — Blueprint 会提示输入此值，但请确认已设置
+- 端口不匹配 — 确保 `PORT=8080` 与 Dockerfile 暴露的端口一致
 
-### Slow cold starts (free tier)
+### 冷启动缓慢（免费套餐）
 
-Free tier services spin down after 15 minutes of inactivity. The first request after spin-down takes a few seconds while the container starts. Upgrade to Starter plan for always-on.
+免费套餐的服务在 15 分钟无活动后会休眠。休眠后的首次请求需要几秒钟等待容器启动。升级到 Starter 套餐可实现始终在线。
 
-### Data loss after redeploy
+### 重新部署后数据丢失
 
-This happens on free tier (no persistent disk). Upgrade to a paid plan, or
-regularly export your config via `/setup/export`.
+这发生在免费套餐上（无持久化磁盘）。升级到付费套餐，或通过 `/setup/export` 定期导出你的配置。
 
-### Health check failures
+### 健康检查失败
 
-Render expects a 200 response from `/health` within 30 seconds. If builds succeed but deploys fail, the service may be taking too long to start. Check:
+Render 期望在 30 秒内从 `/health` 获得 200 响应。如果构建成功但部署失败，可能是服务启动耗时过长。请检查：
 
-- Build logs for errors
-- Whether the container runs locally with `docker build && docker run`
+- 构建日志中是否有错误
+- 容器是否能通过 `docker build && docker run` 在本地正常运行

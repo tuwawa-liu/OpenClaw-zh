@@ -1,89 +1,80 @@
 ---
-summary: "Proposal: long-term command authorization model for ACP-bound conversations"
+summary: "提案：ACP 绑定会话中的长期命令授权模型"
 read_when:
-  - Designing native command auth behavior in Telegram/Discord ACP-bound channels/topics
-title: "ACP Bound Command Authorization (Proposal)"
+  - 设计 Telegram/Discord ACP 绑定频道/话题中的原生命令认证行为
+title: "ACP 绑定命令授权（提案）"
 ---
 
-# ACP Bound Command Authorization (Proposal)
+# ACP 绑定命令授权（提案）
 
-Status: Proposed, **not implemented yet**.
+状态：已提议，**尚未实现**。
 
-This document describes a long-term authorization model for native commands in
-ACP-bound conversations. It is an experiments proposal and does not replace
-current production behavior.
+本文档描述了 ACP 绑定会话中原生命令的长期授权模型。这是一个实验性提案，不替代当前的生产行为。
 
-For implemented behavior, read source and tests in:
+有关已实现的行为，请阅读以下源代码和测试：
 
 - `src/telegram/bot-native-commands.ts`
 - `src/discord/monitor/native-command.ts`
 - `src/auto-reply/reply/commands-core.ts`
 
-## Problem
+## 问题
 
-Today we have command-specific checks (for example `/new` and `/reset`) that
-need to work inside ACP-bound channels/topics even when allowlists are empty.
-This solves immediate UX pain, but command-name-based exceptions do not scale.
+目前我们有特定于命令的检查（例如 `/new` 和 `/reset`），这些检查需要在 ACP 绑定的频道/话题中工作，即使允许列表为空。这解决了直接的用户体验痛点，但基于命令名称的例外不具可扩展性。
 
-## Long-term shape
+## 长期方向
 
-Move command authorization from ad-hoc handler logic to command metadata plus a
-shared policy evaluator.
+将命令授权从临时处理器逻辑迁移到命令元数据加共享策略评估器。
 
-### 1) Add auth policy metadata to command definitions
+### 1) 在命令定义中添加认证策略元数据
 
-Each command definition should declare an auth policy. Example shape:
+每个命令定义应声明认证策略。示例结构：
 
 ```ts
 type CommandAuthPolicy =
-  | { mode: "owner_or_allowlist" } // default, current strict behavior
-  | { mode: "bound_acp_or_owner_or_allowlist" } // allow in explicitly bound ACP conversations
+  | { mode: "owner_or_allowlist" } // 默认，当前的严格行为
+  | { mode: "bound_acp_or_owner_or_allowlist" } // 在显式绑定的 ACP 会话中允许
   | { mode: "owner_only" };
 ```
 
-`/new` and `/reset` would use `bound_acp_or_owner_or_allowlist`.
-Most other commands would remain `owner_or_allowlist`.
+`/new` 和 `/reset` 将使用 `bound_acp_or_owner_or_allowlist`。
+大多数其他命令将保持 `owner_or_allowlist`。
 
-### 2) Share one evaluator across channels
+### 2) 跨频道共享一个评估器
 
-Introduce one helper that evaluates command auth using:
+引入一个使用以下信息评估命令认证的辅助函数：
 
-- command policy metadata
-- sender authorization state
-- resolved conversation binding state
+- 命令策略元数据
+- 发送者授权状态
+- 解析的会话绑定状态
 
-Both Telegram and Discord native handlers should call the same helper to avoid
-behavior drift.
+Telegram 和 Discord 的原生处理器都应调用相同的辅助函数，以避免行为偏移。
 
-### 3) Use binding-match as the bypass boundary
+### 3) 使用绑定匹配作为旁路边界
 
-When policy allows bound ACP bypass, authorize only if a configured binding
-match was resolved for the current conversation (not just because current
-session key looks ACP-like).
+当策略允许绑定 ACP 旁路时，仅在当前会话解析到配置的绑定匹配时授权（不仅仅因为当前会话键看起来像 ACP）。
 
-This keeps the boundary explicit and minimizes accidental widening.
+这保持了边界的显式性，并最小化意外扩大的可能。
 
-## Why this is better
+## 为什么这更好
 
-- Scales to future commands without adding more command-name conditionals.
-- Keeps behavior consistent across channels.
-- Preserves current security model by requiring explicit binding match.
-- Keeps allowlists optional hardening instead of a universal requirement.
+- 可扩展到未来的命令，无需添加更多命令名称条件。
+- 保持跨频道行为一致。
+- 通过要求显式绑定匹配保留当前安全模型。
+- 将允许列表保持为可选的强化措施，而非通用要求。
 
-## Rollout plan (future)
+## 推出计划（未来）
 
-1. Add command auth policy field to command registry types and command data.
-2. Implement shared evaluator and migrate Telegram + Discord native handlers.
-3. Move `/new` and `/reset` to metadata-driven policy.
-4. Add tests per policy mode and channel surface.
+1. 在命令注册表类型和命令数据中添加命令认证策略字段。
+2. 实现共享评估器并迁移 Telegram + Discord 原生处理器。
+3. 将 `/new` 和 `/reset` 迁移到元数据驱动的策略。
+4. 按策略模式和频道界面添加测试。
 
-## Non-goals
+## 非目标
 
-- This proposal does not change ACP session lifecycle behavior.
-- This proposal does not require allowlists for all ACP-bound commands.
-- This proposal does not change existing route binding semantics.
+- 本提案不改变 ACP 会话生命周期行为。
+- 本提案不要求所有 ACP 绑定命令都使用允许列表。
+- 本提案不改变现有的路由绑定语义。
 
-## Note
+## 备注
 
-This proposal is intentionally additive and does not delete or replace existing
-experiments documents.
+本提案是有意为添加性的，不删除或替代现有的实验文档。

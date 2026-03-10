@@ -1,87 +1,56 @@
 ---
-summary: "How to run tests locally (vitest) and when to use force/coverage modes"
 read_when:
-  - Running or fixing tests
-title: "Tests"
+  - 运行或修复测试
+summary: 如何在本地运行测试（vitest）以及何时使用 force/coverage 模式
+title: 测试
+x-i18n:
+  generated_at: "2026-02-03T10:09:52Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: be7b751fb81c8c94b1293624bdca6582e60a26084960d1df9558061969502e6f
+  source_path: reference/test.md
+  workflow: 15
 ---
 
-# Tests
+# 测试
 
-- Full testing kit (suites, live, Docker): [Testing](/help/testing)
+- 完整测试套件（测试集、实时测试、Docker）：[测试](/help/testing)
 
-- `pnpm test:force`: Kills any lingering gateway process holding the default control port, then runs the full Vitest suite with an isolated gateway port so server tests don’t collide with a running instance. Use this when a prior gateway run left port 18789 occupied.
-- `pnpm test:coverage`: Runs the unit suite with V8 coverage (via `vitest.unit.config.ts`). Global thresholds are 70% lines/branches/functions/statements. Coverage excludes integration-heavy entrypoints (CLI wiring, gateway/telegram bridges, webchat static server) to keep the target focused on unit-testable logic.
-- `pnpm test` on Node 24+: OpenClaw auto-disables Vitest `vmForks` and uses `forks` to avoid `ERR_VM_MODULE_LINK_FAILURE` / `module is already linked`. You can force behavior with `OPENCLAW_TEST_VM_FORKS=0|1`.
-- `pnpm test`: runs the fast core unit lane by default for quick local feedback.
-- `pnpm test:channels`: runs channel-heavy suites.
-- `pnpm test:extensions`: runs extension/plugin suites.
-- Gateway integration: opt-in via `OPENCLAW_TEST_INCLUDE_GATEWAY=1 pnpm test` or `pnpm test:gateway`.
-- `pnpm test:e2e`: Runs gateway end-to-end smoke tests (multi-instance WS/HTTP/node pairing). Defaults to `vmForks` + adaptive workers in `vitest.e2e.config.ts`; tune with `OPENCLAW_E2E_WORKERS=<n>` and set `OPENCLAW_E2E_VERBOSE=1` for verbose logs.
-- `pnpm test:live`: Runs provider live tests (minimax/zai). Requires API keys and `LIVE=1` (or provider-specific `*_LIVE_TEST=1`) to unskip.
+- `pnpm test:force`：终止任何占用默认控制端口的遗留 Gateway 网关进程，然后使用隔离的 Gateway 网关端口运行完整的 Vitest 套件，这样服务器测试不会与正在运行的实例冲突。当之前的 Gateway 网关运行占用了端口 18789 时使用此命令。
+- `pnpm test:coverage`：使用 V8 覆盖率运行 Vitest。全局阈值为 70% 的行/分支/函数/语句覆盖率。覆盖率排除了集成密集型入口点（CLI 连接、gateway/telegram 桥接、webchat 静态服务器），以保持目标集中在可单元测试的逻辑上。
+- `pnpm test:e2e`：运行 Gateway 网关端到端冒烟测试（多实例 WS/HTTP/节点配对）。
+- `pnpm test:live`：运行提供商实时测试（minimax/zai）。需要 API 密钥和 `LIVE=1`（或提供商特定的 `*_LIVE_TEST=1`）才能取消跳过。
 
-## Local PR gate
+## 模型延迟基准测试（本地密钥）
 
-For local PR land/gate checks, run:
+脚本：[`scripts/bench-model.ts`](https://github.com/openclaw/openclaw/blob/main/scripts/bench-model.ts)
 
-- `pnpm check`
-- `pnpm build`
-- `pnpm test`
-- `pnpm check:docs`
-
-If `pnpm test` flakes on a loaded host, rerun once before treating it as a regression, then isolate with `pnpm vitest run <path/to/test>`. For memory-constrained hosts, use:
-
-- `OPENCLAW_TEST_PROFILE=low OPENCLAW_TEST_SERIAL_GATEWAY=1 pnpm test`
-
-## Model latency bench (local keys)
-
-Script: [`scripts/bench-model.ts`](https://github.com/openclaw/openclaw/blob/main/scripts/bench-model.ts)
-
-Usage:
+用法：
 
 - `source ~/.profile && pnpm tsx scripts/bench-model.ts --runs 10`
-- Optional env: `MINIMAX_API_KEY`, `MINIMAX_BASE_URL`, `MINIMAX_MODEL`, `ANTHROPIC_API_KEY`
-- Default prompt: “Reply with a single word: ok. No punctuation or extra text.”
+- 可选环境变量：`MINIMAX_API_KEY`、`MINIMAX_BASE_URL`、`MINIMAX_MODEL`、`ANTHROPIC_API_KEY`
+- 默认提示词："Reply with a single word: ok. No punctuation or extra text."
 
-Last run (2025-12-31, 20 runs):
+上次运行（2025-12-31，20 次）：
 
-- minimax median 1279ms (min 1114, max 2431)
-- opus median 2454ms (min 1224, max 3170)
+- minimax 中位数 1279ms（最小 1114，最大 2431）
+- opus 中位数 2454ms（最小 1224，最大 3170）
 
-## CLI startup bench
+## 新手引导 E2E（Docker）
 
-Script: [`scripts/bench-cli-startup.ts`](https://github.com/openclaw/openclaw/blob/main/scripts/bench-cli-startup.ts)
+Docker 是可选的；这仅用于容器化的新手引导冒烟测试。
 
-Usage:
-
-- `pnpm tsx scripts/bench-cli-startup.ts`
-- `pnpm tsx scripts/bench-cli-startup.ts --runs 12`
-- `pnpm tsx scripts/bench-cli-startup.ts --entry dist/entry.js --timeout-ms 45000`
-
-This benchmarks these commands:
-
-- `--version`
-- `--help`
-- `health --json`
-- `status --json`
-- `status`
-
-Output includes avg, p50, p95, min/max, and exit-code/signal distribution for each command.
-
-## Onboarding E2E (Docker)
-
-Docker is optional; this is only needed for containerized onboarding smoke tests.
-
-Full cold-start flow in a clean Linux container:
+在干净的 Linux 容器中完整的冷启动流程：
 
 ```bash
 scripts/e2e/onboard-docker.sh
 ```
 
-This script drives the interactive wizard via a pseudo-tty, verifies config/workspace/session files, then starts the gateway and runs `openclaw health`.
+此脚本通过伪终端驱动交互式向导，验证配置/工作区/会话文件，然后启动 Gateway 网关并运行 `openclaw health`。
 
-## QR import smoke (Docker)
+## QR 导入冒烟测试（Docker）
 
-Ensures `qrcode-terminal` loads under Node 22+ in Docker:
+确保 `qrcode-terminal` 在 Docker 中的 Node 22+ 下加载：
 
 ```bash
 pnpm test:docker:qr

@@ -1,66 +1,58 @@
 ---
-summary: "Expose an OpenResponses-compatible /v1/responses HTTP endpoint from the Gateway"
 read_when:
-  - Integrating clients that speak the OpenResponses API
-  - You want item-based inputs, client tool calls, or SSE events
-title: "OpenResponses API"
+  - 集成使用 OpenResponses API 的客户端
+  - 你需要基于 item 的输入、客户端工具调用或 SSE 事件
+summary: 从 Gateway 网关暴露兼容 OpenResponses 的 /v1/responses HTTP 端点
+title: OpenResponses API
+x-i18n:
+  generated_at: "2026-02-03T07:48:43Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 0597714837f8b210c38eeef53561894220c1473e54c56a5c69984847685d518c
+  source_path: gateway/openresponses-http-api.md
+  workflow: 15
 ---
 
-# OpenResponses API (HTTP)
+# OpenResponses API（HTTP）
 
-OpenClaw’s Gateway can serve an OpenResponses-compatible `POST /v1/responses` endpoint.
+OpenClaw 的 Gateway 网关可以提供兼容 OpenResponses 的 `POST /v1/responses` 端点。
 
-This endpoint is **disabled by default**. Enable it in config first.
+此端点**默认禁用**。请先在配置中启用。
 
 - `POST /v1/responses`
-- Same port as the Gateway (WS + HTTP multiplex): `http://<gateway-host>:<port>/v1/responses`
+- 与 Gateway 网关相同的端口（WS + HTTP 多路复用）：`http://<gateway-host>:<port>/v1/responses`
 
-Under the hood, requests are executed as a normal Gateway agent run (same codepath as
-`openclaw agent`), so routing/permissions/config match your Gateway.
+底层实现中，请求作为正常的 Gateway 网关智能体运行执行（与 `openclaw agent` 相同的代码路径），因此路由/权限/配置与你的 Gateway 网关一致。
 
-## Authentication
+## 认证
 
-Uses the Gateway auth configuration. Send a bearer token:
+使用 Gateway 网关认证配置。发送 bearer 令牌：
 
 - `Authorization: Bearer <token>`
 
-Notes:
+说明：
 
-- When `gateway.auth.mode="token"`, use `gateway.auth.token` (or `OPENCLAW_GATEWAY_TOKEN`).
-- When `gateway.auth.mode="password"`, use `gateway.auth.password` (or `OPENCLAW_GATEWAY_PASSWORD`).
-- If `gateway.auth.rateLimit` is configured and too many auth failures occur, the endpoint returns `429` with `Retry-After`.
+- 当 `gateway.auth.mode="token"` 时，使用 `gateway.auth.token`（或 `OPENCLAW_GATEWAY_TOKEN`）。
+- 当 `gateway.auth.mode="password"` 时，使用 `gateway.auth.password`（或 `OPENCLAW_GATEWAY_PASSWORD`）。
 
-## Security boundary (important)
+## 选择智能体
 
-Treat this endpoint as a **full operator-access** surface for the gateway instance.
+无需自定义头：在 OpenResponses `model` 字段中编码智能体 id：
 
-- HTTP bearer auth here is not a narrow per-user scope model.
-- A valid Gateway token/password for this endpoint should be treated like an owner/operator credential.
-- Requests run through the same control-plane agent path as trusted operator actions.
-- There is no separate non-owner/per-user tool boundary on this endpoint; once a caller passes Gateway auth here, OpenClaw treats that caller as a trusted operator for this gateway.
-- If the target agent policy allows sensitive tools, this endpoint can use them.
-- Keep this endpoint on loopback/tailnet/private ingress only; do not expose it directly to the public internet.
+- `model: "openclaw:<agentId>"`（示例：`"openclaw:main"`、`"openclaw:beta"`）
+- `model: "agent:<agentId>"`（别名）
 
-See [Security](/gateway/security) and [Remote access](/gateway/remote).
+或通过头指定特定的 OpenClaw 智能体：
 
-## Choosing an agent
+- `x-openclaw-agent-id: <agentId>`（默认：`main`）
 
-No custom headers required: encode the agent id in the OpenResponses `model` field:
+高级：
 
-- `model: "openclaw:<agentId>"` (example: `"openclaw:main"`, `"openclaw:beta"`)
-- `model: "agent:<agentId>"` (alias)
+- `x-openclaw-session-key: <sessionKey>` 完全控制会话路由。
 
-Or target a specific OpenClaw agent by header:
+## 启用端点
 
-- `x-openclaw-agent-id: <agentId>` (default: `main`)
-
-Advanced:
-
-- `x-openclaw-session-key: <sessionKey>` to fully control session routing.
-
-## Enabling the endpoint
-
-Set `gateway.http.endpoints.responses.enabled` to `true`:
+将 `gateway.http.endpoints.responses.enabled` 设置为 `true`：
 
 ```json5
 {
@@ -74,9 +66,9 @@ Set `gateway.http.endpoints.responses.enabled` to `true`:
 }
 ```
 
-## Disabling the endpoint
+## 禁用端点
 
-Set `gateway.http.endpoints.responses.enabled` to `false`:
+将 `gateway.http.endpoints.responses.enabled` 设置为 `false`：
 
 ```json5
 {
@@ -90,26 +82,25 @@ Set `gateway.http.endpoints.responses.enabled` to `false`:
 }
 ```
 
-## Session behavior
+## 会话行为
 
-By default the endpoint is **stateless per request** (a new session key is generated each call).
+默认情况下，端点**每个请求都是无状态的**（每次调用生成新的会话键）。
 
-If the request includes an OpenResponses `user` string, the Gateway derives a stable session key
-from it, so repeated calls can share an agent session.
+如果请求包含 OpenResponses `user` 字符串，Gateway 网关会从中派生稳定的会话键，这样重复调用可以共享智能体会话。
 
-## Request shape (supported)
+## 请求结构（支持的）
 
-The request follows the OpenResponses API with item-based input. Current support:
+请求遵循 OpenResponses API，使用基于 item 的输入。当前支持：
 
-- `input`: string or array of item objects.
-- `instructions`: merged into the system prompt.
-- `tools`: client tool definitions (function tools).
-- `tool_choice`: filter or require client tools.
-- `stream`: enables SSE streaming.
-- `max_output_tokens`: best-effort output limit (provider dependent).
-- `user`: stable session routing.
+- `input`：字符串或 item 对象数组。
+- `instructions`：合并到系统提示中。
+- `tools`：客户端工具定义（函数工具）。
+- `tool_choice`：过滤或要求客户端工具。
+- `stream`：启用 SSE 流式传输。
+- `max_output_tokens`：尽力而为的输出限制（取决于提供商）。
+- `user`：稳定的会话路由。
 
-Accepted but **currently ignored**:
+接受但**当前忽略**：
 
 - `max_tool_calls`
 - `reasoning`
@@ -118,19 +109,19 @@ Accepted but **currently ignored**:
 - `previous_response_id`
 - `truncation`
 
-## Items (input)
+## Item（输入）
 
 ### `message`
 
-Roles: `system`, `developer`, `user`, `assistant`.
+角色：`system`、`developer`、`user`、`assistant`。
 
-- `system` and `developer` are appended to the system prompt.
-- The most recent `user` or `function_call_output` item becomes the “current message.”
-- Earlier user/assistant messages are included as history for context.
+- `system` 和 `developer` 追加到系统提示。
+- 最近的 `user` 或 `function_call_output` item 成为"当前消息"。
+- 较早的 user/assistant 消息作为上下文历史包含。
 
-### `function_call_output` (turn-based tools)
+### `function_call_output`（基于回合的工具）
 
-Send tool results back to the model:
+将工具结果发送回模型：
 
 ```json
 {
@@ -140,20 +131,19 @@ Send tool results back to the model:
 }
 ```
 
-### `reasoning` and `item_reference`
+### `reasoning` 和 `item_reference`
 
-Accepted for schema compatibility but ignored when building the prompt.
+为了 schema 兼容性而接受，但在构建提示时忽略。
 
-## Tools (client-side function tools)
+## 工具（客户端函数工具）
 
-Provide tools with `tools: [{ type: "function", function: { name, description?, parameters? } }]`.
+使用 `tools: [{ type: "function", function: { name, description?, parameters? } }]` 提供工具。
 
-If the agent decides to call a tool, the response returns a `function_call` output item.
-You then send a follow-up request with `function_call_output` to continue the turn.
+如果智能体决定调用工具，响应返回一个 `function_call` 输出 item。然后你发送带有 `function_call_output` 的后续请求以继续回合。
 
-## Images (`input_image`)
+## 图像（`input_image`）
 
-Supports base64 or URL sources:
+支持 base64 或 URL 来源：
 
 ```json
 {
@@ -162,12 +152,12 @@ Supports base64 or URL sources:
 }
 ```
 
-Allowed MIME types (current): `image/jpeg`, `image/png`, `image/gif`, `image/webp`, `image/heic`, `image/heif`.
-Max size (current): 10MB.
+允许的 MIME 类型（当前）：`image/jpeg`、`image/png`、`image/gif`、`image/webp`。
+最大大小（当前）：10MB。
 
-## Files (`input_file`)
+## 文件（`input_file`）
 
-Supports base64 or URL sources:
+支持 base64 或 URL 来源：
 
 ```json
 {
@@ -181,34 +171,26 @@ Supports base64 or URL sources:
 }
 ```
 
-Allowed MIME types (current): `text/plain`, `text/markdown`, `text/html`, `text/csv`,
-`application/json`, `application/pdf`.
+允许的 MIME 类型（当前）：`text/plain`、`text/markdown`、`text/html`、`text/csv`、`application/json`、`application/pdf`。
 
-Max size (current): 5MB.
+最大大小（当前）：5MB。
 
-Current behavior:
+当前行为：
 
-- File content is decoded and added to the **system prompt**, not the user message,
-  so it stays ephemeral (not persisted in session history).
-- PDFs are parsed for text. If little text is found, the first pages are rasterized
-  into images and passed to the model.
+- 文件内容被解码并添加到**系统提示**，而不是用户消息，所以它保持临时性（不持久化在会话历史中）。
+- PDF 被解析提取文本。如果发现的文本很少，前几页会被栅格化为图像并传递给模型。
 
-PDF parsing uses the Node-friendly `pdfjs-dist` legacy build (no worker). The modern
-PDF.js build expects browser workers/DOM globals, so it is not used in the Gateway.
+PDF 解析使用 Node 友好的 `pdfjs-dist` legacy 构建（无 worker）。现代 PDF.js 构建期望浏览器 worker/DOM 全局变量，因此不在 Gateway 网关中使用。
 
-URL fetch defaults:
+URL 获取默认值：
 
-- `files.allowUrl`: `true`
-- `images.allowUrl`: `true`
-- `maxUrlParts`: `8` (total URL-based `input_file` + `input_image` parts per request)
-- Requests are guarded (DNS resolution, private IP blocking, redirect caps, timeouts).
-- Optional hostname allowlists are supported per input type (`files.urlAllowlist`, `images.urlAllowlist`).
-  - Exact host: `"cdn.example.com"`
-  - Wildcard subdomains: `"*.assets.example.com"` (does not match apex)
+- `files.allowUrl`：`true`
+- `images.allowUrl`：`true`
+- 请求受到保护（DNS 解析、私有 IP 阻止、重定向限制、超时）。
 
-## File + image limits (config)
+## 文件 + 图像限制（配置）
 
-Defaults can be tuned under `gateway.http.endpoints.responses`:
+默认值可在 `gateway.http.endpoints.responses` 下调整：
 
 ```json5
 {
@@ -218,10 +200,8 @@ Defaults can be tuned under `gateway.http.endpoints.responses`:
         responses: {
           enabled: true,
           maxBodyBytes: 20000000,
-          maxUrlParts: 8,
           files: {
             allowUrl: true,
-            urlAllowlist: ["cdn.example.com", "*.assets.example.com"],
             allowedMimes: [
               "text/plain",
               "text/markdown",
@@ -242,15 +222,7 @@ Defaults can be tuned under `gateway.http.endpoints.responses`:
           },
           images: {
             allowUrl: true,
-            urlAllowlist: ["images.example.com"],
-            allowedMimes: [
-              "image/jpeg",
-              "image/png",
-              "image/gif",
-              "image/webp",
-              "image/heic",
-              "image/heif",
-            ],
+            allowedMimes: ["image/jpeg", "image/png", "image/gif", "image/webp"],
             maxBytes: 10485760,
             maxRedirects: 3,
             timeoutMs: 10000,
@@ -262,38 +234,29 @@ Defaults can be tuned under `gateway.http.endpoints.responses`:
 }
 ```
 
-Defaults when omitted:
+省略时的默认值：
 
-- `maxBodyBytes`: 20MB
-- `maxUrlParts`: 8
-- `files.maxBytes`: 5MB
-- `files.maxChars`: 200k
-- `files.maxRedirects`: 3
-- `files.timeoutMs`: 10s
-- `files.pdf.maxPages`: 4
-- `files.pdf.maxPixels`: 4,000,000
-- `files.pdf.minTextChars`: 200
-- `images.maxBytes`: 10MB
-- `images.maxRedirects`: 3
-- `images.timeoutMs`: 10s
-- HEIC/HEIF `input_image` sources are accepted and normalized to JPEG before provider delivery.
+- `maxBodyBytes`：20MB
+- `files.maxBytes`：5MB
+- `files.maxChars`：200k
+- `files.maxRedirects`：3
+- `files.timeoutMs`：10s
+- `files.pdf.maxPages`：4
+- `files.pdf.maxPixels`：4,000,000
+- `files.pdf.minTextChars`：200
+- `images.maxBytes`：10MB
+- `images.maxRedirects`：3
+- `images.timeoutMs`：10s
 
-Security note:
+## 流式传输（SSE）
 
-- URL allowlists are enforced before fetch and on redirect hops.
-- Allowlisting a hostname does not bypass private/internal IP blocking.
-- For internet-exposed gateways, apply network egress controls in addition to app-level guards.
-  See [Security](/gateway/security).
-
-## Streaming (SSE)
-
-Set `stream: true` to receive Server-Sent Events (SSE):
+设置 `stream: true` 接收 Server-Sent Events（SSE）：
 
 - `Content-Type: text/event-stream`
-- Each event line is `event: <type>` and `data: <json>`
-- Stream ends with `data: [DONE]`
+- 每个事件行是 `event: <type>` 和 `data: <json>`
+- 流以 `data: [DONE]` 结束
 
-Event types currently emitted:
+当前发出的事件类型：
 
 - `response.created`
 - `response.in_progress`
@@ -304,29 +267,29 @@ Event types currently emitted:
 - `response.content_part.done`
 - `response.output_item.done`
 - `response.completed`
-- `response.failed` (on error)
+- `response.failed`（出错时）
 
-## Usage
+## 用量
 
-`usage` is populated when the underlying provider reports token counts.
+当底层提供商报告令牌计数时，`usage` 会被填充。
 
-## Errors
+## 错误
 
-Errors use a JSON object like:
+错误使用如下 JSON 对象：
 
 ```json
 { "error": { "message": "...", "type": "invalid_request_error" } }
 ```
 
-Common cases:
+常见情况：
 
-- `401` missing/invalid auth
-- `400` invalid request body
-- `405` wrong method
+- `401` 缺少/无效认证
+- `400` 无效请求体
+- `405` 错误的方法
 
-## Examples
+## 示例
 
-Non-streaming:
+非流式：
 
 ```bash
 curl -sS http://127.0.0.1:18789/v1/responses \
@@ -339,7 +302,7 @@ curl -sS http://127.0.0.1:18789/v1/responses \
   }'
 ```
 
-Streaming:
+流式：
 
 ```bash
 curl -N http://127.0.0.1:18789/v1/responses \

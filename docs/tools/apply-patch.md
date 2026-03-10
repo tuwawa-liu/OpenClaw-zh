@@ -1,17 +1,24 @@
 ---
-summary: "Apply multi-file patches with the apply_patch tool"
 read_when:
-  - You need structured file edits across multiple files
-  - You want to document or debug patch-based edits
-title: "apply_patch Tool"
+  - 你需要跨多个文件进行结构化编辑
+  - 你想要记录或调试基于补丁的编辑
+summary: 使用 apply_patch 工具应用多文件补丁
+title: apply_patch 工具
+x-i18n:
+  generated_at: "2026-02-01T21:39:24Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 8cec2b4ee3afa9105fc3dd1bc28a338917df129afc634ac83620a3347c46bcec
+  source_path: tools/apply-patch.md
+  workflow: 15
 ---
 
-# apply_patch tool
+# apply_patch 工具
 
-Apply file changes using a structured patch format. This is ideal for multi-file
-or multi-hunk edits where a single `edit` call would be brittle.
+使用结构化补丁格式应用文件更改。这非常适合多文件
+或多段编辑，在这些场景下单次 `edit` 调用会很脆弱。
 
-The tool accepts a single `input` string that wraps one or more file operations:
+该工具接受一个 `input` 字符串，其中包含一个或多个文件操作：
 
 ```
 *** Begin Patch
@@ -26,22 +33,21 @@ The tool accepts a single `input` string that wraps one or more file operations:
 *** End Patch
 ```
 
-## Parameters
+## 参数
 
-- `input` (required): Full patch contents including `*** Begin Patch` and `*** End Patch`.
+- `input`（必需）：完整的补丁内容，包括 `*** Begin Patch` 和 `*** End Patch`。
 
-## Notes
+## 说明
 
-- Patch paths support relative paths (from the workspace directory) and absolute paths.
-- `tools.exec.applyPatch.workspaceOnly` defaults to `true` (workspace-contained). Set it to `false` only if you intentionally want `apply_patch` to write/delete outside the workspace directory.
-- Use `*** Move to:` within an `*** Update File:` hunk to rename files.
-- `*** End of File` marks an EOF-only insert when needed.
-- Experimental and disabled by default. Enable with `tools.exec.applyPatch.enabled`.
-- OpenAI-only (including OpenAI Codex). Optionally gate by model via
-  `tools.exec.applyPatch.allowModels`.
-- Config is only under `tools.exec`.
+- 路径相对于工作区根目录解析。
+- 在 `*** Update File:` 段中使用 `*** Move to:` 可重命名文件。
+- 需要时使用 `*** End of File` 标记仅在文件末尾的插入。
+- 实验性功能，默认禁用。通过 `tools.exec.applyPatch.enabled` 启用。
+- 仅限 OpenAI（包括 OpenAI Codex）。可选通过
+  `tools.exec.applyPatch.allowModels` 按模型进行限制。
+- 配置仅在 `tools.exec` 下。
 
-## Example
+## 示例
 
 ```json
 {

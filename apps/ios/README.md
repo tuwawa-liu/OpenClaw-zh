@@ -1,31 +1,31 @@
-# OpenClaw iOS (Super Alpha)
+# OpenClaw iOS（超级 Alpha 版）
 
-NO TEST FLIGHT AVAILABLE AT THIS POINT
+暂无 TEST FLIGHT
 
-This iPhone app is super-alpha and internal-use only. It connects to an OpenClaw Gateway as a `role: node`.
+此 iPhone 应用处于超级 Alpha 阶段，仅供内部使用。它以 `role: node` 连接到 OpenClaw Gateway。
 
-## Distribution Status
+## 分发状态
 
-NO TEST FLIGHT AVAILABLE AT THIS POINT
+暂无 TEST FLIGHT
 
-- Current distribution: local/manual deploy from source via Xcode.
-- App Store flow is not part of the current internal development path.
+- 当前分发方式：通过 Xcode 从源码本地/手动部署。
+- App Store 流程不在当前内部开发路径中。
 
-## Super-Alpha Disclaimer
+## 超级 Alpha 免责声明
 
-- Breaking changes are expected.
-- UI and onboarding flows can change without migration guarantees.
-- Foreground use is the only reliable mode right now.
-- Treat this build as sensitive while permissions and background behavior are still being hardened.
+- 预计会有破坏性变更。
+- UI 和引导流程可能在没有迁移保证的情况下更改。
+- 前台使用是目前唯一可靠的模式。
+- 在权限和后台行为仍在加固期间，请将此版本视为敏感。
 
-## Exact Xcode Manual Deploy Flow
+## 精确的 Xcode 手动部署流程
 
-1. Prereqs:
+1. 前提条件：
    - Xcode 16+
    - `pnpm`
    - `xcodegen`
-   - Apple Development signing set up in Xcode
-2. From repo root:
+   - 在 Xcode 中设置好 Apple Development 签名
+2. 从仓库根目录：
 
 ```bash
 pnpm install
@@ -35,107 +35,107 @@ xcodegen generate
 open OpenClaw.xcodeproj
 ```
 
-3. In Xcode:
-   - Scheme: `OpenClaw`
-   - Destination: connected iPhone (recommended for real behavior)
-   - Build configuration: `Debug`
-   - Run (`Product` -> `Run`)
-4. If signing fails on a personal team:
-   - Use unique local bundle IDs via `apps/ios/LocalSigning.xcconfig`.
-   - Start from `apps/ios/LocalSigning.xcconfig.example`.
+3. 在 Xcode 中：
+   - Scheme：`OpenClaw`
+   - 目标：已连接的 iPhone（推荐用于真实行为）
+   - 构建配置：`Debug`
+   - 运行（`Product` -> `Run`）
+4. 如果个人团队签名失败：
+   - 使用 `apps/ios/LocalSigning.xcconfig` 设置唯一的本地 Bundle ID。
+   - 从 `apps/ios/LocalSigning.xcconfig.example` 开始。
 
-Shortcut command (same flow + open project):
+快捷命令（相同流程 + 打开项目）：
 
 ```bash
 pnpm ios:open
 ```
 
-## APNs Expectations For Local/Manual Builds
+## 本地/手动构建的 APNs 预期
 
-- The app calls `registerForRemoteNotifications()` at launch.
-- `apps/ios/Sources/OpenClaw.entitlements` sets `aps-environment` to `development`.
-- APNs token registration to gateway happens only after gateway connection (`push.apns.register`).
-- Your selected team/profile must support Push Notifications for the app bundle ID you are signing.
-- If push capability or provisioning is wrong, APNs registration fails at runtime (check Xcode logs for `APNs registration failed`).
-- Debug builds register as APNs sandbox; Release builds use production.
+- 应用在启动时调用 `registerForRemoteNotifications()`。
+- `apps/ios/Sources/OpenClaw.entitlements` 将 `aps-environment` 设置为 `development`。
+- APNs 令牌注册到 Gateway 仅在 Gateway 连接后进行（`push.apns.register`）。
+- 你选择的团队/描述文件必须支持你签名的应用 Bundle ID 的推送通知。
+- 如果推送功能或配置错误，APNs 注册在运行时失败（在 Xcode 日志中检查 `APNs registration failed`）。
+- 调试版本注册为 APNs 沙箱；发布版本使用生产环境。
 
-## What Works Now (Concrete)
+## 当前可用功能（具体）
 
-- Pairing via setup code flow (`/pair` then `/pair approve` in Telegram).
-- Gateway connection via discovery or manual host/port with TLS fingerprint trust prompt.
-- Chat + Talk surfaces through the operator gateway session.
-- iPhone node commands in foreground: camera snap/clip, canvas present/navigate/eval/snapshot, screen record, location, contacts, calendar, reminders, photos, motion, local notifications.
-- Share extension deep-link forwarding into the connected gateway session.
+- 通过设置码流程配对（在 Telegram 中 `/pair` 然后 `/pair approve`）。
+- 通过发现或手动主机/端口（含 TLS 指纹信任提示）连接 Gateway。
+- 通过操作者 Gateway 会话进行聊天 + 通话。
+- 前台 iPhone 节点命令：相机拍照/录制、canvas 呈现/导航/eval/快照、屏幕录制、位置、联系人、日历、提醒事项、照片、运动、本地通知。
+- 分享扩展深度链接转发到已连接的 Gateway 会话。
 
-## Location Automation Use Case (Testing)
+## 位置自动化用例（测试）
 
-Use this for automation signals ("I moved", "I arrived", "I left"), not as a keep-awake mechanism.
+用于自动化信号（"我移动了"、"我到了"、"我离开了"），而非保持唤醒机制。
 
-- Product intent:
-  - movement-aware automations driven by iOS location events
-  - example: arrival/exit geofence, significant movement, visit detection
-- Non-goal:
-  - continuous GPS polling just to keep the app alive
+- 产品意图：
+  - 由 iOS 位置事件驱动的运动感知自动化
+  - 示例：到达/离开地理围栏、显著移动、访问检测
+- 非目标：
+  - 仅为保持应用存活的持续 GPS 轮询
 
-Test path to include in QA runs:
+QA 运行中应包含的测试路径：
 
-1. Enable location permission in app:
-   - set `Always` permission
-   - verify background location capability is enabled in the build profile
-2. Background the app and trigger movement:
-   - walk/drive enough for a significant location update, or cross a configured geofence
-3. Validate gateway side effects:
-   - node reconnect/wake if needed
-   - expected location/movement event arrives at gateway
-   - automation trigger executes once (no duplicate storm)
-4. Validate resource impact:
-   - no sustained high thermal state
-   - no excessive background battery drain over a short observation window
+1. 在应用中启用位置权限：
+   - 设置 `始终` 权限
+   - 验证构建配置文件中已启用后台位置功能
+2. 将应用切到后台并触发移动：
+   - 走路/开车足够产生一次显著位置更新，或跨越已配置的地理围栏
+3. 验证 Gateway 端效果：
+   - 需要时节点重连/唤醒
+   - 预期的位置/运动事件到达 Gateway
+   - 自动化触发器执行一次（无重复风暴）
+4. 验证资源影响：
+   - 无持续高温状态
+   - 短观察窗口内无过度后台电池消耗
 
-Pass criteria:
+通过条件：
 
-- movement events are delivered reliably enough for automation UX
-- no location-driven reconnect spam loops
-- app remains stable after repeated background/foreground transitions
+- 运动事件可靠地交付以满足自动化用户体验
+- 无位置驱动的重连垃圾循环
+- 应用在反复后台/前台切换后保持稳定
 
-## Known Issues / Limitations / Problems
+## 已知问题 / 限制 / 问题
 
-- Foreground-first: iOS can suspend sockets in background; reconnect recovery is still being tuned.
-- Background command limits are strict: `canvas.*`, `camera.*`, `screen.*`, and `talk.*` are blocked when backgrounded.
-- Background location requires `Always` location permission.
-- Pairing/auth errors intentionally pause reconnect loops until a human fixes auth/pairing state.
-- Voice Wake and Talk contend for the same microphone; Talk suppresses wake capture while active.
-- APNs reliability depends on local signing/provisioning/topic alignment.
-- Expect rough UX edges and occasional reconnect churn during active development.
+- 前台优先：iOS 可能在后台挂起套接字；重连恢复仍在调优中。
+- 后台命令限制严格：`canvas.*`、`camera.*`、`screen.*` 和 `talk.*` 在后台时被阻止。
+- 后台位置需要 `始终` 位置权限。
+- 配对/认证错误会故意暂停重连循环，直到人工修复认证/配对状态。
+- 语音唤醒和通话争用同一个麦克风；通话在活跃时会抑制唤醒捕获。
+- APNs 可靠性取决于本地签名/配置/主题对齐。
+- 预计在活跃开发期间会有粗糙的用户体验边缘和偶尔的重连抖动。
 
-## Current In-Progress Workstream
+## 当前进行中的工作流
 
-Automatic wake/reconnect hardening:
+自动唤醒/重连加固：
 
-- improve wake/resume behavior across scene transitions
-- reduce dead-socket states after background -> foreground
-- tighten node/operator session reconnect coordination
-- reduce manual recovery steps after transient network failures
+- 改善跨场景转换的唤醒/恢复行为
+- 减少后台 -> 前台后的死套接字状态
+- 收紧节点/操作者会话重连协调
+- 减少暂时性网络故障后的手动恢复步骤
 
-## Debugging Checklist
+## 调试清单
 
-1. Confirm build/signing baseline:
-   - regenerate project (`xcodegen generate`)
-   - verify selected team + bundle IDs
-2. In app `Settings -> Gateway`:
-   - confirm status text, server, and remote address
-   - verify whether status shows pairing/auth gating
-3. If pairing is required:
-   - run `/pair approve` from Telegram, then reconnect
-4. If discovery is flaky:
-   - enable `Discovery Debug Logs`
-   - inspect `Settings -> Gateway -> Discovery Logs`
-5. If network path is unclear:
-   - switch to manual host/port + TLS in Gateway Advanced settings
-6. In Xcode console, filter for subsystem/category signals:
+1. 确认构建/签名基线：
+   - 重新生成项目（`xcodegen generate`）
+   - 验证选择的团队 + Bundle ID
+2. 在应用 `设置 -> Gateway` 中：
+   - 确认状态文本、服务器和远程地址
+   - 验证状态是否显示配对/认证门控
+3. 如果需要配对：
+   - 从 Telegram 运行 `/pair approve`，然后重新连接
+4. 如果发现不稳定：
+   - 启用 `发现调试日志`
+   - 检查 `设置 -> Gateway -> 发现日志`
+5. 如果网络路径不清楚：
+   - 在 Gateway 高级设置中切换到手动主机/端口 + TLS
+6. 在 Xcode 控制台中，按子系统/类别信号过滤：
    - `ai.openclaw.ios`
    - `GatewayDiag`
    - `APNs registration failed`
-7. Validate background expectations:
-   - repro in foreground first
-   - then test background transitions and confirm reconnect on return
+7. 验证后台期望：
+   - 先在前台复现
+   - 然后测试后台转换并确认返回时重连

@@ -1,30 +1,29 @@
 ---
-summary: "Poll sending via gateway + CLI"
 read_when:
-  - Adding or modifying poll support
-  - Debugging poll sends from the CLI or gateway
-title: "Polls"
+  - 添加或修改投票支持
+  - 调试从 CLI 或 Gateway 网关发送的投票
+summary: 通过 Gateway 网关 + CLI 发送投票
+title: 投票
+x-i18n:
+  generated_at: "2026-02-03T07:43:12Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 760339865d27ec40def7996cac1d294d58ab580748ad6b32cc34d285d0314eaf
+  source_path: automation/poll.md
+  workflow: 15
 ---
 
-# Polls
+# 投票
 
-## Supported channels
+## 支持的渠道
 
-- Telegram
-- WhatsApp (web channel)
+- WhatsApp（Web 渠道）
 - Discord
-- MS Teams (Adaptive Cards)
+- MS Teams（Adaptive Cards）
 
 ## CLI
 
 ```bash
-# Telegram
-openclaw message poll --channel telegram --target 123456789 \
-  --poll-question "Ship it?" --poll-option "Yes" --poll-option "No"
-openclaw message poll --channel telegram --target -1001234567890:topic:42 \
-  --poll-question "Pick a time" --poll-option "10am" --poll-option "2pm" \
-  --poll-duration-seconds 300
-
 # WhatsApp
 openclaw message poll --target +15555550123 \
   --poll-question "Lunch today?" --poll-option "Yes" --poll-option "No" --poll-option "Maybe"
@@ -42,45 +41,36 @@ openclaw message poll --channel msteams --target conversation:19:abc@thread.tacv
   --poll-question "Lunch?" --poll-option "Pizza" --poll-option "Sushi"
 ```
 
-Options:
+选项：
 
-- `--channel`: `whatsapp` (default), `telegram`, `discord`, or `msteams`
-- `--poll-multi`: allow selecting multiple options
-- `--poll-duration-hours`: Discord-only (defaults to 24 when omitted)
-- `--poll-duration-seconds`: Telegram-only (5-600 seconds)
-- `--poll-anonymous` / `--poll-public`: Telegram-only poll visibility
+- `--channel`：`whatsapp`（默认）、`discord` 或 `msteams`
+- `--poll-multi`：允许选择多个选项
+- `--poll-duration-hours`：仅限 Discord（省略时默认为 24）
 
-## Gateway RPC
+## Gateway 网关 RPC
 
-Method: `poll`
+方法：`poll`
 
-Params:
+参数：
 
-- `to` (string, required)
-- `question` (string, required)
-- `options` (string[], required)
-- `maxSelections` (number, optional)
-- `durationHours` (number, optional)
-- `durationSeconds` (number, optional, Telegram-only)
-- `isAnonymous` (boolean, optional, Telegram-only)
-- `channel` (string, optional, default: `whatsapp`)
-- `idempotencyKey` (string, required)
+- `to`（字符串，必需）
+- `question`（字符串，必需）
+- `options`（字符串数组，必需）
+- `maxSelections`（数字，可选）
+- `durationHours`（数字，可选）
+- `channel`（字符串，可选，默认：`whatsapp`）
+- `idempotencyKey`（字符串，必需）
 
-## Channel differences
+## 渠道差异
 
-- Telegram: 2-10 options. Supports forum topics via `threadId` or `:topic:` targets. Uses `durationSeconds` instead of `durationHours`, limited to 5-600 seconds. Supports anonymous and public polls.
-- WhatsApp: 2-12 options, `maxSelections` must be within option count, ignores `durationHours`.
-- Discord: 2-10 options, `durationHours` clamped to 1-768 hours (default 24). `maxSelections > 1` enables multi-select; Discord does not support a strict selection count.
-- MS Teams: Adaptive Card polls (OpenClaw-managed). No native poll API; `durationHours` is ignored.
+- WhatsApp：2-12 个选项，`maxSelections` 必须在选项数量范围内，忽略 `durationHours`。
+- Discord：2-10 个选项，`durationHours` 限制在 1-768 小时之间（默认 24）。`maxSelections > 1` 启用多选；Discord 不支持严格的选择数量限制。
+- MS Teams：Adaptive Card 投票（由 OpenClaw 管理）。无原生投票 API；`durationHours` 被忽略。
 
-## Agent tool (Message)
+## 智能体工具（Message）
 
-Use the `message` tool with `poll` action (`to`, `pollQuestion`, `pollOption`, optional `pollMulti`, `pollDurationHours`, `channel`).
+使用 `message` 工具的 `poll` 操作（`to`、`pollQuestion`、`pollOption`，可选 `pollMulti`、`pollDurationHours`、`channel`）。
 
-For Telegram, the tool also accepts `pollDurationSeconds`, `pollAnonymous`, and `pollPublic`.
-
-Use `action: "poll"` for poll creation. Poll fields passed with `action: "send"` are rejected.
-
-Note: Discord has no “pick exactly N” mode; `pollMulti` maps to multi-select.
-Teams polls are rendered as Adaptive Cards and require the gateway to stay online
-to record votes in `~/.openclaw/msteams-polls.json`.
+注意：Discord 没有"恰好选择 N 个"模式；`pollMulti` 映射为多选。
+Teams 投票以 Adaptive Cards 形式渲染，需要 Gateway 网关保持在线
+以将投票记录到 `~/.openclaw/msteams-polls.json`。

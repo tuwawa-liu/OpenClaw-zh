@@ -1,51 +1,47 @@
 ---
-summary: "Overview of OpenClaw onboarding options and flows"
+summary: "OpenClaw 入门选项和流程概览"
 read_when:
-  - Choosing an onboarding path
-  - Setting up a new environment
-title: "Onboarding Overview"
-sidebarTitle: "Onboarding Overview"
+  - 选择入门路径
+  - 设置新环境
+title: "入门概览"
+sidebarTitle: "入门概览"
 ---
 
-# Onboarding Overview
+# 入门概览
 
-OpenClaw supports multiple onboarding paths depending on where the Gateway runs
-and how you prefer to configure providers.
+OpenClaw 支持多种入门路径，取决于 Gateway 运行的位置以及你偏好的提供商配置方式。
 
-## Choose your onboarding path
+## 选择入门路径
 
-- **CLI wizard** for macOS, Linux, and Windows (via WSL2).
-- **macOS app** for a guided first run on Apple silicon or Intel Macs.
+- **CLI 向导**：适用于 macOS、Linux 和 Windows（通过 WSL2）。
+- **macOS 应用**：适用于在 Apple 芯片或 Intel Mac 上引导式首次运行。
 
-## CLI onboarding wizard
+## CLI 入门向导
 
-Run the wizard in a terminal:
+在终端中运行向导：
 
 ```bash
 openclaw onboard
 ```
 
-Use the CLI wizard when you want full control of the Gateway, workspace,
-channels, and skills. Docs:
+当你需要完全控制 Gateway、工作区、频道和技能时，请使用 CLI 向导。文档：
 
-- [Onboarding Wizard (CLI)](/start/wizard)
-- [`openclaw onboard` command](/cli/onboard)
+- [入门向导（CLI）](/start/wizard)
+- [`openclaw onboard` 命令](/cli/onboard)
 
-## macOS app onboarding
+## macOS 应用入门
 
-Use the OpenClaw app when you want a fully guided setup on macOS. Docs:
+当你需要在 macOS 上进行全引导式配置时，请使用 OpenClaw 应用。文档：
 
-- [Onboarding (macOS App)](/start/onboarding)
+- [入门引导（macOS 应用）](/start/onboarding)
 
-## Custom Provider
+## 自定义提供商
 
-If you need an endpoint that is not listed, including hosted providers that
-expose standard OpenAI or Anthropic APIs, choose **Custom Provider** in the
-CLI wizard. You will be asked to:
+如果你需要的端点未在列表中，包括提供标准 OpenAI 或 Anthropic API 的托管服务商，请在 CLI 向导中选择 **Custom Provider（自定义提供商）**。系统会要求你：
 
-- Pick OpenAI-compatible, Anthropic-compatible, or **Unknown** (auto-detect).
-- Enter a base URL and API key (if required by the provider).
-- Provide a model ID and optional alias.
-- Choose an Endpoint ID so multiple custom endpoints can coexist.
+- 选择 OpenAI 兼容、Anthropic 兼容，或 **Unknown（未知）**（自动检测）。
+- 输入基础 URL 和 API 密钥（如果提供商要求）。
+- 提供模型 ID 和可选别名。
+- 选择端点 ID，以便多个自定义端点可以共存。
 
-For detailed steps, follow the CLI onboarding docs above.
+详细步骤请参阅上方的 CLI 入门文档。

@@ -1,23 +1,30 @@
 ---
-title: Sandbox CLI
-summary: "Manage sandbox containers and inspect effective sandbox policy"
-read_when: "You are managing sandbox containers or debugging sandbox/tool-policy behavior."
+read_when: You are managing sandbox containers or debugging sandbox/tool-policy behavior.
 status: active
+summary: 管理沙箱容器并检查生效的沙箱策略
+title: 沙箱 CLI
+x-i18n:
+  generated_at: "2026-02-03T07:45:18Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 6e1186f26c77e188206ce5e198ab624d6b38bc7bb7c06e4d2281b6935c39e347
+  source_path: cli/sandbox.md
+  workflow: 15
 ---
 
-# Sandbox CLI
+# 沙箱 CLI
 
-Manage Docker-based sandbox containers for isolated agent execution.
+管理基于 Docker 的沙箱容器，用于隔离智能体执行。
 
-## Overview
+## 概述
 
-OpenClaw can run agents in isolated Docker containers for security. The `sandbox` commands help you manage these containers, especially after updates or configuration changes.
+OpenClaw 可以在隔离的 Docker 容器中运行智能体以确保安全。`sandbox` 命令帮助你管理这些容器，特别是在更新或配置更改后。
 
-## Commands
+## 命令
 
 ### `openclaw sandbox explain`
 
-Inspect the **effective** sandbox mode/scope/workspace access, sandbox tool policy, and elevated gates (with fix-it config key paths).
+检查**生效的**沙箱模式/作用域/工作区访问权限、沙箱工具策略和提权门控（附带修复配置的键路径）。
 
 ```bash
 openclaw sandbox explain
@@ -28,7 +35,7 @@ openclaw sandbox explain --json
 
 ### `openclaw sandbox list`
 
-List all sandbox containers with their status and configuration.
+列出所有沙箱容器及其状态和配置。
 
 ```bash
 openclaw sandbox list
@@ -36,17 +43,17 @@ openclaw sandbox list --browser  # List only browser containers
 openclaw sandbox list --json     # JSON output
 ```
 
-**Output includes:**
+**输出包括：**
 
-- Container name and status (running/stopped)
-- Docker image and whether it matches config
-- Age (time since creation)
-- Idle time (time since last use)
-- Associated session/agent
+- 容器名称和状态（运行中/已停止）
+- Docker 镜像及其是否与配置匹配
+- 创建时间
+- 空闲时间（自上次使用以来的时间）
+- 关联的会话/智能体
 
 ### `openclaw sandbox recreate`
 
-Remove sandbox containers to force recreation with updated images/config.
+移除沙箱容器以强制使用更新的镜像/配置重新创建。
 
 ```bash
 openclaw sandbox recreate --all                # Recreate all containers
@@ -56,19 +63,19 @@ openclaw sandbox recreate --browser            # Only browser containers
 openclaw sandbox recreate --all --force        # Skip confirmation
 ```
 
-**Options:**
+**选项：**
 
-- `--all`: Recreate all sandbox containers
-- `--session <key>`: Recreate container for specific session
-- `--agent <id>`: Recreate containers for specific agent
-- `--browser`: Only recreate browser containers
-- `--force`: Skip confirmation prompt
+- `--all`：重新创建所有沙箱容器
+- `--session <key>`：重新创建特定会话的容器
+- `--agent <id>`：重新创建特定智能体的容器
+- `--browser`：仅重新创建浏览器容器
+- `--force`：跳过确认提示
 
-**Important:** Containers are automatically recreated when the agent is next used.
+**重要：** 容器会在智能体下次使用时自动重新创建。
 
-## Use Cases
+## 使用场景
 
-### After updating Docker images
+### 更新 Docker 镜像后
 
 ```bash
 # Pull new image
@@ -82,7 +89,7 @@ docker tag openclaw-sandbox:latest openclaw-sandbox:bookworm-slim
 openclaw sandbox recreate --all
 ```
 
-### After changing sandbox configuration
+### 更改沙箱配置后
 
 ```bash
 # Edit config: agents.defaults.sandbox.* (or agents.list[].sandbox.*)
@@ -91,7 +98,7 @@ openclaw sandbox recreate --all
 openclaw sandbox recreate --all
 ```
 
-### After changing setupCommand
+### 更改 setupCommand 后
 
 ```bash
 openclaw sandbox recreate --all
@@ -99,29 +106,28 @@ openclaw sandbox recreate --all
 openclaw sandbox recreate --agent family
 ```
 
-### For a specific agent only
+### 仅针对特定智能体
 
 ```bash
 # Update only one agent's containers
 openclaw sandbox recreate --agent alfred
 ```
 
-## Why is this needed?
+## 为什么需要这个？
 
-**Problem:** When you update sandbox Docker images or configuration:
+**问题：** 当你更新沙箱 Docker 镜像或配置时：
 
-- Existing containers continue running with old settings
-- Containers are only pruned after 24h of inactivity
-- Regularly-used agents keep old containers running indefinitely
+- 现有容器继续使用旧设置运行
+- 容器仅在空闲 24 小时后才被清理
+- 经常使用的智能体会无限期保持旧容器运行
 
-**Solution:** Use `openclaw sandbox recreate` to force removal of old containers. They'll be recreated automatically with current settings when next needed.
+**解决方案：** 使用 `openclaw sandbox recreate` 强制移除旧容器。它们会在下次需要时自动使用当前设置重新创建。
 
-Tip: prefer `openclaw sandbox recreate` over manual `docker rm`. It uses the
-Gateway’s container naming and avoids mismatches when scope/session keys change.
+提示：优先使用 `openclaw sandbox recreate` 而不是手动 `docker rm`。它使用 Gateway 网关的容器命名规则，避免在作用域/会话键更改时出现不匹配。
 
-## Configuration
+## 配置
 
-Sandbox settings live in `~/.openclaw/openclaw.json` under `agents.defaults.sandbox` (per-agent overrides go in `agents.list[].sandbox`):
+沙箱设置位于 `~/.openclaw/openclaw.json` 的 `agents.defaults.sandbox` 下（每个智能体的覆盖设置在 `agents.list[].sandbox` 中）：
 
 ```jsonc
 {
@@ -145,8 +151,8 @@ Sandbox settings live in `~/.openclaw/openclaw.json` under `agents.defaults.sand
 }
 ```
 
-## See Also
+## 另请参阅
 
-- [Sandbox Documentation](/gateway/sandboxing)
-- [Agent Configuration](/concepts/agent-workspace)
-- [Doctor Command](/gateway/doctor) - Check sandbox setup
+- [沙箱文档](/gateway/sandboxing)
+- [智能体配置](/concepts/agent-workspace)
+- [Doctor 命令](/gateway/doctor) - 检查沙箱设置

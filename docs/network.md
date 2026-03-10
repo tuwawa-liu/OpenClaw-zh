@@ -1,54 +1,59 @@
 ---
-summary: "Network hub: gateway surfaces, pairing, discovery, and security"
 read_when:
-  - You need the network architecture + security overview
-  - You are debugging local vs tailnet access or pairing
-  - You want the canonical list of networking docs
-title: "Network"
+  - 你需要了解网络架构和安全概述
+  - 你正在调试本地访问、tailnet 访问或配对问题
+  - 你想要获取网络文档的权威列表
+summary: 网络中心：Gateway 网关接口、配对、设备发现和安全
+title: 网络
+x-i18n:
+  generated_at: "2026-02-03T10:07:45Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 0fe4e7dbc8ddea312c8f3093af9b6bc71d9ae4007df76ae24b85889871933bc8
+  source_path: network.md
+  workflow: 15
 ---
 
-# Network hub
+# 网络中心
 
-This hub links the core docs for how OpenClaw connects, pairs, and secures
-devices across localhost, LAN, and tailnet.
+本中心汇集了 OpenClaw 如何在 localhost、局域网和 tailnet 之间连接、配对和保护设备的核心文档。
 
-## Core model
+## 核心模型
 
-- [Gateway architecture](/concepts/architecture)
-- [Gateway protocol](/gateway/protocol)
-- [Gateway runbook](/gateway)
-- [Web surfaces + bind modes](/web)
+- [Gateway 网关架构](/concepts/architecture)
+- [Gateway 网关协议](/gateway/protocol)
+- [Gateway 网关运维手册](/gateway)
+- [Web 接口 + 绑定模式](/web)
 
-## Pairing + identity
+## 配对 + 身份
 
-- [Pairing overview (DM + nodes)](/channels/pairing)
-- [Gateway-owned node pairing](/gateway/pairing)
-- [Devices CLI (pairing + token rotation)](/cli/devices)
-- [Pairing CLI (DM approvals)](/cli/pairing)
+- [配对概述（私信 + 节点）](/channels/pairing)
+- [Gateway 网关拥有的节点配对](/gateway/pairing)
+- [Devices CLI（配对 + token 轮换）](/cli/devices)
+- [Pairing CLI（私信审批）](/cli/pairing)
 
-Local trust:
+本地信任：
 
-- Local connections (loopback or the gateway host’s own tailnet address) can be
-  auto‑approved for pairing to keep same‑host UX smooth.
-- Non‑local tailnet/LAN clients still require explicit pairing approval.
+- 本地连接（loopback 或 Gateway 网关主机自身的 tailnet 地址）可以自动批准配对，以保持同主机用户体验的流畅性。
+- 非本地的 tailnet/局域网客户端仍需要显式的配对批准。
 
-## Discovery + transports
+## 设备发现 + 传输协议
 
-- [Discovery & transports](/gateway/discovery)
+- [设备发现与传输协议](/gateway/discovery)
 - [Bonjour / mDNS](/gateway/bonjour)
-- [Remote access (SSH)](/gateway/remote)
+- [远程访问（SSH）](/gateway/remote)
 - [Tailscale](/gateway/tailscale)
 
-## Nodes + transports
+## 节点 + 传输协议
 
-- [Nodes overview](/nodes)
-- [Bridge protocol (legacy nodes)](/gateway/bridge-protocol)
-- [Node runbook: iOS](/platforms/ios)
-- [Node runbook: Android](/platforms/android)
+- [节点概述](/nodes)
+- [桥接协议（旧版节点）](/gateway/bridge-protocol)
+- [节点运维手册：iOS](/platforms/ios)
+- [节点运维手册：Android](/platforms/android)
 
-## Security
+## 安全
 
-- [Security overview](/gateway/security)
-- [Gateway config reference](/gateway/configuration)
-- [Troubleshooting](/gateway/troubleshooting)
+- [安全概述](/gateway/security)
+- [Gateway 网关配置参考](/gateway/configuration)
+- [故障排除](/gateway/troubleshooting)
 - [Doctor](/gateway/doctor)

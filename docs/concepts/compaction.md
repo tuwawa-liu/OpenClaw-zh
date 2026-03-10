@@ -1,104 +1,67 @@
 ---
-summary: "Context window + compaction: how OpenClaw keeps sessions under model limits"
 read_when:
-  - You want to understand auto-compaction and /compact
-  - You are debugging long sessions hitting context limits
-title: "Compaction"
+  - 你想了解自动压缩和 /compact
+  - 你正在调试长会话触及上下文限制的问题
+summary: 上下文窗口 + 压缩：OpenClaw 如何将会话保持在模型限制内
+title: 压缩
+x-i18n:
+  generated_at: "2026-02-01T20:22:17Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: e1d6791f2902044b5798ebf9320a7d055d37211eff4be03caa35d7e328ae803c
+  source_path: concepts/compaction.md
+  workflow: 14
 ---
 
-# Context Window & Compaction
+# 上下文窗口与压缩
 
-Every model has a **context window** (max tokens it can see). Long-running chats accumulate messages and tool results; once the window is tight, OpenClaw **compacts** older history to stay within limits.
+每个模型都有一个**上下文窗口**（可见的最大 token 数）。长时间运行的对话会累积消息和工具结果；一旦窗口空间紧张，OpenClaw 会**压缩**较早的历史记录以保持在限制范围内。
 
-## What compaction is
+## 什么是压缩
 
-Compaction **summarizes older conversation** into a compact summary entry and keeps recent messages intact. The summary is stored in the session history, so future requests use:
+压缩会将**较早的对话总结**为一条紧凑的摘要条目，并保持近期消息不变。摘要存储在会话历史中，因此后续请求使用的是：
 
-- The compaction summary
-- Recent messages after the compaction point
+- 压缩摘要
+- 压缩点之后的近期消息
 
-Compaction **persists** in the session’s JSONL history.
+压缩会**持久化**到会话的 JSONL 历史记录中。
 
-## Configuration
+## 配置
 
-Use the `agents.defaults.compaction` setting in your `openclaw.json` to configure compaction behavior (mode, target tokens, etc.).
-Compaction summarization preserves opaque identifiers by default (`identifierPolicy: "strict"`). You can override this with `identifierPolicy: "off"` or provide custom text with `identifierPolicy: "custom"` and `identifierInstructions`.
+有关 `agents.defaults.compaction` 设置，请参阅[压缩配置与模式](/concepts/compaction)。
 
-You can optionally specify a different model for compaction summarization via `agents.defaults.compaction.model`. This is useful when your primary model is a local or small model and you want compaction summaries produced by a more capable model. The override accepts any `provider/model-id` string:
+## 自动压缩（默认开启）
 
-```json
-{
-  "agents": {
-    "defaults": {
-      "compaction": {
-        "model": "openrouter/anthropic/claude-sonnet-4-5"
-      }
-    }
-  }
-}
-```
+当会话接近或超过模型的上下文窗口时，OpenClaw 会触发自动压缩，并可能使用压缩后的上下文重试原始请求。
 
-This also works with local models, for example a second Ollama model dedicated to summarization or a fine-tuned compaction specialist:
+你会看到：
 
-```json
-{
-  "agents": {
-    "defaults": {
-      "compaction": {
-        "model": "ollama/llama3.1:8b"
-      }
-    }
-  }
-}
-```
+- 详细模式下显示 `🧹 Auto-compaction complete`
+- `/status` 显示 `🧹 Compactions: <count>`
 
-When unset, compaction uses the agent's primary model.
+在压缩之前，OpenClaw 可以运行一次**静默记忆刷写**轮次，将持久化笔记写入磁盘。详情及配置请参阅[记忆](/concepts/memory)。
 
-## Auto-compaction (default on)
+## 手动压缩
 
-When a session nears or exceeds the model’s context window, OpenClaw triggers auto-compaction and may retry the original request using the compacted context.
-
-You’ll see:
-
-- `🧹 Auto-compaction complete` in verbose mode
-- `/status` showing `🧹 Compactions: <count>`
-
-Before compaction, OpenClaw can run a **silent memory flush** turn to store
-durable notes to disk. See [Memory](/concepts/memory) for details and config.
-
-## Manual compaction
-
-Use `/compact` (optionally with instructions) to force a compaction pass:
+使用 `/compact`（可选附带指令）强制执行一次压缩：
 
 ```
 /compact Focus on decisions and open questions
 ```
 
-## Context window source
+## 上下文窗口来源
 
-Context window is model-specific. OpenClaw uses the model definition from the configured provider catalog to determine limits.
+上下文窗口因模型而异。OpenClaw 使用已配置提供商目录中的模型定义来确定限制。
 
-## Compaction vs pruning
+## 压缩与修剪
 
-- **Compaction**: summarises and **persists** in JSONL.
-- **Session pruning**: trims old **tool results** only, **in-memory**, per request.
+- **压缩**：总结并**持久化**到 JSONL 中。
+- **会话修剪**：仅裁剪旧的**工具结果**，**在内存中**按请求进行。
 
-See [/concepts/session-pruning](/concepts/session-pruning) for pruning details.
+有关修剪的详情，请参阅 [/concepts/session-pruning](/concepts/session-pruning)。
 
-## OpenAI server-side compaction
+## 提示
 
-OpenClaw also supports OpenAI Responses server-side compaction hints for
-compatible direct OpenAI models. This is separate from local OpenClaw
-compaction and can run alongside it.
-
-- Local compaction: OpenClaw summarizes and persists into session JSONL.
-- Server-side compaction: OpenAI compacts context on the provider side when
-  `store` + `context_management` are enabled.
-
-See [OpenAI provider](/providers/openai) for model params and overrides.
-
-## Tips
-
-- Use `/compact` when sessions feel stale or context is bloated.
-- Large tool outputs are already truncated; pruning can further reduce tool-result buildup.
-- If you need a fresh slate, `/new` or `/reset` starts a new session id.
+- 当会话感觉过时或上下文臃肿时，使用 `/compact`。
+- 大型工具输出已被截断；修剪可以进一步减少工具结果的堆积。
+- 如果你需要全新开始，`/new` 或 `/reset` 会启动一个新的会话 ID。

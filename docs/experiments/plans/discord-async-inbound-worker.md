@@ -1,240 +1,240 @@
 ---
-summary: "Status and next steps for decoupling Discord gateway listeners from long-running agent turns with a Discord-specific inbound worker"
+summary: "将 Discord 网关监听器与长时间运行代理回合解耦的状态和后续步骤，使用 Discord 专用的入站 worker"
 owner: "openclaw"
 status: "in_progress"
 last_updated: "2026-03-05"
-title: "Discord Async Inbound Worker Plan"
+title: "Discord 异步入站 Worker 计划"
 ---
 
-# Discord Async Inbound Worker Plan
+# Discord 异步入站 Worker 计划
 
-## Objective
+## 目标
 
-Remove Discord listener timeout as a user-facing failure mode by making inbound Discord turns asynchronous:
+通过使入站 Discord 回合异步化，消除 Discord 监听器超时作为面向用户的故障模式：
 
-1. Gateway listener accepts and normalizes inbound events quickly.
-2. A Discord run queue stores serialized jobs keyed by the same ordering boundary we use today.
-3. A worker executes the actual agent turn outside the Carbon listener lifetime.
-4. Replies are delivered back to the originating channel or thread after the run completes.
+1. 网关监听器快速接受并规范化入站事件。
+2. Discord 运行队列按与我们今天使用的相同排序边界键存储序列化作业。
+3. Worker 在 Carbon 监听器生命周期之外执行实际代理回合。
+4. 运行完成后将回复交付回原始频道或线程。
 
-This is the long-term fix for queued Discord runs timing out at `channels.discord.eventQueue.listenerTimeout` while the agent run itself is still making progress.
+这是长期修复排队的 Discord 运行在 `channels.discord.eventQueue.listenerTimeout` 超时而代理运行本身仍在进行的问题。
 
-## Current status
+## 当前状态
 
-This plan is partially implemented.
+本计划已部分实现。
 
-Already done:
+已完成：
 
-- Discord listener timeout and Discord run timeout are now separate settings.
-- Accepted inbound Discord turns are enqueued into `src/discord/monitor/inbound-worker.ts`.
-- The worker now owns the long-running turn instead of the Carbon listener.
-- Existing per-route ordering is preserved by queue key.
-- Timeout regression coverage exists for the Discord worker path.
+- Discord 监听器超时和 Discord 运行超时现在是独立的设置。
+- 已接受的入站 Discord 回合被排入 `src/discord/monitor/inbound-worker.ts`。
+- Worker 现在拥有长时间运行的回合而不是 Carbon 监听器。
+- 现有的每路由排序得到保留。
+- Discord worker 路径存在超时回归覆盖。
 
-What this means in plain language:
+简单来说：
 
-- the production timeout bug is fixed
-- the long-running turn no longer dies just because the Discord listener budget expires
-- the worker architecture is not finished yet
+- 生产超时 bug 已修复
+- 长时间运行的回合不再仅因为 Discord 监听器预算到期而死亡
+- worker 架构尚未完成
 
-What is still missing:
+仍然缺失的：
 
-- `DiscordInboundJob` is still only partially normalized and still carries live runtime references
-- command semantics (`stop`, `new`, `reset`, future session controls) are not yet fully worker-native
-- worker observability and operator status are still minimal
-- there is still no restart durability
+- `DiscordInboundJob` 仍然只是部分规范化，仍携带实时运行时引用
+- 命令语义（`stop`、`new`、`reset`、未来会话控制）尚未完全 worker 本地化
+- worker 可观测性和运维状态仍然很少
+- 仍然没有重启持久性
 
-## Why this exists
+## 为什么存在这个计划
 
-Current behavior ties the full agent turn to the listener lifetime:
+当前行为将完整的代理回合与监听器生命周期绑定：
 
-- `src/discord/monitor/listeners.ts` applies the timeout and abort boundary.
-- `src/discord/monitor/message-handler.ts` keeps the queued run inside that boundary.
-- `src/discord/monitor/message-handler.process.ts` performs media loading, routing, dispatch, typing, draft streaming, and final reply delivery inline.
+- `src/discord/monitor/listeners.ts` 应用超时和中止边界。
+- `src/discord/monitor/message-handler.ts` 将排队的运行保持在该边界内。
+- `src/discord/monitor/message-handler.process.ts` 内联执行媒体加载、路由、分发、打字状态、草稿流和最终回复交付。
 
-That architecture has two bad properties:
+该架构有两个不好的特性：
 
-- long but healthy turns can be aborted by the listener watchdog
-- users can see no reply even when the downstream runtime would have produced one
+- 长但健康的回合可能被监听器看门狗中止
+- 即使下游运行时本会产生回复，用户也可能看不到回复
 
-Raising the timeout helps but does not change the failure mode.
+增加超时有帮助但不改变故障模式。
 
-## Non-goals
+## 非目标
 
-- Do not redesign non-Discord channels in this pass.
-- Do not broaden this into a generic all-channel worker framework in the first implementation.
-- Do not extract a shared cross-channel inbound worker abstraction yet; only share low-level primitives when duplication is obvious.
-- Do not add durable crash recovery in the first pass unless needed to land safely.
-- Do not change route selection, binding semantics, or ACP policy in this plan.
+- 本轮不重新设计非 Discord 频道。
+- 在首次实现中不将其扩展为通用的全频道 worker 框架。
+- 尚不提取共享的跨频道入站 worker 抽象；仅在重复明显时共享低级原语。
+- 首轮不添加持久崩溃恢复，除非安全着陆必需。
+- 不改变路由选择、绑定语义或 ACP 策略。
 
-## Current constraints
+## 当前约束
 
-The current Discord processing path still depends on some live runtime objects that should not stay inside the long-term job payload:
+当前的 Discord 处理路径仍然依赖一些不应留在长期作业负载内的实时运行时对象：
 
 - Carbon `Client`
-- raw Discord event shapes
-- in-memory guild history map
-- thread binding manager callbacks
-- live typing and draft stream state
+- 原始 Discord 事件结构
+- 内存中的公会历史映射
+- 线程绑定管理器回调
+- 实时打字和草稿流状态
 
-We already moved execution onto a worker queue, but the normalization boundary is still incomplete. Right now the worker is "run later in the same process with some of the same live objects," not a fully data-only job boundary.
+我们已经将执行移到了 worker 队列上，但规范化边界仍然不完整。现在 worker 是"稍后在同一进程中运行，带有一些相同的实时对象"，而不是一个完全数据化的作业边界。
 
-## Target architecture
+## 目标架构
 
-### 1. Listener stage
+### 1. 监听器阶段
 
-`DiscordMessageListener` remains the ingress point, but its job becomes:
+`DiscordMessageListener` 仍然是入口点，但其工作变为：
 
-- run preflight and policy checks
-- normalize accepted input into a serializable `DiscordInboundJob`
-- enqueue the job into a per-session or per-channel async queue
-- return immediately to Carbon once the enqueue succeeds
+- 运行预检和策略检查
+- 将接受的输入规范化为可序列化的 `DiscordInboundJob`
+- 将作业排入每会话或每频道的异步队列
+- 排入成功后立即返回给 Carbon
 
-The listener should no longer own the end-to-end LLM turn lifetime.
+监听器不应再拥有端到端的 LLM 回合生命周期。
 
-### 2. Normalized job payload
+### 2. 规范化的作业负载
 
-Introduce a serializable job descriptor that contains only the data needed to run the turn later.
+引入一个可序列化的作业描述符，仅包含稍后运行回合所需的数据。
 
-Minimum shape:
+最小结构：
 
-- route identity
+- 路由身份
   - `agentId`
   - `sessionKey`
   - `accountId`
   - `channel`
-- delivery identity
-  - destination channel id
-  - reply target message id
-  - thread id if present
-- sender identity
-  - sender id, label, username, tag
-- channel context
-  - guild id
-  - channel name or slug
-  - thread metadata
-  - resolved system prompt override
-- normalized message body
-  - base text
-  - effective message text
-  - attachment descriptors or resolved media references
-- gating decisions
-  - mention requirement outcome
-  - command authorization outcome
-  - bound session or agent metadata if applicable
+- 交付身份
+  - 目标频道 ID
+  - 回复目标消息 ID
+  - 线程 ID（如果存在）
+- 发送者身份
+  - 发送者 ID、标签、用户名、tag
+- 频道上下文
+  - 公会 ID
+  - 频道名称或 slug
+  - 线程元数据
+  - 解析的系统提示覆盖
+- 规范化的消息体
+  - 基础文本
+  - 有效消息文本
+  - 附件描述符或已解析的媒体引用
+- 门控决策
+  - 提及要求结果
+  - 命令授权结果
+  - 绑定会话或代理元数据（如适用）
 
-The job payload must not contain live Carbon objects or mutable closures.
+作业负载不得包含实时 Carbon 对象或可变闭包。
 
-Current implementation status:
+当前实现状态：
 
-- partially done
-- `src/discord/monitor/inbound-job.ts` exists and defines the worker handoff
-- the payload still contains live Discord runtime context and should be reduced further
+- 部分完成
+- `src/discord/monitor/inbound-job.ts` 已存在并定义了 worker 交接
+- 负载仍包含实时 Discord 运行时上下文，应进一步精简
 
-### 3. Worker stage
+### 3. Worker 阶段
 
-Add a Discord-specific worker runner responsible for:
+添加一个 Discord 专用的 worker 运行器，负责：
 
-- reconstructing the turn context from `DiscordInboundJob`
-- loading media and any additional channel metadata needed for the run
-- dispatching the agent turn
-- delivering final reply payloads
-- updating status and diagnostics
+- 从 `DiscordInboundJob` 重建回合上下文
+- 加载媒体和运行所需的任何额外频道元数据
+- 分发代理回合
+- 交付最终回复负载
+- 更新状态和诊断
 
-Recommended location:
+推荐位置：
 
 - `src/discord/monitor/inbound-worker.ts`
 - `src/discord/monitor/inbound-job.ts`
 
-### 4. Ordering model
+### 4. 排序模型
 
-Ordering must remain equivalent to today for a given route boundary.
+对于给定的路由边界，排序必须保持与当前等效。
 
-Recommended key:
+推荐键：
 
-- use the same queue key logic as `resolveDiscordRunQueueKey(...)`
+- 使用与 `resolveDiscordRunQueueKey(...)` 相同的队列键逻辑
 
-This preserves existing behavior:
+这保持了现有行为：
 
-- one bound agent conversation does not interleave with itself
-- different Discord channels can still progress independently
+- 一个绑定代理的会话不会与自身交错
+- 不同的 Discord 频道仍然可以独立进行
 
-### 5. Timeout model
+### 5. 超时模型
 
-After cutover, there are two separate timeout classes:
+切换后有两个独立的超时类别：
 
-- listener timeout
-  - only covers normalization and enqueue
-  - should be short
-- run timeout
-  - optional, worker-owned, explicit, and user-visible
-  - should not be inherited accidentally from Carbon listener settings
+- 监听器超时
+  - 仅覆盖规范化和排入
+  - 应该很短
+- 运行超时
+  - 可选的、worker 拥有的、显式的、用户可见的
+  - 不应从 Carbon 监听器设置中意外继承
 
-This removes the current accidental coupling between "Discord gateway listener stayed alive" and "agent run is healthy."
+这消除了"Discord 网关监听器保持活跃"和"代理运行是否健康"之间的当前意外耦合。
 
-## Recommended implementation phases
+## 推荐的实现阶段
 
-### Phase 1: normalization boundary
+### 阶段 1：规范化边界
 
-- Status: partially implemented
-- Done:
-  - extracted `buildDiscordInboundJob(...)`
-  - added worker handoff tests
-- Remaining:
-  - make `DiscordInboundJob` plain data only
-  - move live runtime dependencies to worker-owned services instead of per-job payload
-  - stop rebuilding process context by stitching live listener refs back into the job
+- 状态：部分实现
+- 已完成：
+  - 提取了 `buildDiscordInboundJob(...)`
+  - 添加了 worker 交接测试
+- 剩余：
+  - 使 `DiscordInboundJob` 仅为纯数据
+  - 将实时运行时依赖移至 worker 拥有的服务而非每作业负载
+  - 停止通过将实时监听器引用缝合回作业来重建进程上下文
 
-### Phase 2: in-memory worker queue
+### 阶段 2：内存 worker 队列
 
-- Status: implemented
-- Done:
-  - added `DiscordInboundWorkerQueue` keyed by resolved run queue key
-  - listener enqueues jobs instead of directly awaiting `processDiscordMessage(...)`
-  - worker executes jobs in-process, in memory only
+- 状态：已实现
+- 已完成：
+  - 添加了按解析的运行队列键分键的 `DiscordInboundWorkerQueue`
+  - 监听器排入作业而不是直接等待 `processDiscordMessage(...)`
+  - Worker 在进程内、仅内存中执行作业
 
-This is the first functional cutover.
+这是第一个功能性切换。
 
-### Phase 3: process split
+### 阶段 3：进程拆分
 
-- Status: not started
-- Move delivery, typing, and draft streaming ownership behind worker-facing adapters.
-- Replace direct use of live preflight context with worker context reconstruction.
-- Keep `processDiscordMessage(...)` temporarily as a facade if needed, then split it.
+- 状态：未开始
+- 将交付、打字和草稿流所有权移至面向 worker 的适配器之后。
+- 用 worker 上下文重建替换对实时预检上下文的直接使用。
+- 如需要暂时保留 `processDiscordMessage(...)` 作为外观，然后拆分它。
 
-### Phase 4: command semantics
+### 阶段 4：命令语义
 
-- Status: not started
-  Make sure native Discord commands still behave correctly when work is queued:
+- 状态：未开始
+  确保 Discord 原生命令在工作排队时仍然正确行为：
 
 - `stop`
 - `new`
 - `reset`
-- any future session-control commands
+- 任何未来的会话控制命令
 
-The worker queue must expose enough run state for commands to target the active or queued turn.
+Worker 队列必须公开足够的运行状态，使命令可以定位活跃或排队的回合。
 
-### Phase 5: observability and operator UX
+### 阶段 5：可观测性和运维用户体验
 
-- Status: not started
-- emit queue depth and active worker counts into monitor status
-- record enqueue time, start time, finish time, and timeout or cancellation reason
-- surface worker-owned timeout or delivery failures clearly in logs
+- 状态：未开始
+- 将队列深度和活跃 worker 计数发送到监控状态
+- 记录排入时间、开始时间、完成时间和超时或取消原因
+- 在日志中清晰地展示 worker 拥有的超时或交付失败
 
-### Phase 6: optional durability follow-up
+### 阶段 6：可选持久性后续
 
-- Status: not started
-  Only after the in-memory version is stable:
+- 状态：未开始
+  仅在内存版本稳定后：
 
-- decide whether queued Discord jobs should survive gateway restart
-- if yes, persist job descriptors and delivery checkpoints
-- if no, document the explicit in-memory boundary
+- 决定排队的 Discord 作业是否应在网关重启后存活
+- 如果是，持久化作业描述符和交付检查点
+- 如果否，明确记录内存边界
 
-This should be a separate follow-up unless restart recovery is required to land.
+这应该是单独的后续，除非着陆需要重启恢复。
 
-## File impact
+## 文件影响
 
-Current primary files:
+当前主要文件：
 
 - `src/discord/monitor/listeners.ts`
 - `src/discord/monitor/message-handler.ts`
@@ -242,96 +242,96 @@ Current primary files:
 - `src/discord/monitor/message-handler.process.ts`
 - `src/discord/monitor/status.ts`
 
-Current worker files:
+当前 worker 文件：
 
 - `src/discord/monitor/inbound-job.ts`
 - `src/discord/monitor/inbound-worker.ts`
 - `src/discord/monitor/inbound-job.test.ts`
 - `src/discord/monitor/message-handler.queue.test.ts`
 
-Likely next touch points:
+可能的下一个接触点：
 
 - `src/auto-reply/dispatch.ts`
 - `src/discord/monitor/reply-delivery.ts`
 - `src/discord/monitor/thread-bindings.ts`
 - `src/discord/monitor/native-command.ts`
 
-## Next step now
+## 当前下一步
 
-The next step is to make the worker boundary real instead of partial.
+下一步是使 worker 边界成为真实而非部分的。
 
-Do this next:
+接下来做这些：
 
-1. Move live runtime dependencies out of `DiscordInboundJob`
-2. Keep those dependencies on the Discord worker instance instead
-3. Reduce queued jobs to plain Discord-specific data:
-   - route identity
-   - delivery target
-   - sender info
-   - normalized message snapshot
-   - gating and binding decisions
-4. Reconstruct worker execution context from that plain data inside the worker
+1. 将实时运行时依赖移出 `DiscordInboundJob`
+2. 将这些依赖保留在 Discord worker 实例上
+3. 将排队的作业减少为纯 Discord 特定数据：
+   - 路由身份
+   - 交付目标
+   - 发送者信息
+   - 规范化消息快照
+   - 门控和绑定决策
+4. 在 worker 内部从该纯数据重建 worker 执行上下文
 
-In practice, that means:
+实际上，这意味着：
 
 - `client`
 - `threadBindings`
 - `guildHistories`
 - `discordRestFetch`
-- other mutable runtime-only handles
+- 其他可变的仅运行时句柄
 
-should stop living on each queued job and instead live on the worker itself or behind worker-owned adapters.
+应该停止存在于每个排队的作业上，转而存在于 worker 本身或 worker 拥有的适配器之后。
 
-After that lands, the next follow-up should be command-state cleanup for `stop`, `new`, and `reset`.
+完成后，下一个后续应该是 `stop`、`new` 和 `reset` 的命令状态清理。
 
-## Testing plan
+## 测试计划
 
-Keep the existing timeout repro coverage in:
+保留以下现有的超时重现覆盖：
 
 - `src/discord/monitor/message-handler.queue.test.ts`
 
-Add new tests for:
+添加新测试：
 
-1. listener returns after enqueue without awaiting full turn
-2. per-route ordering is preserved
-3. different channels still run concurrently
-4. replies are delivered to the original message destination
-5. `stop` cancels the active worker-owned run
-6. worker failure produces visible diagnostics without blocking later jobs
-7. ACP-bound Discord channels still route correctly under worker execution
+1. 监听器在排入后返回，无需等待完整回合
+2. 保留每路由排序
+3. 不同频道仍然并发运行
+4. 回复交付到原始消息目的地
+5. `stop` 取消活跃的 worker 拥有的运行
+6. Worker 失败产生可见的诊断而不阻塞后续作业
+7. ACP 绑定的 Discord 频道在 worker 执行下仍然正确路由
 
-## Risks and mitigations
+## 风险和缓解
 
-- Risk: command semantics drift from current synchronous behavior
-  Mitigation: land command-state plumbing in the same cutover, not later
+- 风险：命令语义偏离当前同步行为
+  缓解：在同一次切换中着陆命令状态管道，而不是以后
 
-- Risk: reply delivery loses thread or reply-to context
-  Mitigation: make delivery identity first-class in `DiscordInboundJob`
+- 风险：回复交付丢失线程或回复目标上下文
+  缓解：使交付身份成为 `DiscordInboundJob` 中的一等公民
 
-- Risk: duplicate sends during retries or queue restarts
-  Mitigation: keep first pass in-memory only, or add explicit delivery idempotency before persistence
+- 风险：重试或队列重启期间的重复发送
+  缓解：首轮保持仅内存，或在持久化之前添加显式交付幂等性
 
-- Risk: `message-handler.process.ts` becomes harder to reason about during migration
-  Mitigation: split into normalization, execution, and delivery helpers before or during worker cutover
+- 风险：`message-handler.process.ts` 在迁移期间变得更难理解
+  缓解：在 worker 切换之前或期间拆分为规范化、执行和交付助手
 
-## Acceptance criteria
+## 验收标准
 
-The plan is complete when:
+计划在以下条件下完成：
 
-1. Discord listener timeout no longer aborts healthy long-running turns.
-2. Listener lifetime and agent-turn lifetime are separate concepts in code.
-3. Existing per-session ordering is preserved.
-4. ACP-bound Discord channels work through the same worker path.
-5. `stop` targets the worker-owned run instead of the old listener-owned call stack.
-6. Timeout and delivery failures become explicit worker outcomes, not silent listener drops.
+1. Discord 监听器超时不再中止健康的长时间运行回合。
+2. 监听器生命周期和代理回合生命周期在代码中是独立概念。
+3. 现有的每会话排序得到保留。
+4. ACP 绑定的 Discord 频道通过相同的 worker 路径工作。
+5. `stop` 定位 worker 拥有的运行而不是旧的监听器拥有的调用栈。
+6. 超时和交付失败成为显式的 worker 结果，而不是静默的监听器丢弃。
 
-## Remaining landing strategy
+## 剩余着陆策略
 
-Finish this in follow-up PRs:
+在后续 PR 中完成：
 
-1. make `DiscordInboundJob` plain-data only and move live runtime refs onto the worker
-2. clean up command-state ownership for `stop`, `new`, and `reset`
-3. add worker observability and operator status
-4. decide whether durability is needed or explicitly document the in-memory boundary
+1. 使 `DiscordInboundJob` 仅为纯数据，将实时运行时引用移到 worker 上
+2. 清理 `stop`、`new` 和 `reset` 的命令状态所有权
+3. 添加 worker 可观测性和运维状态
+4. 决定是否需要持久性，或明确记录内存边界
 
-This is still a bounded follow-up if kept Discord-only and if we continue to avoid a premature cross-channel worker abstraction.
+如果保持仅 Discord 专用且继续避免过早的跨频道 worker 抽象，这仍然是一个有界的后续工作。

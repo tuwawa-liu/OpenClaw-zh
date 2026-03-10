@@ -1,93 +1,61 @@
 ---
-summary: "CLI reference for `openclaw plugins` (list, install, uninstall, enable/disable, doctor)"
 read_when:
-  - You want to install or manage in-process Gateway plugins
-  - You want to debug plugin load failures
-title: "plugins"
+  - 你想安装或管理进程内 Gateway 网关插件
+  - 你想调试插件加载失败问题
+summary: "`openclaw plugins` 的 CLI 参考（列出、安装、启用/禁用、诊断）"
+title: plugins
+x-i18n:
+  generated_at: "2026-02-03T07:45:08Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: c6bf76b1e766b912ec30a0101d455151c88f1a778bffa121cdd1d0b4fbe73e1c
+  source_path: cli/plugins.md
+  workflow: 15
 ---
 
 # `openclaw plugins`
 
-Manage Gateway plugins/extensions (loaded in-process).
+管理 Gateway 网关插件/扩展（进程内加载）。
 
-Related:
+相关内容：
 
-- Plugin system: [Plugins](/tools/plugin)
-- Plugin manifest + schema: [Plugin manifest](/plugins/manifest)
-- Security hardening: [Security](/gateway/security)
+- 插件系统：[插件](/tools/plugin)
+- 插件清单 + 模式：[插件清单](/plugins/manifest)
+- 安全加固：[安全](/gateway/security)
 
-## Commands
+## 命令
 
 ```bash
 openclaw plugins list
 openclaw plugins info <id>
 openclaw plugins enable <id>
 openclaw plugins disable <id>
-openclaw plugins uninstall <id>
 openclaw plugins doctor
 openclaw plugins update <id>
 openclaw plugins update --all
 ```
 
-Bundled plugins ship with OpenClaw but start disabled. Use `plugins enable` to
-activate them.
+内置插件随 OpenClaw 一起发布，但默认禁用。使用 `plugins enable` 来激活它们。
 
-All plugins must ship a `openclaw.plugin.json` file with an inline JSON Schema
-(`configSchema`, even if empty). Missing/invalid manifests or schemas prevent
-the plugin from loading and fail config validation.
+所有插件必须提供 `openclaw.plugin.json` 文件，其中包含内联 JSON Schema（`configSchema`，即使为空）。缺少或无效的清单或模式会阻止插件加载并导致配置验证失败。
 
-### Install
+### 安装
 
 ```bash
 openclaw plugins install <path-or-spec>
-openclaw plugins install <npm-spec> --pin
 ```
 
-Security note: treat plugin installs like running code. Prefer pinned versions.
+安全提示：将插件安装视为运行代码。优先使用固定版本。
 
-Npm specs are **registry-only** (package name + optional **exact version** or
-**dist-tag**). Git/URL/file specs and semver ranges are rejected. Dependency
-installs run with `--ignore-scripts` for safety.
+支持的归档格式：`.zip`、`.tgz`、`.tar.gz`、`.tar`。
 
-Bare specs and `@latest` stay on the stable track. If npm resolves either of
-those to a prerelease, OpenClaw stops and asks you to opt in explicitly with a
-prerelease tag such as `@beta`/`@rc` or an exact prerelease version such as
-`@1.2.3-beta.4`.
-
-If a bare install spec matches a bundled plugin id (for example `diffs`), OpenClaw
-installs the bundled plugin directly. To install an npm package with the same
-name, use an explicit scoped spec (for example `@scope/diffs`).
-
-Supported archives: `.zip`, `.tgz`, `.tar.gz`, `.tar`.
-
-Use `--link` to avoid copying a local directory (adds to `plugins.load.paths`):
+使用 `--link` 避免复制本地目录（添加到 `plugins.load.paths`）：
 
 ```bash
 openclaw plugins install -l ./my-plugin
 ```
 
-Use `--pin` on npm installs to save the resolved exact spec (`name@version`) in
-`plugins.installs` while keeping the default behavior unpinned.
-
-### Uninstall
-
-```bash
-openclaw plugins uninstall <id>
-openclaw plugins uninstall <id> --dry-run
-openclaw plugins uninstall <id> --keep-files
-```
-
-`uninstall` removes plugin records from `plugins.entries`, `plugins.installs`,
-the plugin allowlist, and linked `plugins.load.paths` entries when applicable.
-For active memory plugins, the memory slot resets to `memory-core`.
-
-By default, uninstall also removes the plugin install directory under the active
-state dir extensions root (`$OPENCLAW_STATE_DIR/extensions/<id>`). Use
-`--keep-files` to keep files on disk.
-
-`--keep-config` is supported as a deprecated alias for `--keep-files`.
-
-### Update
+### 更新
 
 ```bash
 openclaw plugins update <id>
@@ -95,8 +63,4 @@ openclaw plugins update --all
 openclaw plugins update <id> --dry-run
 ```
 
-Updates only apply to plugins installed from npm (tracked in `plugins.installs`).
-
-When a stored integrity hash exists and the fetched artifact hash changes,
-OpenClaw prints a warning and asks for confirmation before proceeding. Use
-global `--yes` to bypass prompts in CI/non-interactive runs.
+更新仅适用于从 npm 安装的插件（在 `plugins.installs` 中跟踪）。

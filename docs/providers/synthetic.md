@@ -1,40 +1,46 @@
 ---
-summary: "Use Synthetic's Anthropic-compatible API in OpenClaw"
 read_when:
-  - You want to use Synthetic as a model provider
-  - You need a Synthetic API key or base URL setup
-title: "Synthetic"
+  - 你想使用 Synthetic 作为模型提供商
+  - 你需要配置 Synthetic API 密钥或 base URL
+summary: 在 OpenClaw 中使用 Synthetic 的 Anthropic 兼容 API
+title: Synthetic
+x-i18n:
+  generated_at: "2026-02-01T21:35:34Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: f3f6e3eb864661754cbe2276783c5bc96ae01cb85ee4a19c92bed7863a35a4f7
+  source_path: providers/synthetic.md
+  workflow: 15
 ---
 
 # Synthetic
 
-Synthetic exposes Anthropic-compatible endpoints. OpenClaw registers it as the
-`synthetic` provider and uses the Anthropic Messages API.
+Synthetic 提供兼容 Anthropic 的端点。OpenClaw 将其注册为 `synthetic` 提供商，并使用 Anthropic Messages API。
 
-## Quick setup
+## 快速设置
 
-1. Set `SYNTHETIC_API_KEY` (or run the wizard below).
-2. Run onboarding:
+1. 设置 `SYNTHETIC_API_KEY`（或运行以下向导）。
+2. 运行新手引导：
 
 ```bash
 openclaw onboard --auth-choice synthetic-api-key
 ```
 
-The default model is set to:
+默认模型设置为：
 
 ```
-synthetic/hf:MiniMaxAI/MiniMax-M2.5
+synthetic/hf:MiniMaxAI/MiniMax-M2.1
 ```
 
-## Config example
+## 配置示例
 
 ```json5
 {
   env: { SYNTHETIC_API_KEY: "sk-..." },
   agents: {
     defaults: {
-      model: { primary: "synthetic/hf:MiniMaxAI/MiniMax-M2.5" },
-      models: { "synthetic/hf:MiniMaxAI/MiniMax-M2.5": { alias: "MiniMax M2.5" } },
+      model: { primary: "synthetic/hf:MiniMaxAI/MiniMax-M2.1" },
+      models: { "synthetic/hf:MiniMaxAI/MiniMax-M2.1": { alias: "MiniMax M2.1" } },
     },
   },
   models: {
@@ -46,8 +52,8 @@ synthetic/hf:MiniMaxAI/MiniMax-M2.5
         api: "anthropic-messages",
         models: [
           {
-            id: "hf:MiniMaxAI/MiniMax-M2.5",
-            name: "MiniMax M2.5",
+            id: "hf:MiniMaxAI/MiniMax-M2.1",
+            name: "MiniMax M2.1",
             reasoning: false,
             input: ["text"],
             cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
@@ -61,39 +67,36 @@ synthetic/hf:MiniMaxAI/MiniMax-M2.5
 }
 ```
 
-Note: OpenClaw's Anthropic client appends `/v1` to the base URL, so use
-`https://api.synthetic.new/anthropic` (not `/anthropic/v1`). If Synthetic changes
-its base URL, override `models.providers.synthetic.baseUrl`.
+注意：OpenClaw 的 Anthropic 客户端会自动在 base URL 后追加 `/v1`，因此请使用 `https://api.synthetic.new/anthropic`（而非 `/anthropic/v1`）。如果 Synthetic 更改了其 base URL，请覆盖 `models.providers.synthetic.baseUrl`。
 
-## Model catalog
+## 模型目录
 
-All models below use cost `0` (input/output/cache).
+以下所有模型的费用均为 `0`（输入/输出/缓存）。
 
-| Model ID                                               | Context window | Max tokens | Reasoning | Input        |
-| ------------------------------------------------------ | -------------- | ---------- | --------- | ------------ |
-| `hf:MiniMaxAI/MiniMax-M2.5`                            | 192000         | 65536      | false     | text         |
-| `hf:moonshotai/Kimi-K2-Thinking`                       | 256000         | 8192       | true      | text         |
-| `hf:zai-org/GLM-4.7`                                   | 198000         | 128000     | false     | text         |
-| `hf:deepseek-ai/DeepSeek-R1-0528`                      | 128000         | 8192       | false     | text         |
-| `hf:deepseek-ai/DeepSeek-V3-0324`                      | 128000         | 8192       | false     | text         |
-| `hf:deepseek-ai/DeepSeek-V3.1`                         | 128000         | 8192       | false     | text         |
-| `hf:deepseek-ai/DeepSeek-V3.1-Terminus`                | 128000         | 8192       | false     | text         |
-| `hf:deepseek-ai/DeepSeek-V3.2`                         | 159000         | 8192       | false     | text         |
-| `hf:meta-llama/Llama-3.3-70B-Instruct`                 | 128000         | 8192       | false     | text         |
-| `hf:meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8` | 524000         | 8192       | false     | text         |
-| `hf:moonshotai/Kimi-K2-Instruct-0905`                  | 256000         | 8192       | false     | text         |
-| `hf:openai/gpt-oss-120b`                               | 128000         | 8192       | false     | text         |
-| `hf:Qwen/Qwen3-235B-A22B-Instruct-2507`                | 256000         | 8192       | false     | text         |
-| `hf:Qwen/Qwen3-Coder-480B-A35B-Instruct`               | 256000         | 8192       | false     | text         |
-| `hf:Qwen/Qwen3-VL-235B-A22B-Instruct`                  | 250000         | 8192       | false     | text + image |
-| `hf:zai-org/GLM-4.5`                                   | 128000         | 128000     | false     | text         |
-| `hf:zai-org/GLM-4.6`                                   | 198000         | 128000     | false     | text         |
-| `hf:deepseek-ai/DeepSeek-V3`                           | 128000         | 8192       | false     | text         |
-| `hf:Qwen/Qwen3-235B-A22B-Thinking-2507`                | 256000         | 8192       | true      | text         |
+| 模型 ID                                                | 上下文窗口 | 最大令牌数 | 推理  | 输入         |
+| ------------------------------------------------------ | ---------- | ---------- | ----- | ------------ |
+| `hf:MiniMaxAI/MiniMax-M2.1`                            | 192000     | 65536      | false | text         |
+| `hf:moonshotai/Kimi-K2-Thinking`                       | 256000     | 8192       | true  | text         |
+| `hf:zai-org/GLM-4.7`                                   | 198000     | 128000     | false | text         |
+| `hf:deepseek-ai/DeepSeek-R1-0528`                      | 128000     | 8192       | false | text         |
+| `hf:deepseek-ai/DeepSeek-V3-0324`                      | 128000     | 8192       | false | text         |
+| `hf:deepseek-ai/DeepSeek-V3.1`                         | 128000     | 8192       | false | text         |
+| `hf:deepseek-ai/DeepSeek-V3.1-Terminus`                | 128000     | 8192       | false | text         |
+| `hf:deepseek-ai/DeepSeek-V3.2`                         | 159000     | 8192       | false | text         |
+| `hf:meta-llama/Llama-3.3-70B-Instruct`                 | 128000     | 8192       | false | text         |
+| `hf:meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8` | 524000     | 8192       | false | text         |
+| `hf:moonshotai/Kimi-K2-Instruct-0905`                  | 256000     | 8192       | false | text         |
+| `hf:openai/gpt-oss-120b`                               | 128000     | 8192       | false | text         |
+| `hf:Qwen/Qwen3-235B-A22B-Instruct-2507`                | 256000     | 8192       | false | text         |
+| `hf:Qwen/Qwen3-Coder-480B-A35B-Instruct`               | 256000     | 8192       | false | text         |
+| `hf:Qwen/Qwen3-VL-235B-A22B-Instruct`                  | 250000     | 8192       | false | text + image |
+| `hf:zai-org/GLM-4.5`                                   | 128000     | 128000     | false | text         |
+| `hf:zai-org/GLM-4.6`                                   | 198000     | 128000     | false | text         |
+| `hf:deepseek-ai/DeepSeek-V3`                           | 128000     | 8192       | false | text         |
+| `hf:Qwen/Qwen3-235B-A22B-Thinking-2507`                | 256000     | 8192       | true  | text         |
 
-## Notes
+## 注意事项
 
-- Model refs use `synthetic/<modelId>`.
-- If you enable a model allowlist (`agents.defaults.models`), add every model you
-  plan to use.
-- See [Model providers](/concepts/model-providers) for provider rules.
+- 模型引用格式为 `synthetic/<modelId>`。
+- 如果启用了模型允许列表（`agents.defaults.models`），请添加你计划使用的所有模型。
+- 参阅[模型提供商](/concepts/model-providers)了解提供商规则。

@@ -1,329 +1,195 @@
 ---
-summary: "Delegate gateway authentication to a trusted reverse proxy (Pomerium, Caddy, nginx + OAuth)"
+summary: "在受信代理后面使用基于标头的身份验证运行 OpenClaw 网关"
 read_when:
-  - Running OpenClaw behind an identity-aware proxy
-  - Setting up Pomerium, Caddy, or nginx with OAuth in front of OpenClaw
-  - Fixing WebSocket 1008 unauthorized errors with reverse proxy setups
-  - Deciding where to set HSTS and other HTTP hardening headers
+  - 在 Pomerium、Caddy、nginx 或 Traefik 后面运行 OpenClaw
+  - 调试基于标头的跳过令牌/密码认证
+  - 寻找与受信代理身份验证相关的安全问题
+title: "受信代理身份验证"
 ---
 
-# Trusted Proxy Auth
+# 受信代理身份验证
 
-> ⚠️ **Security-sensitive feature.** This mode delegates authentication entirely to your reverse proxy. Misconfiguration can expose your Gateway to unauthorized access. Read this page carefully before enabling.
+受信代理模式允许 OpenClaw 网关将身份验证委托给上游反向代理。
+代理对用户进行身份验证并设置包含已验证身份的标头。
+网关信任该标头并跳过自身的令牌/密码验证。
 
-## When to Use
+> **仅限内部/零信任网络使用。**
+> 如果网关可以从代理以外的来源访问，攻击者可以伪造该标头。
 
-Use `trusted-proxy` auth mode when:
+## 何时使用
 
-- You run OpenClaw behind an **identity-aware proxy** (Pomerium, Caddy + OAuth, nginx + oauth2-proxy, Traefik + forward auth)
-- Your proxy handles all authentication and passes user identity via headers
-- You're in a Kubernetes or container environment where the proxy is the only path to the Gateway
-- You're hitting WebSocket `1008 unauthorized` errors because browsers can't pass tokens in WS payloads
+- 您已经拥有一个处理身份验证的反向代理（Pomerium、Caddy + oauth2、nginx + OIDC、Traefik + ForwardAuth 等）。
+- 您希望避免管理单独的 OpenClaw 令牌或密码来访问 Web UI / API。
+- 您的部署在受信环境中运行（Tailscale、VPN 或私有网络）。
 
-## When NOT to Use
+## 配置
 
-- If your proxy doesn't authenticate users (just a TLS terminator or load balancer)
-- If there's any path to the Gateway that bypasses the proxy (firewall holes, internal network access)
-- If you're unsure whether your proxy correctly strips/overwrites forwarded headers
-- If you only need personal single-user access (consider Tailscale Serve + loopback for simpler setup)
+### 最小配置
 
-## How It Works
-
-1. Your reverse proxy authenticates users (OAuth, OIDC, SAML, etc.)
-2. Proxy adds a header with the authenticated user identity (e.g., `x-forwarded-user: nick@example.com`)
-3. OpenClaw checks that the request came from a **trusted proxy IP** (configured in `gateway.trustedProxies`)
-4. OpenClaw extracts the user identity from the configured header
-5. If everything checks out, the request is authorized
-
-## Control UI Pairing Behavior
-
-When `gateway.auth.mode = "trusted-proxy"` is active and the request passes
-trusted-proxy checks, Control UI WebSocket sessions can connect without device
-pairing identity.
-
-Implications:
-
-- Pairing is no longer the primary gate for Control UI access in this mode.
-- Your reverse proxy auth policy and `allowUsers` become the effective access control.
-- Keep gateway ingress locked to trusted proxy IPs only (`gateway.trustedProxies` + firewall).
-
-## Configuration
-
-```json5
-{
-  gateway: {
-    // Use loopback for same-host proxy setups; use lan/custom for remote proxy hosts
-    bind: "loopback",
-
-    // CRITICAL: Only add your proxy's IP(s) here
-    trustedProxies: ["10.0.0.1", "172.17.0.1"],
-
-    auth: {
-      mode: "trusted-proxy",
-      trustedProxy: {
-        // Header containing authenticated user identity (required)
-        userHeader: "x-forwarded-user",
-
-        // Optional: headers that MUST be present (proxy verification)
-        requiredHeaders: ["x-forwarded-proto", "x-forwarded-host"],
-
-        // Optional: restrict to specific users (empty = allow all)
-        allowUsers: ["nick@example.com", "admin@company.org"],
-      },
-    },
-  },
-}
+```yaml
+gateway:
+  auth:
+    mode: "trusted-proxy"
+    trustedProxy:
+      headerName: "X-Forwarded-User"
 ```
 
-If `gateway.bind` is `loopback`, include a loopback proxy address in
-`gateway.trustedProxies` (`127.0.0.1`, `::1`, or an equivalent loopback CIDR).
+### 完整选项
 
-### Configuration Reference
-
-| Field                                       | Required | Description                                                                 |
-| ------------------------------------------- | -------- | --------------------------------------------------------------------------- |
-| `gateway.trustedProxies`                    | Yes      | Array of proxy IP addresses to trust. Requests from other IPs are rejected. |
-| `gateway.auth.mode`                         | Yes      | Must be `"trusted-proxy"`                                                   |
-| `gateway.auth.trustedProxy.userHeader`      | Yes      | Header name containing the authenticated user identity                      |
-| `gateway.auth.trustedProxy.requiredHeaders` | No       | Additional headers that must be present for the request to be trusted       |
-| `gateway.auth.trustedProxy.allowUsers`      | No       | Allowlist of user identities. Empty means allow all authenticated users.    |
-
-## TLS termination and HSTS
-
-Use one TLS termination point and apply HSTS there.
-
-### Recommended pattern: proxy TLS termination
-
-When your reverse proxy handles HTTPS for `https://control.example.com`, set
-`Strict-Transport-Security` at the proxy for that domain.
-
-- Good fit for internet-facing deployments.
-- Keeps certificate + HTTP hardening policy in one place.
-- OpenClaw can stay on loopback HTTP behind the proxy.
-
-Example header value:
-
-```text
-Strict-Transport-Security: max-age=31536000; includeSubDomains
+```yaml
+gateway:
+  auth:
+    mode: "trusted-proxy"
+    trustedProxy:
+      headerName: "X-Forwarded-User" # 必填：包含已验证身份的标头
+      allowedValues: # 可选：将访问限制为特定身份
+        - "alice@example.com"
+        - "bob@example.com"
+      stripHeader: true # 默认 true：从代理上游请求中移除标头
+      requireTls: true # 默认 true：拒绝非 TLS 连接
 ```
 
-### Gateway TLS termination
+## 工作原理
 
-If OpenClaw itself serves HTTPS directly (no TLS-terminating proxy), set:
+1. 客户端请求到达您的反向代理。
+2. 代理对用户进行身份验证（OAuth2、OIDC、mTLS 等）。
+3. 代理设置配置的标头（例如 `X-Forwarded-User: alice@example.com`）并转发请求。
+4. OpenClaw 网关读取标头，跳过令牌/密码检查，并将请求与标识的用户关联。
 
-```json5
-{
-  gateway: {
-    tls: { enabled: true },
-    http: {
-      securityHeaders: {
-        strictTransportSecurity: "max-age=31536000; includeSubDomains",
-      },
-    },
-  },
-}
-```
-
-`strictTransportSecurity` accepts a string header value, or `false` to disable explicitly.
-
-### Rollout guidance
-
-- Start with a short max age first (for example `max-age=300`) while validating traffic.
-- Increase to long-lived values (for example `max-age=31536000`) only after confidence is high.
-- Add `includeSubDomains` only if every subdomain is HTTPS-ready.
-- Use preload only if you intentionally meet preload requirements for your full domain set.
-- Loopback-only local development does not benefit from HSTS.
-
-## Proxy Setup Examples
+## 代理设置示例
 
 ### Pomerium
 
-Pomerium passes identity in `x-pomerium-claim-email` (or other claim headers) and a JWT in `x-pomerium-jwt-assertion`.
-
-```json5
-{
-  gateway: {
-    bind: "lan",
-    trustedProxies: ["10.0.0.1"], // Pomerium's IP
-    auth: {
-      mode: "trusted-proxy",
-      trustedProxy: {
-        userHeader: "x-pomerium-claim-email",
-        requiredHeaders: ["x-pomerium-jwt-assertion"],
-      },
-    },
-  },
-}
-```
-
-Pomerium config snippet:
-
 ```yaml
 routes:
-  - from: https://openclaw.example.com
-    to: http://openclaw-gateway:18789
+  - from: https://openclaw.internal.example.com
+    to: http://localhost:3000
     policy:
       - allow:
           or:
             - email:
-                is: nick@example.com
-    pass_identity_headers: true
+                is: alice@example.com
+            - email:
+                is: bob@example.com
+    set_request_headers:
+      X-Forwarded-User: "${pomerium.email}"
 ```
 
-### Caddy with OAuth
+### Caddy
 
-Caddy with the `caddy-security` plugin can authenticate users and pass identity headers.
-
-```json5
-{
-  gateway: {
-    bind: "lan",
-    trustedProxies: ["127.0.0.1"], // Caddy's IP (if on same host)
-    auth: {
-      mode: "trusted-proxy",
-      trustedProxy: {
-        userHeader: "x-forwarded-user",
-      },
-    },
-  },
+```caddyfile
+openclaw.internal.example.com {
+    forward_auth authelia:9091 {
+        uri /api/verify?rd=https://auth.example.com
+        copy_headers Remote-User
+    }
+    reverse_proxy localhost:3000
 }
 ```
 
-Caddyfile snippet:
+OpenClaw 配置使用 `headerName: "Remote-User"`。
 
-```
-openclaw.example.com {
-    authenticate with oauth2_provider
-    authorize with policy1
+### nginx + OAuth2 Proxy
 
-    reverse_proxy openclaw:18789 {
-        header_up X-Forwarded-User {http.auth.user.email}
+```nginx
+server {
+    listen 443 ssl;
+    server_name openclaw.internal.example.com;
+
+    location /oauth2/ {
+        proxy_pass http://127.0.0.1:4180;
+    }
+
+    location / {
+        auth_request /oauth2/auth;
+        auth_request_set $user $upstream_http_x_auth_request_email;
+        proxy_set_header X-Forwarded-User $user;
+        proxy_pass http://127.0.0.1:3000;
     }
 }
 ```
 
-### nginx + oauth2-proxy
+### Traefik + ForwardAuth
 
-oauth2-proxy authenticates users and passes identity in `x-auth-request-email`.
-
-```json5
-{
-  gateway: {
-    bind: "lan",
-    trustedProxies: ["10.0.0.1"], // nginx/oauth2-proxy IP
-    auth: {
-      mode: "trusted-proxy",
-      trustedProxy: {
-        userHeader: "x-auth-request-email",
-      },
-    },
-  },
-}
+```yaml
+http:
+  middlewares:
+    auth:
+      forwardAuth:
+        address: "http://authelia:9091/api/verify?rd=https://auth.example.com"
+        authResponseHeaders:
+          - "Remote-User"
+  routers:
+    openclaw:
+      rule: "Host(`openclaw.internal.example.com`)"
+      middlewares:
+        - auth
+      service: openclaw
+  services:
+    openclaw:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:3000"
 ```
 
-nginx config snippet:
+## 安全清单
 
-```nginx
-location / {
-    auth_request /oauth2/auth;
-    auth_request_set $user $upstream_http_x_auth_request_email;
+- [ ] 网关绑定到 `127.0.0.1` 或私有网络接口（不是 `0.0.0.0`），除非只有代理可以到达。
+- [ ] 代理是唯一能到达网关端口的网络路径。
+- [ ] `stripHeader: true`（默认），这样代理发送前会移除任何预先存在的 `X-Forwarded-User`。
+- [ ] `requireTls: true`（默认），除非代理和网关之间是同一主机的回环通信。
+- [ ] 如果使用 `allowedValues`，列表仅包含预期用户。
+- [ ] 代理本身强制执行 TLS 终止和 HSTS。
 
-    proxy_pass http://openclaw:18789;
-    proxy_set_header X-Auth-Request-Email $user;
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-}
+## TLS 和 HSTS 指南
+
+### 代理 ↔ 网关通信
+
+- 如果代理和网关在 **同一主机** 上并通过 `127.0.0.1` 通信，则此路径可以不加密。设置 `requireTls: false`。
+- 如果它们在 **不同主机** 上，在代理和网关之间使用 TLS 或安全隧道。
+
+### 客户端 ↔ 代理通信
+
+始终由代理终止 TLS。在代理上启用 HSTS 以防止降级攻击：
+
+```
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
 ```
 
-### Traefik with Forward Auth
+### 流量示意图
 
-```json5
-{
-  gateway: {
-    bind: "lan",
-    trustedProxies: ["172.17.0.1"], // Traefik container IP
-    auth: {
-      mode: "trusted-proxy",
-      trustedProxy: {
-        userHeader: "x-forwarded-user",
-      },
-    },
-  },
-}
+```
+客户端 ──TLS──▶ 代理 ──可选 TLS / 回环──▶ 网关 (127.0.0.1:3000)
 ```
 
-## Security Checklist
+## 故障排除
 
-Before enabling trusted-proxy auth, verify:
+### 匿名请求仍然通过
 
-- [ ] **Proxy is the only path**: The Gateway port is firewalled from everything except your proxy
-- [ ] **trustedProxies is minimal**: Only your actual proxy IPs, not entire subnets
-- [ ] **Proxy strips headers**: Your proxy overwrites (not appends) `x-forwarded-*` headers from clients
-- [ ] **TLS termination**: Your proxy handles TLS; users connect via HTTPS
-- [ ] **allowUsers is set** (recommended): Restrict to known users rather than allowing anyone authenticated
+- 验证代理在 **所有** 请求路径中设置了标头，包括 WebSocket 升级。
+- 确认 `headerName` 与代理发送的标头完全匹配（区分大小写）。
 
-## Security Audit
+### 403 被禁止但标头存在
 
-`openclaw security audit` will flag trusted-proxy auth with a **critical** severity finding. This is intentional — it's a reminder that you're delegating security to your proxy setup.
+- 检查 `allowedValues` 是否包含代理发送的确切值。
+- 检查值中是否有多余空格或大小写不匹配。
 
-The audit checks for:
+### WebSocket 未认证
 
-- Missing `trustedProxies` configuration
-- Missing `userHeader` configuration
-- Empty `allowUsers` (allows any authenticated user)
+- 某些代理不转发 WebSocket 升级的标头。检查代理文档中的 WebSocket 特定配置。
+- Pomerium 和 Caddy 默认转发标头。nginx 需要显式的 `proxy_set_header` 用于升级请求。
 
-## Troubleshooting
+### 标头被覆盖
 
-### "trusted_proxy_untrusted_source"
+- 确保 `stripHeader: true` 以便网关在检查前移除客户端提供的标头。
+- 验证代理设置标头的位置在身份验证 **之后**，而不是之前。
 
-The request didn't come from an IP in `gateway.trustedProxies`. Check:
+## 与其他认证模式的比较
 
-- Is the proxy IP correct? (Docker container IPs can change)
-- Is there a load balancer in front of your proxy?
-- Use `docker inspect` or `kubectl get pods -o wide` to find actual IPs
-
-### "trusted_proxy_user_missing"
-
-The user header was empty or missing. Check:
-
-- Is your proxy configured to pass identity headers?
-- Is the header name correct? (case-insensitive, but spelling matters)
-- Is the user actually authenticated at the proxy?
-
-### "trusted*proxy_missing_header*\*"
-
-A required header wasn't present. Check:
-
-- Your proxy configuration for those specific headers
-- Whether headers are being stripped somewhere in the chain
-
-### "trusted_proxy_user_not_allowed"
-
-The user is authenticated but not in `allowUsers`. Either add them or remove the allowlist.
-
-### WebSocket Still Failing
-
-Make sure your proxy:
-
-- Supports WebSocket upgrades (`Upgrade: websocket`, `Connection: upgrade`)
-- Passes the identity headers on WebSocket upgrade requests (not just HTTP)
-- Doesn't have a separate auth path for WebSocket connections
-
-## Migration from Token Auth
-
-If you're moving from token auth to trusted-proxy:
-
-1. Configure your proxy to authenticate users and pass headers
-2. Test the proxy setup independently (curl with headers)
-3. Update OpenClaw config with trusted-proxy auth
-4. Restart the Gateway
-5. Test WebSocket connections from the Control UI
-6. Run `openclaw security audit` and review findings
-
-## Related
-
-- [Security](/gateway/security) — full security guide
-- [Configuration](/gateway/configuration) — config reference
-- [Remote Access](/gateway/remote) — other remote access patterns
-- [Tailscale](/gateway/tailscale) — simpler alternative for tailnet-only access
+| 功能             | 令牌/密码 | Tailscale            | 受信代理           |
+| ---------------- | --------- | -------------------- | ------------------ |
+| 需要代理         | 否        | 否                   | 是                 |
+| 每用户身份       | 否        | 是（Tailscale 用户） | 是（通过代理标头） |
+| 零配置设置       | 否        | 部分                 | 否                 |
+| 适用于公共互联网 | 是        | 是                   | 需要谨慎配置       |
+| SSO 集成         | 否        | 通过 Tailscale       | 是（代理处理）     |

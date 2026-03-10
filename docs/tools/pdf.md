@@ -1,88 +1,88 @@
 ---
-title: "PDF Tool"
-summary: "Analyze one or more PDF documents with native provider support and extraction fallback"
+title: "PDF 工具"
+summary: "使用原生提供商支持和提取回退分析一个或多个 PDF 文档"
 read_when:
-  - You want to analyze PDFs from agents
-  - You need exact pdf tool parameters and limits
-  - You are debugging native PDF mode vs extraction fallback
+  - 想要从智能体分析 PDF
+  - 需要精确的 PDF 工具参数和限制
+  - 正在调试原生 PDF 模式与提取回退
 ---
 
-# PDF tool
+# PDF 工具
 
-`pdf` analyzes one or more PDF documents and returns text.
+`pdf` 分析一个或多个 PDF 文档并返回文本。
 
-Quick behavior:
+快速行为：
 
-- Native provider mode for Anthropic and Google model providers.
-- Extraction fallback mode for other providers (extract text first, then page images when needed).
-- Supports single (`pdf`) or multi (`pdfs`) input, max 10 PDFs per call.
+- Anthropic 和 Google 模型提供商使用原生提供商模式。
+- 其他提供商使用提取回退模式（先提取文本，然后在需要时提取页面图像）。
+- 支持单个（`pdf`）或多个（`pdfs`）输入，每次调用最多 10 个 PDF。
 
-## Availability
+## 可用性
 
-The tool is only registered when OpenClaw can resolve a PDF-capable model config for the agent:
+仅当 OpenClaw 能为智能体解析到 PDF 兼容的模型配置时，工具才会注册：
 
 1. `agents.defaults.pdfModel`
-2. fallback to `agents.defaults.imageModel`
-3. fallback to best effort provider defaults based on available auth
+2. 回退到 `agents.defaults.imageModel`
+3. 基于可用认证回退到提供商默认值尽力解析
 
-If no usable model can be resolved, the `pdf` tool is not exposed.
+如果无法解析到可用模型，`pdf` 工具不会暴露。
 
-## Input reference
+## 输入参考
 
-- `pdf` (`string`): one PDF path or URL
-- `pdfs` (`string[]`): multiple PDF paths or URLs, up to 10 total
-- `prompt` (`string`): analysis prompt, default `Analyze this PDF document.`
-- `pages` (`string`): page filter like `1-5` or `1,3,7-9`
-- `model` (`string`): optional model override (`provider/model`)
-- `maxBytesMb` (`number`): per-PDF size cap in MB
+- `pdf`（`string`）：一个 PDF 路径或 URL
+- `pdfs`（`string[]`）：多个 PDF 路径或 URL，总计最多 10 个
+- `prompt`（`string`）：分析提示词，默认 `Analyze this PDF document.`
+- `pages`（`string`）：页面过滤器，如 `1-5` 或 `1,3,7-9`
+- `model`（`string`）：可选的模型覆盖（`provider/model`）
+- `maxBytesMb`（`number`）：每个 PDF 的大小上限（MB）
 
-Input notes:
+输入说明：
 
-- `pdf` and `pdfs` are merged and deduplicated before loading.
-- If no PDF input is provided, the tool errors.
-- `pages` is parsed as 1-based page numbers, deduped, sorted, and clamped to the configured max pages.
-- `maxBytesMb` defaults to `agents.defaults.pdfMaxBytesMb` or `10`.
+- `pdf` 和 `pdfs` 在加载前会合并和去重。
+- 如果未提供 PDF 输入，工具会报错。
+- `pages` 按 1 基页码解析，去重、排序并限制到配置的最大页数。
+- `maxBytesMb` 默认为 `agents.defaults.pdfMaxBytesMb` 或 `10`。
 
-## Supported PDF references
+## 支持的 PDF 引用
 
-- local file path (including `~` expansion)
+- 本地文件路径（包括 `~` 展开）
 - `file://` URL
-- `http://` and `https://` URL
+- `http://` 和 `https://` URL
 
-Reference notes:
+引用说明：
 
-- Other URI schemes (for example `ftp://`) are rejected with `unsupported_pdf_reference`.
-- In sandbox mode, remote `http(s)` URLs are rejected.
-- With workspace-only file policy enabled, local file paths outside allowed roots are rejected.
+- 其他 URI 方案（例如 `ftp://`）会被拒绝，返回 `unsupported_pdf_reference`。
+- 在沙箱模式下，远程 `http(s)` URL 会被拒绝。
+- 启用仅工作区文件策略时，允许根目录之外的本地文件路径会被拒绝。
 
-## Execution modes
+## 执行模式
 
-### Native provider mode
+### 原生提供商模式
 
-Native mode is used for provider `anthropic` and `google`.
-The tool sends raw PDF bytes directly to provider APIs.
+原生模式用于提供商 `anthropic` 和 `google`。
+工具将原始 PDF 字节直接发送给提供商 API。
 
-Native mode limits:
+原生模式限制：
 
-- `pages` is not supported. If set, the tool returns an error.
+- 不支持 `pages`。如果设置了，工具会返回错误。
 
-### Extraction fallback mode
+### 提取回退模式
 
-Fallback mode is used for non-native providers.
+回退模式用于非原生提供商。
 
-Flow:
+流程：
 
-1. Extract text from selected pages (up to `agents.defaults.pdfMaxPages`, default `20`).
-2. If extracted text length is below `200` chars, render selected pages to PNG images and include them.
-3. Send extracted content plus prompt to the selected model.
+1. 从选定页面提取文本（最多 `agents.defaults.pdfMaxPages`，默认 `20`）。
+2. 如果提取的文本长度低于 `200` 个字符，将选定页面渲染为 PNG 图像并包含它们。
+3. 将提取的内容加上提示词发送到选定的模型。
 
-Fallback details:
+回退详情：
 
-- Page image extraction uses a pixel budget of `4,000,000`.
-- If the target model does not support image input and there is no extractable text, the tool errors.
-- Extraction fallback requires `pdfjs-dist` (and `@napi-rs/canvas` for image rendering).
+- 页面图像提取使用 `4,000,000` 的像素预算。
+- 如果目标模型不支持图像输入且没有可提取的文本，工具会报错。
+- 提取回退需要 `pdfjs-dist`（以及 `@napi-rs/canvas` 用于图像渲染）。
 
-## Config
+## 配置
 
 ```json5
 {
@@ -99,58 +99,58 @@ Fallback details:
 }
 ```
 
-See [Configuration Reference](/gateway/configuration-reference) for full field details.
+详见 [配置参考](/gateway/configuration-reference) 了解完整字段详情。
 
-## Output details
+## 输出详情
 
-The tool returns text in `content[0].text` and structured metadata in `details`.
+工具在 `content[0].text` 中返回文本，在 `details` 中返回结构化元数据。
 
-Common `details` fields:
+常见 `details` 字段：
 
-- `model`: resolved model ref (`provider/model`)
-- `native`: `true` for native provider mode, `false` for fallback
-- `attempts`: fallback attempts that failed before success
+- `model`：解析后的模型引用（`provider/model`）
+- `native`：原生提供商模式为 `true`，回退为 `false`
+- `attempts`：成功前失败的回退尝试次数
 
-Path fields:
+路径字段：
 
-- single PDF input: `details.pdf`
-- multiple PDF inputs: `details.pdfs[]` with `pdf` entries
-- sandbox path rewrite metadata (when applicable): `rewrittenFrom`
+- 单个 PDF 输入：`details.pdf`
+- 多个 PDF 输入：`details.pdfs[]`，包含 `pdf` 条目
+- 沙箱路径重写元数据（适用时）：`rewrittenFrom`
 
-## Error behavior
+## 错误行为
 
-- Missing PDF input: throws `pdf required: provide a path or URL to a PDF document`
-- Too many PDFs: returns structured error in `details.error = "too_many_pdfs"`
-- Unsupported reference scheme: returns `details.error = "unsupported_pdf_reference"`
-- Native mode with `pages`: throws clear `pages is not supported with native PDF providers` error
+- 缺少 PDF 输入：抛出 `pdf required: provide a path or URL to a PDF document`
+- PDF 数量过多：在 `details.error = "too_many_pdfs"` 中返回结构化错误
+- 不支持的引用方案：返回 `details.error = "unsupported_pdf_reference"`
+- 原生模式使用 `pages`：抛出明确的 `pages is not supported with native PDF providers` 错误
 
-## Examples
+## 示例
 
-Single PDF:
+单个 PDF：
 
 ```json
 {
   "pdf": "/tmp/report.pdf",
-  "prompt": "Summarize this report in 5 bullets"
+  "prompt": "用5个要点总结这份报告"
 }
 ```
 
-Multiple PDFs:
+多个 PDF：
 
 ```json
 {
   "pdfs": ["/tmp/q1.pdf", "/tmp/q2.pdf"],
-  "prompt": "Compare risks and timeline changes across both documents"
+  "prompt": "比较两份文档中的风险和时间线变化"
 }
 ```
 
-Page-filtered fallback model:
+带页面过滤的回退模型：
 
 ```json
 {
   "pdf": "https://example.com/report.pdf",
   "pages": "1-3,7",
   "model": "openai/gpt-5-mini",
-  "prompt": "Extract only customer-impacting incidents"
+  "prompt": "仅提取影响客户的事件"
 }
 ```

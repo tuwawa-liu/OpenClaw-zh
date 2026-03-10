@@ -1,40 +1,40 @@
 ---
-summary: "Run OpenClaw through LiteLLM Proxy for unified model access and cost tracking"
+summary: "通过 LiteLLM 代理运行 OpenClaw，实现统一模型访问和成本跟踪"
 read_when:
-  - You want to route OpenClaw through a LiteLLM proxy
-  - You need cost tracking, logging, or model routing through LiteLLM
+  - 想要通过 LiteLLM 代理路由 OpenClaw
+  - 需要通过 LiteLLM 进行成本跟踪、日志记录或模型路由
 ---
 
 # LiteLLM
 
-[LiteLLM](https://litellm.ai) is an open-source LLM gateway that provides a unified API to 100+ model providers. Route OpenClaw through LiteLLM to get centralized cost tracking, logging, and the flexibility to switch backends without changing your OpenClaw config.
+[LiteLLM](https://litellm.ai) 是一个开源 LLM 网关，提供统一 API 访问 100+ 模型提供商。通过 LiteLLM 路由 OpenClaw 可以获得集中化的成本跟踪、日志记录，以及在不更改 OpenClaw 配置的情况下切换后端的灵活性。
 
-## Why use LiteLLM with OpenClaw?
+## 为什么在 OpenClaw 中使用 LiteLLM？
 
-- **Cost tracking** — See exactly what OpenClaw spends across all models
-- **Model routing** — Switch between Claude, GPT-4, Gemini, Bedrock without config changes
-- **Virtual keys** — Create keys with spend limits for OpenClaw
-- **Logging** — Full request/response logs for debugging
-- **Fallbacks** — Automatic failover if your primary provider is down
+- **成本跟踪** — 精确查看 OpenClaw 在所有模型上的花费
+- **模型路由** — 在 Claude、GPT-4、Gemini、Bedrock 之间切换而无需修改配置
+- **虚拟密钥** — 为 OpenClaw 创建带消费限额的密钥
+- **日志记录** — 用于调试的完整请求/响应日志
+- **故障转移** — 主提供商宕机时自动切换
 
-## Quick start
+## 快速开始
 
-### Via onboarding
+### 通过入门设置
 
 ```bash
 openclaw onboard --auth-choice litellm-api-key
 ```
 
-### Manual setup
+### 手动设置
 
-1. Start LiteLLM Proxy:
+1. 启动 LiteLLM 代理：
 
 ```bash
 pip install 'litellm[proxy]'
 litellm --model claude-opus-4-6
 ```
 
-2. Point OpenClaw to LiteLLM:
+2. 将 OpenClaw 指向 LiteLLM：
 
 ```bash
 export LITELLM_API_KEY="your-litellm-key"
@@ -42,17 +42,17 @@ export LITELLM_API_KEY="your-litellm-key"
 openclaw
 ```
 
-That's it. OpenClaw now routes through LiteLLM.
+完成。OpenClaw 现在通过 LiteLLM 路由。
 
-## Configuration
+## 配置
 
-### Environment variables
+### 环境变量
 
 ```bash
 export LITELLM_API_KEY="sk-litellm-key"
 ```
 
-### Config file
+### 配置文件
 
 ```json5
 {
@@ -91,9 +91,9 @@ export LITELLM_API_KEY="sk-litellm-key"
 }
 ```
 
-## Virtual keys
+## 虚拟密钥
 
-Create a dedicated key for OpenClaw with spend limits:
+为 OpenClaw 创建带消费限额的专用密钥：
 
 ```bash
 curl -X POST "http://localhost:4000/key/generate" \
@@ -106,11 +106,11 @@ curl -X POST "http://localhost:4000/key/generate" \
   }'
 ```
 
-Use the generated key as `LITELLM_API_KEY`.
+使用生成的密钥作为 `LITELLM_API_KEY`。
 
-## Model routing
+## 模型路由
 
-LiteLLM can route model requests to different backends. Configure in your LiteLLM `config.yaml`:
+LiteLLM 可以将模型请求路由到不同的后端。在 LiteLLM 的 `config.yaml` 中配置：
 
 ```yaml
 model_list:
@@ -125,29 +125,29 @@ model_list:
       api_key: os.environ/OPENAI_API_KEY
 ```
 
-OpenClaw keeps requesting `claude-opus-4-6` — LiteLLM handles the routing.
+OpenClaw 继续请求 `claude-opus-4-6` — LiteLLM 处理路由。
 
-## Viewing usage
+## 查看使用量
 
-Check LiteLLM's dashboard or API:
+检查 LiteLLM 的仪表板或 API：
 
 ```bash
-# Key info
+# 密钥信息
 curl "http://localhost:4000/key/info" \
   -H "Authorization: Bearer sk-litellm-key"
 
-# Spend logs
+# 消费日志
 curl "http://localhost:4000/spend/logs" \
   -H "Authorization: Bearer $LITELLM_MASTER_KEY"
 ```
 
-## Notes
+## 说明
 
-- LiteLLM runs on `http://localhost:4000` by default
-- OpenClaw connects via the OpenAI-compatible `/v1/chat/completions` endpoint
-- All OpenClaw features work through LiteLLM — no limitations
+- LiteLLM 默认运行在 `http://localhost:4000`
+- OpenClaw 通过 OpenAI 兼容的 `/v1/chat/completions` 端点连接
+- 所有 OpenClaw 功能都可通过 LiteLLM 使用 — 无限制
 
-## See also
+## 另请参阅
 
-- [LiteLLM Docs](https://docs.litellm.ai)
-- [Model Providers](/concepts/model-providers)
+- [LiteLLM 文档](https://docs.litellm.ai)
+- [模型提供商](/concepts/model-providers)

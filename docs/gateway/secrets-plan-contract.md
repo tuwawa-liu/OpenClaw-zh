@@ -1,106 +1,90 @@
 ---
-summary: "Contract for `secrets apply` plans: target validation, path matching, and `auth-profiles.json` target scope"
+summary: "SecretRef 计划文件结构和合约细节"
 read_when:
-  - Generating or reviewing `openclaw secrets apply` plans
-  - Debugging `Invalid plan target path` errors
-  - Understanding target type and path validation behavior
-title: "Secrets Apply Plan Contract"
+  - 调试 `secrets configure` 的计划生成或验证逻辑
+  - 扩展计划到新的目标类型
+title: "SecretRef 计划合约"
 ---
 
-# Secrets apply plan contract
+# SecretRef 计划合约
 
-This page defines the strict contract enforced by `openclaw secrets apply`.
+本页面记录 `secrets configure` 生成、 `secrets apply` 消费的计划文件结构和验证规则。
 
-If a target does not match these rules, apply fails before mutating configuration.
+## 计划文件结构
 
-## Plan file shape
+计划是一个有序的条目数组。每个条目描述一个凭证操作。
 
-`openclaw secrets apply --from <plan.json>` expects a `targets` array of plan targets:
-
-```json5
-{
-  version: 1,
-  protocolVersion: 1,
-  targets: [
-    {
-      type: "models.providers.apiKey",
-      path: "models.providers.openai.apiKey",
-      pathSegments: ["models", "providers", "openai", "apiKey"],
-      providerId: "openai",
-      ref: { source: "env", provider: "default", id: "OPENAI_API_KEY" },
-    },
-    {
-      type: "auth-profiles.api_key.key",
-      path: "profiles.openai:default.key",
-      pathSegments: ["profiles", "openai:default", "key"],
-      agentId: "main",
-      ref: { source: "env", provider: "default", id: "OPENAI_API_KEY" },
-    },
-  ],
-}
+```ts
+type PlanEntry = {
+  target:
+    | { type: "config"; path: string } // openclaw.json 路径
+    | {
+        type: "auth-profile";
+        profileId: string;
+        field: "key" | "token";
+        agentId?: string;
+      };
+  source:
+    | { type: "manual" } // 用户手动提供
+    | { type: "env"; envVar: string } // 从环境变量解析
+    | { type: "secretRef"; refName: string }; // 从 SecretRef 后端解析
+  status: "pending" | "done" | "skipped" | "failed";
+  reason?: string;
+};
 ```
 
-## Supported target scope
+## 目标类型
 
-Plan targets are accepted for supported credential paths in:
+### `config`
 
-- [SecretRef Credential Surface](/reference/secretref-credential-surface)
+用于 `openclaw.json` 凭证路径。
 
-## Target type behavior
+- `path` 使用点号表示法（例如 `models.providers.openai.apiKey`）。
+- 通配符路径中的 `*` 匹配恰好一个键段。
+- 路径必须存在于支持的凭证表面中（参见 [SecretRef 凭证表面](/reference/secretref-credential-surface)）。
 
-General rule:
+### `auth-profile`
 
-- `target.type` must be recognized and must match the normalized `target.path` shape.
+用于 `auth-profiles.json` 凭证。
 
-Compatibility aliases remain accepted for existing plans:
+- `profileId` 标识认证配置文件条目。
+- `field` 是 `"key"`（API 密钥）或 `"token"`（令牌）。
+- `agentId` 是可选的代理范围。
 
-- `models.providers.apiKey`
-- `skills.entries.apiKey`
-- `channels.googlechat.serviceAccount`
+## 来源类型
 
-## Path validation rules
+- `manual`：用户在向导期间交互式提供值。
+- `env`：值从环境变量获取。
+- `secretRef`：值在运行时从 SecretRef 后端解析。
 
-Each target is validated with all of the following:
+## 路径验证
 
-- `type` must be a recognized target type.
-- `path` must be a non-empty dot path.
-- `pathSegments` can be omitted. If provided, it must normalize to exactly the same path as `path`.
-- Forbidden segments are rejected: `__proto__`, `prototype`, `constructor`.
-- The normalized path must match the registered path shape for the target type.
-- If `providerId` or `accountId` is set, it must match the id encoded in the path.
-- `auth-profiles.json` targets require `agentId`.
-- When creating a new `auth-profiles.json` mapping, include `authProfileProvider`.
+计划生成使用受支持凭证表面列表验证路径。
 
-## Failure behavior
+- 不在支持列表中的路径会被拒绝。
+- 支持的路径包含通配符（`*`）以匹配动态段。
+- 通配符匹配使用逐段比较。
 
-If a target fails validation, apply exits with an error like:
+## 状态生命周期
 
-```text
-Invalid plan target path for models.providers.apiKey: models.providers.openai.baseUrl
-```
+1. `secrets configure` 生成所有条目为 `pending` 的计划。
+2. `secrets apply` 按序处理条目。
+3. 每个条目根据结果转为 `done`、`skipped` 或 `failed`。
+4. `secrets audit` 报告应用后各条目的状态。
 
-No writes are committed for an invalid plan.
+## 失败行为
 
-## Runtime and audit scope notes
+- 如果条目失败，默认行为是跳过并继续。
+- 严格模式（`--strict`）在首次失败时终止。
+- 失败的条目包含 `reason` 字段用于诊断。
 
-- Ref-only `auth-profiles.json` entries (`keyRef`/`tokenRef`) are included in runtime resolution and audit coverage.
-- `secrets apply` writes supported `openclaw.json` targets, supported `auth-profiles.json` targets, and optional scrub targets.
+## 审计输出
 
-## Operator checks
+`secrets audit` 会针对每个计划条目报告：
 
-```bash
-# Validate plan without writes
-openclaw secrets apply --from /tmp/openclaw-secrets-plan.json --dry-run
+- 路径或配置文件 ID
+- 当前状态（`done`、`skipped`、`failed`、`pending`）
+- 是否配置了 SecretRef 后端
+- 凭证是否存在于目标中
 
-# Then apply for real
-openclaw secrets apply --from /tmp/openclaw-secrets-plan.json
-```
-
-If apply fails with an invalid target path message, regenerate the plan with `openclaw secrets configure` or fix the target path to a supported shape above.
-
-## Related docs
-
-- [Secrets Management](/gateway/secrets)
-- [CLI `secrets`](/cli/secrets)
-- [SecretRef Credential Surface](/reference/secretref-credential-surface)
-- [Configuration Reference](/gateway/configuration-reference)
+参见 [CLI 密钥管理](/cli/secrets) 了解 `secrets configure`、`secrets apply` 和 `secrets audit` 的命令用法。

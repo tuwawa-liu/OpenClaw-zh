@@ -1,34 +1,34 @@
 ---
-summary: "Holy grail refactor plan for one unified runtime streaming pipeline across main, subagent, and ACP"
+summary: "圣杯重构计划：为 main、subagent 和 ACP 提供统一的运行时流式传输管道"
 owner: "onutc"
 status: "draft"
 last_updated: "2026-02-25"
-title: "Unified Runtime Streaming Refactor Plan"
+title: "统一运行时流式传输重构计划"
 ---
 
-# Unified Runtime Streaming Refactor Plan
+# 统一运行时流式传输重构计划
 
-## Objective
+## 目标
 
-Deliver one shared streaming pipeline for `main`, `subagent`, and `acp` so all runtimes get identical coalescing, chunking, delivery ordering, and crash recovery behavior.
+为 `main`、`subagent` 和 `acp` 提供一个共享的流式传输管道，使所有运行时获得相同的合并、分块、交付排序和崩溃恢复行为。
 
-## Why this exists
+## 为什么存在这个计划
 
-- Current behavior is split across multiple runtime-specific shaping paths.
-- Formatting/coalescing bugs can be fixed in one path but remain in others.
-- Delivery consistency, duplicate suppression, and recovery semantics are harder to reason about.
+- 当前行为分散在多个运行时特定的整形路径中。
+- 格式化/合并的 bug 可以在一个路径中修复，但在其他路径中仍然存在。
+- 交付一致性、去重和恢复语义更难推理。
 
-## Target architecture
+## 目标架构
 
-Single pipeline, runtime-specific adapters:
+单一管道，运行时特定适配器：
 
-1. Runtime adapters emit canonical events only.
-2. Shared stream assembler coalesces and finalizes text/tool/status events.
-3. Shared channel projector applies channel-specific chunking/formatting once.
-4. Shared delivery ledger enforces idempotent send/replay semantics.
-5. Outbound channel adapter executes sends and records delivery checkpoints.
+1. 运行时适配器仅发出规范事件。
+2. 共享的流装配器合并并最终化文本/工具/状态事件。
+3. 共享的频道投影器一次性应用频道特定的分块/格式化。
+4. 共享的交付账本强制幂等发送/重放语义。
+5. 出站频道适配器执行发送并记录交付检查点。
 
-Canonical event contract:
+规范事件合约：
 
 - `turn_started`
 - `text_delta`
@@ -40,57 +40,57 @@ Canonical event contract:
 - `turn_failed`
 - `turn_cancelled`
 
-## Workstreams
+## 工作流
 
-### 1) Canonical streaming contract
+### 1) 规范流式合约
 
-- Define strict event schema + validation in core.
-- Add adapter contract tests to guarantee each runtime emits compatible events.
-- Reject malformed runtime events early and surface structured diagnostics.
+- 在核心中定义严格的事件模式和验证。
+- 添加适配器合约测试以保证每个运行时发出兼容的事件。
+- 提前拒绝格式错误的运行时事件并显示结构化诊断信息。
 
-### 2) Shared stream processor
+### 2) 共享流处理器
 
-- Replace runtime-specific coalescer/projector logic with one processor.
-- Processor owns text delta buffering, idle flush, max-chunk splitting, and completion flush.
-- Move ACP/main/subagent config resolution into one helper to prevent drift.
+- 用一个处理器替换运行时特定的合并器/投影器逻辑。
+- 处理器负责文本增量缓冲、空闲刷新、最大分块拆分和完成刷新。
+- 将 ACP/main/subagent 的配置解析移入一个助手以防偏移。
 
-### 3) Shared channel projection
+### 3) 共享频道投影
 
-- Keep channel adapters dumb: accept finalized blocks and send.
-- Move Discord-specific chunking quirks to channel projector only.
-- Keep pipeline channel-agnostic before projection.
+- 保持频道适配器简单：接受最终化的块并发送。
+- 将 Discord 特定的分块奇特行为仅移至频道投影器。
+- 在投影之前保持管道与频道无关。
 
-### 4) Delivery ledger + replay
+### 4) 交付账本 + 重放
 
-- Add per-turn/per-chunk delivery IDs.
-- Record checkpoints before and after physical send.
-- On restart, replay pending chunks idempotently and avoid duplicates.
+- 添加每轮/每块交付 ID。
+- 在物理发送前后记录检查点。
+- 重启时幂等重放待处理的块并避免重复。
 
-### 5) Migration and cutover
+### 5) 迁移和切换
 
-- Phase 1: shadow mode (new pipeline computes output but old path sends; compare).
-- Phase 2: runtime-by-runtime cutover (`acp`, then `subagent`, then `main` or reverse by risk).
-- Phase 3: delete legacy runtime-specific streaming code.
+- 阶段 1：影子模式（新管道计算输出但旧路径发送；进行对比）。
+- 阶段 2：按运行时逐个切换（`acp`，然后 `subagent`，然后 `main` 或按风险反向）。
+- 阶段 3：删除旧的运行时特定流式代码。
 
-## Non-goals
+## 非目标
 
-- No changes to ACP policy/permissions model in this refactor.
-- No channel-specific feature expansion outside projection compatibility fixes.
-- No transport/backend redesign (acpx plugin contract remains as-is unless needed for event parity).
+- 本重构不变更 ACP 策略/权限模型。
+- 不在投影兼容性修复之外进行频道特定功能扩展。
+- 不进行传输/后端重设计（除非事件对等需要，acpx 插件合约保持原样）。
 
-## Risks and mitigations
+## 风险和缓解
 
-- Risk: behavioral regressions in existing main/subagent paths.
-  Mitigation: shadow mode diffing + adapter contract tests + channel e2e tests.
-- Risk: duplicate sends during crash recovery.
-  Mitigation: durable delivery IDs + idempotent replay in delivery adapter.
-- Risk: runtime adapters diverge again.
-  Mitigation: required shared contract test suite for all adapters.
+- 风险：现有 main/subagent 路径中的行为回归。
+  缓解：影子模式差异对比 + 适配器合约测试 + 频道端到端测试。
+- 风险：崩溃恢复期间的重复发送。
+  缓解：持久交付 ID + 交付适配器中的幂等重放。
+- 风险：运行时适配器再次偏移。
+  缓解：所有适配器必须通过的共享合约测试套件。
 
-## Acceptance criteria
+## 验收标准
 
-- All runtimes pass shared streaming contract tests.
-- Discord ACP/main/subagent produce equivalent spacing/chunking behavior for tiny deltas.
-- Crash/restart replay sends no duplicate chunk for the same delivery ID.
-- Legacy ACP projector/coalescer path is removed.
-- Streaming config resolution is shared and runtime-independent.
+- 所有运行时通过共享流式合约测试。
+- Discord ACP/main/subagent 对小增量产生等效的间距/分块行为。
+- 崩溃/重启重放不为相同交付 ID 发送重复块。
+- 旧版 ACP 投影器/合并器路径已移除。
+- 流式配置解析已共享且与运行时无关。

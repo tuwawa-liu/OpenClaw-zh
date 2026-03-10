@@ -1,47 +1,55 @@
 ---
-summary: "Manual logins for browser automation + X/Twitter posting"
 read_when:
-  - You need to log into sites for browser automation
-  - You want to post updates to X/Twitter
-title: "Browser Login"
+  - 你需要为浏览器自动化登录网站
+  - 你想在 X/Twitter 上发布更新
+summary: 用于浏览器自动化 + X/Twitter 发帖的手动登录
+title: 浏览器登录
+x-i18n:
+  generated_at: "2026-02-03T07:55:03Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 8ceea2d5258836e3db10f858ee122b5832a40f83a72ba18de140671091eef5a8
+  source_path: tools/browser-login.md
+  workflow: 15
 ---
 
-# Browser login + X/Twitter posting
+# 浏览器登录 + X/Twitter 发帖
 
-## Manual login (recommended)
+## 手动登录（推荐）
 
-When a site requires login, **sign in manually** in the **host** browser profile (the openclaw browser).
+当网站需要登录时，请在**主机**浏览器配置文件（openclaw 浏览器）中**手动登录**。
 
-Do **not** give the model your credentials. Automated logins often trigger anti‑bot defenses and can lock the account.
+**不要**将你的凭证提供给模型。自动登录通常会触发反机器人防御并可能锁定账户。
 
-Back to the main browser docs: [Browser](/tools/browser).
+返回主浏览器文档：[浏览器](/tools/browser)。
 
-## Which Chrome profile is used?
+## 使用哪个 Chrome 配置文件？
 
-OpenClaw controls a **dedicated Chrome profile** (named `openclaw`, orange‑tinted UI). This is separate from your daily browser profile.
+OpenClaw 控制一个**专用的 Chrome 配置文件**（名为 `openclaw`，橙色调 UI）。这与你的日常浏览器配置文件是分开的。
 
-Two easy ways to access it:
+两种简单的访问方式：
 
-1. **Ask the agent to open the browser** and then log in yourself.
-2. **Open it via CLI**:
+1. **让智能体打开浏览器**，然后你自己登录。
+2. **通过 CLI 打开**：
 
 ```bash
 openclaw browser start
 openclaw browser open https://x.com
 ```
 
-If you have multiple profiles, pass `--browser-profile <name>` (the default is `openclaw`).
+如果你有多个配置文件，传入 `--browser-profile <name>`（默认是 `openclaw`）。
 
-## X/Twitter: recommended flow
+## X/Twitter：推荐流程
 
-- **Read/search/threads:** use the **host** browser (manual login).
-- **Post updates:** use the **host** browser (manual login).
+- **阅读/搜索/话题：** 使用 **bird** CLI Skills（无浏览器，稳定）。
+  - 仓库：https://github.com/steipete/bird
+- **发布更新：** 使用**主机**浏览器（手动登录）。
 
-## Sandboxing + host browser access
+## 沙箱隔离 + 主机浏览器访问
 
-Sandboxed browser sessions are **more likely** to trigger bot detection. For X/Twitter (and other strict sites), prefer the **host** browser.
+沙箱隔离的浏览器会话**更容易**触发机器人检测。对于 X/Twitter（和其他严格的网站），优先使用**主机**浏览器。
 
-If the agent is sandboxed, the browser tool defaults to the sandbox. To allow host control:
+如果智能体在沙箱中，浏览器工具默认使用沙箱。要允许主机控制：
 
 ```json5
 {
@@ -58,10 +66,10 @@ If the agent is sandboxed, the browser tool defaults to the sandbox. To allow ho
 }
 ```
 
-Then target the host browser:
+然后定位主机浏览器：
 
 ```bash
 openclaw browser open https://x.com --browser-profile openclaw --target host
 ```
 
-Or disable sandboxing for the agent that posts updates.
+或者为发布更新的智能体禁用沙箱隔离。

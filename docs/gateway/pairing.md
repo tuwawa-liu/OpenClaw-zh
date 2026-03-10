@@ -1,40 +1,42 @@
 ---
-summary: "Gateway-owned node pairing (Option B) for iOS and other remote nodes"
 read_when:
-  - Implementing node pairing approvals without macOS UI
-  - Adding CLI flows for approving remote nodes
-  - Extending gateway protocol with node management
-title: "Gateway-Owned Pairing"
+  - 在没有 macOS UI 的情况下实现节点配对审批
+  - 添加用于审批远程节点的 CLI 流程
+  - 扩展 Gateway 网关协议以支持节点管理
+summary: Gateway 网关拥有的节点配对（选项 B），用于 iOS 和其他远程节点
+title: Gateway 网关拥有的配对
+x-i18n:
+  generated_at: "2026-02-03T07:48:32Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 1f5154292a75ea2c1470324babc99c6c46a5e4e16afb394ed323d28f6168f459
+  source_path: gateway/pairing.md
+  workflow: 15
 ---
 
-# Gateway-owned pairing (Option B)
+# Gateway 网关拥有的配对（选项 B）
 
-In Gateway-owned pairing, the **Gateway** is the source of truth for which nodes
-are allowed to join. UIs (macOS app, future clients) are just frontends that
-approve or reject pending requests.
+在 Gateway 网关拥有的配对中，**Gateway 网关**是允许哪些节点加入的唯一信息源。UI（macOS 应用、未来的客户端）只是审批或拒绝待处理请求的前端。
 
-**Important:** WS nodes use **device pairing** (role `node`) during `connect`.
-`node.pair.*` is a separate pairing store and does **not** gate the WS handshake.
-Only clients that explicitly call `node.pair.*` use this flow.
+**重要：**WS 节点在 `connect` 期间使用**设备配对**（角色 `node`）。`node.pair.*` 是一个独立的配对存储，**不会**限制 WS 握手。只有显式调用 `node.pair.*` 的客户端使用此流程。
 
-## Concepts
+## 概念
 
-- **Pending request**: a node asked to join; requires approval.
-- **Paired node**: approved node with an issued auth token.
-- **Transport**: the Gateway WS endpoint forwards requests but does not decide
-  membership. (Legacy TCP bridge support is deprecated/removed.)
+- **待处理请求**：一个节点请求加入；需要审批。
+- **已配对节点**：已批准的节点，带有已颁发的认证令牌。
+- **传输层**：Gateway 网关 WS 端点转发请求但不决定成员资格。（旧版 TCP 桥接支持已弃用/移除。）
 
-## How pairing works
+## 配对工作原理
 
-1. A node connects to the Gateway WS and requests pairing.
-2. The Gateway stores a **pending request** and emits `node.pair.requested`.
-3. You approve or reject the request (CLI or UI).
-4. On approval, the Gateway issues a **new token** (tokens are rotated on re‑pair).
-5. The node reconnects using the token and is now “paired”.
+1. 节点连接到 Gateway 网关 WS 并请求配对。
+2. Gateway 网关存储一个**待处理请求**并发出 `node.pair.requested`。
+3. 你审批或拒绝该请求（CLI 或 UI）。
+4. 审批后，Gateway 网关颁发一个**新令牌**（重新配对时令牌会轮换）。
+5. 节点使用该令牌重新连接，现在是"已配对"状态。
 
-Pending requests expire automatically after **5 minutes**.
+待处理请求在 **5 分钟**后自动过期。
 
-## CLI workflow (headless friendly)
+## CLI 工作流程（支持无头模式）
 
 ```bash
 openclaw nodes pending
@@ -44,56 +46,54 @@ openclaw nodes status
 openclaw nodes rename --node <id|name|ip> --name "Living Room iPad"
 ```
 
-`nodes status` shows paired/connected nodes and their capabilities.
+`nodes status` 显示已配对/已连接的节点及其功能。
 
-## API surface (gateway protocol)
+## API 接口（Gateway 网关协议）
 
-Events:
+事件：
 
-- `node.pair.requested` — emitted when a new pending request is created.
-- `node.pair.resolved` — emitted when a request is approved/rejected/expired.
+- `node.pair.requested` — 创建新的待处理请求时发出。
+- `node.pair.resolved` — 请求被批准/拒绝/过期时发出。
 
-Methods:
+方法：
 
-- `node.pair.request` — create or reuse a pending request.
-- `node.pair.list` — list pending + paired nodes.
-- `node.pair.approve` — approve a pending request (issues token).
-- `node.pair.reject` — reject a pending request.
-- `node.pair.verify` — verify `{ nodeId, token }`.
+- `node.pair.request` — 创建或复用待处理请求。
+- `node.pair.list` — 列出待处理 + 已配对的节点。
+- `node.pair.approve` — 批准待处理请求（颁发令牌）。
+- `node.pair.reject` — 拒绝待处理请求。
+- `node.pair.verify` — 验证 `{ nodeId, token }`。
 
-Notes:
+注意事项：
 
-- `node.pair.request` is idempotent per node: repeated calls return the same
-  pending request.
-- Approval **always** generates a fresh token; no token is ever returned from
-  `node.pair.request`.
-- Requests may include `silent: true` as a hint for auto-approval flows.
+- `node.pair.request` 对每个节点是幂等的：重复调用返回相同的待处理请求。
+- 审批**总是**生成新的令牌；`node.pair.request` 永远不会返回令牌。
+- 请求可以包含 `silent: true` 作为自动审批流程的提示。
 
-## Auto-approval (macOS app)
+## 自动审批（macOS 应用）
 
-The macOS app can optionally attempt a **silent approval** when:
+当满足以下条件时，macOS 应用可以选择尝试**静默审批**：
 
-- the request is marked `silent`, and
-- the app can verify an SSH connection to the gateway host using the same user.
+- 请求标记为 `silent`，且
+- 应用可以使用相同用户验证到 Gateway 网关主机的 SSH 连接。
 
-If silent approval fails, it falls back to the normal “Approve/Reject” prompt.
+如果静默审批失败，则回退到正常的"批准/拒绝"提示。
 
-## Storage (local, private)
+## 存储（本地，私有）
 
-Pairing state is stored under the Gateway state directory (default `~/.openclaw`):
+配对状态存储在 Gateway 网关状态目录下（默认 `~/.openclaw`）：
 
 - `~/.openclaw/nodes/paired.json`
 - `~/.openclaw/nodes/pending.json`
 
-If you override `OPENCLAW_STATE_DIR`, the `nodes/` folder moves with it.
+如果你覆盖了 `OPENCLAW_STATE_DIR`，`nodes/` 文件夹会随之移动。
 
-Security notes:
+安全注意事项：
 
-- Tokens are secrets; treat `paired.json` as sensitive.
-- Rotating a token requires re-approval (or deleting the node entry).
+- 令牌是机密信息；将 `paired.json` 视为敏感文件。
+- 轮换令牌需要重新审批（或删除节点条目）。
 
-## Transport behavior
+## 传输层行为
 
-- The transport is **stateless**; it does not store membership.
-- If the Gateway is offline or pairing is disabled, nodes cannot pair.
-- If the Gateway is in remote mode, pairing still happens against the remote Gateway’s store.
+- 传输层是**无状态的**；它不存储成员资格。
+- 如果 Gateway 网关离线或配对被禁用，节点无法配对。
+- 如果 Gateway 网关处于远程模式，配对仍然针对远程 Gateway 网关的存储进行。

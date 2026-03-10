@@ -1,77 +1,43 @@
 ---
-summary: "CLI reference for `openclaw cron` (schedule and run background jobs)"
 read_when:
-  - You want scheduled jobs and wakeups
-  - You’re debugging cron execution and logs
-title: "cron"
+  - 你需要定时作业和唤醒功能
+  - 你正在调试 cron 执行和日志
+summary: "`openclaw cron` 的 CLI 参考（调度和运行后台作业）"
+title: cron
+x-i18n:
+  generated_at: "2026-02-03T07:44:47Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: bc9317c824f3b6339df657cc269961d9b5f121da65ec2b23a07d454e6d611135
+  source_path: cli/cron.md
+  workflow: 15
 ---
 
 # `openclaw cron`
 
-Manage cron jobs for the Gateway scheduler.
+管理 Gateway 网关调度器的 cron 作业。
 
-Related:
+相关内容：
 
-- Cron jobs: [Cron jobs](/automation/cron-jobs)
+- Cron 作业：[Cron 作业](/automation/cron-jobs)
 
-Tip: run `openclaw cron --help` for the full command surface.
+提示：运行 `openclaw cron --help` 查看完整的命令集。
 
-Note: isolated `cron add` jobs default to `--announce` delivery. Use `--no-deliver` to keep
-output internal. `--deliver` remains as a deprecated alias for `--announce`.
+说明：隔离式 `cron add` 任务默认使用 `--announce` 投递摘要。使用 `--no-deliver` 仅内部运行。
+`--deliver` 仍作为 `--announce` 的弃用别名保留。
 
-Note: one-shot (`--at`) jobs delete after success by default. Use `--keep-after-run` to keep them.
+说明：一次性（`--at`）任务成功后默认删除。使用 `--keep-after-run` 保留。
 
-Note: recurring jobs now use exponential retry backoff after consecutive errors (30s → 1m → 5m → 15m → 60m), then return to normal schedule after the next successful run.
+## 常见编辑
 
-Note: `openclaw cron run` now returns as soon as the manual run is queued for execution. Successful responses include `{ ok: true, enqueued: true, runId }`; use `openclaw cron runs --id <job-id>` to follow the eventual outcome.
-
-Note: retention/pruning is controlled in config:
-
-- `cron.sessionRetention` (default `24h`) prunes completed isolated run sessions.
-- `cron.runLog.maxBytes` + `cron.runLog.keepLines` prune `~/.openclaw/cron/runs/<jobId>.jsonl`.
-
-Upgrade note: if you have older cron jobs from before the current delivery/store format, run
-`openclaw doctor --fix`. Doctor now normalizes legacy cron fields (`jobId`, `schedule.cron`,
-top-level delivery fields, payload `provider` delivery aliases) and migrates simple
-`notify: true` webhook fallback jobs to explicit webhook delivery when `cron.webhook` is
-configured.
-
-## Common edits
-
-Update delivery settings without changing the message:
+更新投递设置而不更改消息：
 
 ```bash
 openclaw cron edit <job-id> --announce --channel telegram --to "123456789"
 ```
 
-Disable delivery for an isolated job:
+为隔离的作业禁用投递：
 
 ```bash
 openclaw cron edit <job-id> --no-deliver
 ```
-
-Enable lightweight bootstrap context for an isolated job:
-
-```bash
-openclaw cron edit <job-id> --light-context
-```
-
-Announce to a specific channel:
-
-```bash
-openclaw cron edit <job-id> --announce --channel slack --to "channel:C1234567890"
-```
-
-Create an isolated job with lightweight bootstrap context:
-
-```bash
-openclaw cron add \
-  --name "Lightweight morning brief" \
-  --cron "0 7 * * *" \
-  --session isolated \
-  --message "Summarize overnight updates." \
-  --light-context \
-  --no-deliver
-```
-
-`--light-context` applies to isolated agent-turn jobs only. For cron runs, lightweight mode keeps bootstrap context empty instead of injecting the full workspace bootstrap set.

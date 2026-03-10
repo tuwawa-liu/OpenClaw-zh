@@ -1,123 +1,115 @@
 ---
-summary: "Agent runtime (embedded pi-mono), workspace contract, and session bootstrap"
 read_when:
-  - Changing agent runtime, workspace bootstrap, or session behavior
-title: "Agent Runtime"
+  - 更改智能体运行时、工作区引导或会话行为时
+summary: 智能体运行时（嵌入式 pi-mono）、工作区契约和会话引导
+title: 智能体运行时
+x-i18n:
+  generated_at: "2026-02-03T10:04:53Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 04b4e0bc6345d2afd9a93186e5d7a02a393ec97da2244e531703cb6a1c182325
+  source_path: concepts/agent.md
+  workflow: 15
 ---
 
-# Agent Runtime 🤖
+# 智能体运行时 🤖
 
-OpenClaw runs a single embedded agent runtime derived from **pi-mono**.
+OpenClaw 运行一个源自 **pi-mono** 的嵌入式智能体运行时。
 
-## Workspace (required)
+## 工作区（必需）
 
-OpenClaw uses a single agent workspace directory (`agents.defaults.workspace`) as the agent’s **only** working directory (`cwd`) for tools and context.
+OpenClaw 使用单一智能体工作区目录（`agents.defaults.workspace`）作为智能体**唯一**的工作目录（`cwd`），用于工具和上下文。
 
-Recommended: use `openclaw setup` to create `~/.openclaw/openclaw.json` if missing and initialize the workspace files.
+建议：使用 `openclaw setup` 在缺失时创建 `~/.openclaw/openclaw.json` 并初始化工作区文件。
 
-Full workspace layout + backup guide: [Agent workspace](/concepts/agent-workspace)
+完整工作区布局 + 备份指南：[智能体工作区](/concepts/agent-workspace)
 
-If `agents.defaults.sandbox` is enabled, non-main sessions can override this with
-per-session workspaces under `agents.defaults.sandbox.workspaceRoot` (see
-[Gateway configuration](/gateway/configuration)).
+如果启用了 `agents.defaults.sandbox`，非主会话可以在 `agents.defaults.sandbox.workspaceRoot` 下使用按会话隔离的工作区覆盖此设置（参见 [Gateway 网关配置](/gateway/configuration)）。
 
-## Bootstrap files (injected)
+## 引导文件（注入）
 
-Inside `agents.defaults.workspace`, OpenClaw expects these user-editable files:
+在 `agents.defaults.workspace` 内，OpenClaw 期望以下用户可编辑的文件：
 
-- `AGENTS.md` — operating instructions + “memory”
-- `SOUL.md` — persona, boundaries, tone
-- `TOOLS.md` — user-maintained tool notes (e.g. `imsg`, `sag`, conventions)
-- `BOOTSTRAP.md` — one-time first-run ritual (deleted after completion)
-- `IDENTITY.md` — agent name/vibe/emoji
-- `USER.md` — user profile + preferred address
+- `AGENTS.md` — 操作指令 + "记忆"
+- `SOUL.md` — 人设、边界、语气
+- `TOOLS.md` — 用户维护的工具说明（例如 `imsg`、`sag`、约定）
+- `BOOTSTRAP.md` — 一次性首次运行仪式（完成后删除）
+- `IDENTITY.md` — 智能体名称/风格/表情
+- `USER.md` — 用户档案 + 偏好称呼
 
-On the first turn of a new session, OpenClaw injects the contents of these files directly into the agent context.
+在新会话的第一轮，OpenClaw 将这些文件的内容直接注入智能体上下文。
 
-Blank files are skipped. Large files are trimmed and truncated with a marker so prompts stay lean (read the file for full content).
+空文件会被跳过。大文件会被修剪和截断并添加标记，以保持提示词精简（阅读文件获取完整内容）。
 
-If a file is missing, OpenClaw injects a single “missing file” marker line (and `openclaw setup` will create a safe default template).
+如果文件缺失，OpenClaw 会注入一行"文件缺失"标记（`openclaw setup` 将创建安全的默认模板）。
 
-`BOOTSTRAP.md` is only created for a **brand new workspace** (no other bootstrap files present). If you delete it after completing the ritual, it should not be recreated on later restarts.
+`BOOTSTRAP.md` 仅在**全新工作区**（没有其他引导文件存在）时创建。如果你在完成仪式后删除它，后续重启不应重新创建。
 
-To disable bootstrap file creation entirely (for pre-seeded workspaces), set:
+要完全禁用引导文件创建（用于预置工作区），请设置：
 
 ```json5
 { agent: { skipBootstrap: true } }
 ```
 
-## Built-in tools
+## 内置工具
 
-Core tools (read/exec/edit/write and related system tools) are always available,
-subject to tool policy. `apply_patch` is optional and gated by
-`tools.exec.applyPatch`. `TOOLS.md` does **not** control which tools exist; it’s
-guidance for how _you_ want them used.
+核心工具（read/exec/edit/write 及相关系统工具）始终可用，受工具策略约束。`apply_patch` 是可选的，由 `tools.exec.applyPatch` 控制。`TOOLS.md` **不**控制哪些工具存在；它是关于*你*希望如何使用它们的指导。
 
 ## Skills
 
-OpenClaw loads skills from three locations (workspace wins on name conflict):
+OpenClaw 从三个位置加载 Skills（名称冲突时工作区优先）：
 
-- Bundled (shipped with the install)
-- Managed/local: `~/.openclaw/skills`
-- Workspace: `<workspace>/skills`
+- 内置（随安装包提供）
+- 托管/本地：`~/.openclaw/skills`
+- 工作区：`<workspace>/skills`
 
-Skills can be gated by config/env (see `skills` in [Gateway configuration](/gateway/configuration)).
+Skills 可通过配置/环境变量控制（参见 [Gateway 网关配置](/gateway/configuration) 中的 `skills`）。
 
-## pi-mono integration
+## pi-mono 集成
 
-OpenClaw reuses pieces of the pi-mono codebase (models/tools), but **session management, discovery, and tool wiring are OpenClaw-owned**.
+OpenClaw 复用 pi-mono 代码库的部分内容（模型/工具），但**会话管理、设备发现和工具连接由 OpenClaw 负责**。
 
-- No pi-coding agent runtime.
-- No `~/.pi/agent` or `<workspace>/.pi` settings are consulted.
+- 无 pi-coding 智能体运行时。
+- 不读取 `~/.pi/agent` 或 `<workspace>/.pi` 设置。
 
-## Sessions
+## 会话
 
-Session transcripts are stored as JSONL at:
+会话记录以 JSONL 格式存储在：
 
 - `~/.openclaw/agents/<agentId>/sessions/<SessionId>.jsonl`
 
-The session ID is stable and chosen by OpenClaw.
-Legacy Pi/Tau session folders are **not** read.
+会话 ID 是稳定的，由 OpenClaw 选择。
+**不**读取旧版 Pi/Tau 会话文件夹。
 
-## Steering while streaming
+## 流式传输中的引导
 
-When queue mode is `steer`, inbound messages are injected into the current run.
-The queue is checked **after each tool call**; if a queued message is present,
-remaining tool calls from the current assistant message are skipped (error tool
-results with "Skipped due to queued user message."), then the queued user
-message is injected before the next assistant response.
+当队列模式为 `steer` 时，入站消息会注入当前运行。
+队列在**每次工具调用后**检查；如果存在排队消息，当前助手消息的剩余工具调用将被跳过（工具结果显示错误"Skipped due to queued user message."），然后在下一个助手响应前注入排队的用户消息。
 
-When queue mode is `followup` or `collect`, inbound messages are held until the
-current turn ends, then a new agent turn starts with the queued payloads. See
-[Queue](/concepts/queue) for mode + debounce/cap behavior.
+当队列模式为 `followup` 或 `collect` 时，入站消息会保留到当前轮次结束，然后使用排队的载荷开始新的智能体轮次。参见 [队列](/concepts/queue) 了解模式 + 防抖/上限行为。
 
-Block streaming sends completed assistant blocks as soon as they finish; it is
-**off by default** (`agents.defaults.blockStreamingDefault: "off"`).
-Tune the boundary via `agents.defaults.blockStreamingBreak` (`text_end` vs `message_end`; defaults to text_end).
-Control soft block chunking with `agents.defaults.blockStreamingChunk` (defaults to
-800–1200 chars; prefers paragraph breaks, then newlines; sentences last).
-Coalesce streamed chunks with `agents.defaults.blockStreamingCoalesce` to reduce
-single-line spam (idle-based merging before send). Non-Telegram channels require
-explicit `*.blockStreaming: true` to enable block replies.
-Verbose tool summaries are emitted at tool start (no debounce); Control UI
-streams tool output via agent events when available.
-More details: [Streaming + chunking](/concepts/streaming).
+分块流式传输在助手块完成后立即发送；默认为**关闭**（`agents.defaults.blockStreamingDefault: "off"`）。
+通过 `agents.defaults.blockStreamingBreak` 调整边界（`text_end` 与 `message_end`；默认为 text_end）。
+使用 `agents.defaults.blockStreamingChunk` 控制软块分块（默认 800–1200 字符；优先段落分隔，其次换行；最后是句子）。
+使用 `agents.defaults.blockStreamingCoalesce` 合并流式块以减少单行刷屏（发送前基于空闲的合并）。非 Telegram 渠道需要显式设置 `*.blockStreaming: true` 以启用分块回复。
+工具启动时发出详细工具摘要（无防抖）；Control UI 在可用时通过智能体事件流式传输工具输出。
+更多详情：[流式传输 + 分块](/concepts/streaming)。
 
-## Model refs
+## 模型引用
 
-Model refs in config (for example `agents.defaults.model` and `agents.defaults.models`) are parsed by splitting on the **first** `/`.
+配置中的模型引用（例如 `agents.defaults.model` 和 `agents.defaults.models`）通过在**第一个** `/` 处分割来解析。
 
-- Use `provider/model` when configuring models.
-- If the model ID itself contains `/` (OpenRouter-style), include the provider prefix (example: `openrouter/moonshotai/kimi-k2`).
-- If you omit the provider, OpenClaw treats the input as an alias or a model for the **default provider** (only works when there is no `/` in the model ID).
+- 配置模型时使用 `provider/model`。
+- 如果模型 ID 本身包含 `/`（OpenRouter 风格），请包含提供商前缀（例如：`openrouter/moonshotai/kimi-k2`）。
+- 如果省略提供商，OpenClaw 将输入视为别名或**默认提供商**的模型（仅在模型 ID 中没有 `/` 时有效）。
 
-## Configuration (minimal)
+## 配置（最小）
 
-At minimum, set:
+至少需要设置：
 
 - `agents.defaults.workspace`
-- `channels.whatsapp.allowFrom` (strongly recommended)
+- `channels.whatsapp.allowFrom`（强烈建议）
 
 ---
 
-_Next: [Group Chats](/channels/group-messages)_ 🦞
+_下一篇：[群聊](/channels/group-messages)_ 🦞

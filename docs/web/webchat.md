@@ -1,61 +1,56 @@
 ---
-summary: "Loopback WebChat static host and Gateway WS usage for chat UI"
 read_when:
-  - Debugging or configuring WebChat access
-title: "WebChat"
+  - 调试或配置 WebChat 访问
+summary: 用于聊天 UI 的 loopback WebChat 静态主机和 Gateway 网关 WS 使用
+title: WebChat
+x-i18n:
+  generated_at: "2026-02-03T10:13:28Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: b5ee2b462c8c979ac27f80dea0cf12cf62b3c799cf8fd0a7721901e26efeb1a0
+  source_path: web/webchat.md
+  workflow: 15
 ---
 
-# WebChat (Gateway WebSocket UI)
+# WebChat（Gateway 网关 WebSocket UI）
 
-Status: the macOS/iOS SwiftUI chat UI talks directly to the Gateway WebSocket.
+状态：macOS/iOS SwiftUI 聊天 UI 直接与 Gateway 网关 WebSocket 通信。
 
-## What it is
+## 它是什么
 
-- A native chat UI for the gateway (no embedded browser and no local static server).
-- Uses the same sessions and routing rules as other channels.
-- Deterministic routing: replies always go back to WebChat.
+- Gateway 网关的原生聊天 UI（无嵌入式浏览器，无本地静态服务器）。
+- 使用与其他渠道相同的会话和路由规则。
+- 确定性路由：回复始终返回到 WebChat。
 
-## Quick start
+## 快速开始
 
-1. Start the gateway.
-2. Open the WebChat UI (macOS/iOS app) or the Control UI chat tab.
-3. Ensure gateway auth is configured (required by default, even on loopback).
+1. 启动 Gateway 网关。
+2. 打开 WebChat UI（macOS/iOS 应用）或控制 UI 聊天标签页。
+3. 确保已配置 Gateway 网关认证（默认需要，即使在 loopback 上）。
 
-## How it works (behavior)
+## 工作原理（行为）
 
-- The UI connects to the Gateway WebSocket and uses `chat.history`, `chat.send`, and `chat.inject`.
-- `chat.history` is bounded for stability: Gateway may truncate long text fields, omit heavy metadata, and replace oversized entries with `[chat.history omitted: message too large]`.
-- `chat.inject` appends an assistant note directly to the transcript and broadcasts it to the UI (no agent run).
-- Aborted runs can keep partial assistant output visible in the UI.
-- Gateway persists aborted partial assistant text into transcript history when buffered output exists, and marks those entries with abort metadata.
-- History is always fetched from the gateway (no local file watching).
-- If the gateway is unreachable, WebChat is read-only.
+- UI 连接到 Gateway 网关 WebSocket 并使用 `chat.history`、`chat.send` 和 `chat.inject`。
+- `chat.inject` 直接将助手注释追加到转录并广播到 UI（无智能体运行）。
+- 历史记录始终从 Gateway 网关获取（无本地文件监听）。
+- 如果 Gateway 网关不可达，WebChat 为只读模式。
 
-## Control UI agents tools panel
+## 远程使用
 
-- The Control UI `/agents` Tools panel fetches a runtime catalog via `tools.catalog` and labels each
-  tool as `core` or `plugin:<id>` (plus `optional` for optional plugin tools).
-- If `tools.catalog` is unavailable, the panel falls back to a built-in static list.
-- The panel edits profile and override config, but effective runtime access still follows policy
-  precedence (`allow`/`deny`, per-agent and provider/channel overrides).
+- 远程模式通过 SSH/Tailscale 隧道传输 Gateway 网关 WebSocket。
+- 你不需要运行单独的 WebChat 服务器。
 
-## Remote use
+## 配置参考（WebChat）
 
-- Remote mode tunnels the gateway WebSocket over SSH/Tailscale.
-- You do not need to run a separate WebChat server.
+完整配置：[配置](/gateway/configuration)
 
-## Configuration reference (WebChat)
+渠道选项：
 
-Full configuration: [Configuration](/gateway/configuration)
+- 没有专用的 `webchat.*` 块。WebChat 使用下面的 Gateway 网关端点 + 认证设置。
 
-Channel options:
+相关的全局选项：
 
-- No dedicated `webchat.*` block. WebChat uses the gateway endpoint + auth settings below.
-
-Related global options:
-
-- `gateway.port`, `gateway.bind`: WebSocket host/port.
-- `gateway.auth.mode`, `gateway.auth.token`, `gateway.auth.password`: WebSocket auth (token/password).
-- `gateway.auth.mode: "trusted-proxy"`: reverse-proxy auth for browser clients (see [Trusted Proxy Auth](/gateway/trusted-proxy-auth)).
-- `gateway.remote.url`, `gateway.remote.token`, `gateway.remote.password`: remote gateway target.
-- `session.*`: session storage and main key defaults.
+- `gateway.port`、`gateway.bind`：WebSocket 主机/端口。
+- `gateway.auth.mode`、`gateway.auth.token`、`gateway.auth.password`：WebSocket 认证。
+- `gateway.remote.url`、`gateway.remote.token`、`gateway.remote.password`：远程 Gateway 网关目标。
+- `session.*`：会话存储和主键默认值。

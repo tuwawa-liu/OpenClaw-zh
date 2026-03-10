@@ -1,117 +1,119 @@
 ---
-summary: "Run OpenClaw with Ollama (local LLM runtime)"
 read_when:
-  - You want to run OpenClaw with local models via Ollama
-  - You need Ollama setup and configuration guidance
-title: "Ollama"
+  - 你想通过 Ollama 使用本地模型运行 OpenClaw
+  - 你需要 Ollama 的安装和配置指导
+summary: 通过 Ollama（本地 LLM 运行时）运行 OpenClaw
+title: Ollama
+x-i18n:
+  generated_at: "2026-02-01T21:35:22Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 157080ad90f449f622260a5f5bd293f79c15800527d36b15596e8ca232e3c957
+  source_path: providers/ollama.md
+  workflow: 15
 ---
 
 # Ollama
 
-Ollama is a local LLM runtime that makes it easy to run open-source models on your machine. OpenClaw integrates with Ollama's native API (`/api/chat`), supporting streaming and tool calling, and can **auto-discover tool-capable models** when you opt in with `OLLAMA_API_KEY` (or an auth profile) and do not define an explicit `models.providers.ollama` entry.
+Ollama 是一个本地 LLM 运行时，可以轻松在你的机器上运行开源模型。OpenClaw 通过 Ollama 的 OpenAI 兼容 API 进行集成，并且当你通过 `OLLAMA_API_KEY`（或认证配置）启用且未定义显式的 `models.providers.ollama` 条目时，可以**自动发现支持工具调用的模型**。
 
-<Warning>
-**Remote Ollama users**: Do not use the `/v1` OpenAI-compatible URL (`http://host:11434/v1`) with OpenClaw. This breaks tool calling and models may output raw tool JSON as plain text. Use the native Ollama API URL instead: `baseUrl: "http://host:11434"` (no `/v1`).
-</Warning>
+## 快速开始
 
-## Quick start
+1. 安装 Ollama：https://ollama.ai
 
-1. Install Ollama: [https://ollama.ai](https://ollama.ai)
-
-2. Pull a model:
+2. 拉取模型：
 
 ```bash
-ollama pull gpt-oss:20b
-# or
 ollama pull llama3.3
-# or
+# 或
 ollama pull qwen2.5-coder:32b
-# or
+# 或
 ollama pull deepseek-r1:32b
 ```
 
-3. Enable Ollama for OpenClaw (any value works; Ollama doesn't require a real key):
+3. 为 OpenClaw 启用 Ollama（任意值即可；Ollama 不需要真实密钥）：
 
 ```bash
-# Set environment variable
+# 设置环境变量
 export OLLAMA_API_KEY="ollama-local"
 
-# Or configure in your config file
+# 或在配置文件中设置
 openclaw config set models.providers.ollama.apiKey "ollama-local"
 ```
 
-4. Use Ollama models:
+4. 使用 Ollama 模型：
 
 ```json5
 {
   agents: {
     defaults: {
-      model: { primary: "ollama/gpt-oss:20b" },
+      model: { primary: "ollama/llama3.3" },
     },
   },
 }
 ```
 
-## Model discovery (implicit provider)
+## 模型发现（隐式提供商）
 
-When you set `OLLAMA_API_KEY` (or an auth profile) and **do not** define `models.providers.ollama`, OpenClaw discovers models from the local Ollama instance at `http://127.0.0.1:11434`:
+当你设置了 `OLLAMA_API_KEY`（或认证配置）且**未**定义 `models.providers.ollama` 时，OpenClaw 会从本地 Ollama 实例 `http://127.0.0.1:11434` 发现模型：
 
-- Queries `/api/tags` and `/api/show`
-- Keeps only models that report `tools` capability
-- Marks `reasoning` when the model reports `thinking`
-- Reads `contextWindow` from `model_info["<arch>.context_length"]` when available
-- Sets `maxTokens` to 10× the context window
-- Sets all costs to `0`
+- 查询 `/api/tags` 和 `/api/show`
+- 仅保留报告了 `tools` 能力的模型
+- 当模型报告 `thinking` 时标记为 `reasoning`
+- 在可用时从 `model_info["<arch>.context_length"]` 读取 `contextWindow`
+- 将 `maxTokens` 设置为上下文窗口的 10 倍
+- 所有费用设置为 `0`
 
-This avoids manual model entries while keeping the catalog aligned with Ollama's capabilities.
+这样无需手动配置模型条目，同时保持目录与 Ollama 的能力对齐。
 
-To see what models are available:
+查看可用模型：
 
 ```bash
 ollama list
 openclaw models list
 ```
 
-To add a new model, simply pull it with Ollama:
+要添加新模型，只需通过 Ollama 拉取：
 
 ```bash
 ollama pull mistral
 ```
 
-The new model will be automatically discovered and available to use.
+新模型将被自动发现并可供使用。
 
-If you set `models.providers.ollama` explicitly, auto-discovery is skipped and you must define models manually (see below).
+如果你显式设置了 `models.providers.ollama`，自动发现将被跳过，你必须手动定义模型（见下文）。
 
-## Configuration
+## 配置
 
-### Basic setup (implicit discovery)
+### 基本设置（隐式发现）
 
-The simplest way to enable Ollama is via environment variable:
+启用 Ollama 最简单的方式是通过环境变量：
 
 ```bash
 export OLLAMA_API_KEY="ollama-local"
 ```
 
-### Explicit setup (manual models)
+### 显式设置（手动模型）
 
-Use explicit config when:
+在以下情况使用显式配置：
 
-- Ollama runs on another host/port.
-- You want to force specific context windows or model lists.
-- You want to include models that do not report tool support.
+- Ollama 运行在其他主机/端口上。
+- 你想强制指定上下文窗口或模型列表。
+- 你想包含未报告工具支持的模型。
 
 ```json5
 {
   models: {
     providers: {
       ollama: {
-        baseUrl: "http://ollama-host:11434",
+        // 使用包含 /v1 的主机地址以兼容 OpenAI API
+        baseUrl: "http://ollama-host:11434/v1",
         apiKey: "ollama-local",
-        api: "ollama",
+        api: "openai-completions",
         models: [
           {
-            id: "gpt-oss:20b",
-            name: "GPT-OSS 20B",
+            id: "llama3.3",
+            name: "Llama 3.3",
             reasoning: false,
             input: ["text"],
             cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
@@ -125,11 +127,11 @@ Use explicit config when:
 }
 ```
 
-If `OLLAMA_API_KEY` is set, you can omit `apiKey` in the provider entry and OpenClaw will fill it for availability checks.
+如果设置了 `OLLAMA_API_KEY`，你可以在提供商条目中省略 `apiKey`，OpenClaw 会自动填充以进行可用性检查。
 
-### Custom base URL (explicit config)
+### 自定义基础 URL（显式配置）
 
-If Ollama is running on a different host or port (explicit config disables auto-discovery, so define models manually):
+如果 Ollama 运行在不同的主机或端口上（显式配置会禁用自动发现，因此需要手动定义模型）：
 
 ```json5
 {
@@ -137,146 +139,92 @@ If Ollama is running on a different host or port (explicit config disables auto-
     providers: {
       ollama: {
         apiKey: "ollama-local",
-        baseUrl: "http://ollama-host:11434", // No /v1 - use native Ollama API URL
-        api: "ollama", // Set explicitly to guarantee native tool-calling behavior
+        baseUrl: "http://ollama-host:11434/v1",
       },
     },
   },
 }
 ```
 
-<Warning>
-Do not add `/v1` to the URL. The `/v1` path uses OpenAI-compatible mode, where tool calling is not reliable. Use the base Ollama URL without a path suffix.
-</Warning>
+### 模型选择
 
-### Model selection
-
-Once configured, all your Ollama models are available:
+配置完成后，所有 Ollama 模型即可使用：
 
 ```json5
 {
   agents: {
     defaults: {
       model: {
-        primary: "ollama/gpt-oss:20b",
-        fallbacks: ["ollama/llama3.3", "ollama/qwen2.5-coder:32b"],
+        primary: "ollama/llama3.3",
+        fallbacks: ["ollama/qwen2.5-coder:32b"],
       },
     },
   },
 }
 ```
 
-## Advanced
+## 高级用法
 
-### Reasoning models
+### 推理模型
 
-OpenClaw marks models as reasoning-capable when Ollama reports `thinking` in `/api/show`:
+当 Ollama 在 `/api/show` 中报告 `thinking` 时，OpenClaw 会将模型标记为具有推理能力：
 
 ```bash
 ollama pull deepseek-r1:32b
 ```
 
-### Model Costs
+### 模型费用
 
-Ollama is free and runs locally, so all model costs are set to $0.
+Ollama 免费且在本地运行，因此所有模型费用均设置为 $0。
 
-### Streaming Configuration
+### 上下文窗口
 
-OpenClaw's Ollama integration uses the **native Ollama API** (`/api/chat`) by default, which fully supports streaming and tool calling simultaneously. No special configuration is needed.
+对于自动发现的模型，OpenClaw 会使用 Ollama 报告的上下文窗口（如果可用），否则默认为 `8192`。你可以在显式提供商配置中覆盖 `contextWindow` 和 `maxTokens`。
 
-#### Legacy OpenAI-Compatible Mode
+## 故障排除
 
-<Warning>
-**Tool calling is not reliable in OpenAI-compatible mode.** Use this mode only if you need OpenAI format for a proxy and do not depend on native tool calling behavior.
-</Warning>
+### Ollama 未被检测到
 
-If you need to use the OpenAI-compatible endpoint instead (e.g., behind a proxy that only supports OpenAI format), set `api: "openai-completions"` explicitly:
-
-```json5
-{
-  models: {
-    providers: {
-      ollama: {
-        baseUrl: "http://ollama-host:11434/v1",
-        api: "openai-completions",
-        injectNumCtxForOpenAICompat: true, // default: true
-        apiKey: "ollama-local",
-        models: [...]
-      }
-    }
-  }
-}
-```
-
-This mode may not support streaming + tool calling simultaneously. You may need to disable streaming with `params: { streaming: false }` in model config.
-
-When `api: "openai-completions"` is used with Ollama, OpenClaw injects `options.num_ctx` by default so Ollama does not silently fall back to a 4096 context window. If your proxy/upstream rejects unknown `options` fields, disable this behavior:
-
-```json5
-{
-  models: {
-    providers: {
-      ollama: {
-        baseUrl: "http://ollama-host:11434/v1",
-        api: "openai-completions",
-        injectNumCtxForOpenAICompat: false,
-        apiKey: "ollama-local",
-        models: [...]
-      }
-    }
-  }
-}
-```
-
-### Context windows
-
-For auto-discovered models, OpenClaw uses the context window reported by Ollama when available, otherwise it defaults to `8192`. You can override `contextWindow` and `maxTokens` in explicit provider config.
-
-## Troubleshooting
-
-### Ollama not detected
-
-Make sure Ollama is running and that you set `OLLAMA_API_KEY` (or an auth profile), and that you did **not** define an explicit `models.providers.ollama` entry:
+确保 Ollama 正在运行，且你已设置 `OLLAMA_API_KEY`（或认证配置），并且**未**定义显式的 `models.providers.ollama` 条目：
 
 ```bash
 ollama serve
 ```
 
-And that the API is accessible:
+同时确认 API 可访问：
 
 ```bash
 curl http://localhost:11434/api/tags
 ```
 
-### No models available
+### 没有可用模型
 
-OpenClaw only auto-discovers models that report tool support. If your model isn't listed, either:
+OpenClaw 仅自动发现报告了工具支持的模型。如果你的模型未列出，可以：
 
-- Pull a tool-capable model, or
-- Define the model explicitly in `models.providers.ollama`.
+- 拉取一个支持工具调用的模型，或
+- 在 `models.providers.ollama` 中显式定义该模型。
 
-To add models:
+添加模型：
 
 ```bash
-ollama list  # See what's installed
-ollama pull gpt-oss:20b  # Pull a tool-capable model
-ollama pull llama3.3     # Or another model
+ollama list  # 查看已安装的模型
+ollama pull llama3.3  # 拉取模型
 ```
 
-### Connection refused
+### 连接被拒绝
 
-Check that Ollama is running on the correct port:
+检查 Ollama 是否在正确的端口上运行：
 
 ```bash
-# Check if Ollama is running
+# 检查 Ollama 是否在运行
 ps aux | grep ollama
 
-# Or restart Ollama
+# 或重启 Ollama
 ollama serve
 ```
 
-## See Also
+## 另请参阅
 
-- [Model Providers](/concepts/model-providers) - Overview of all providers
-- [Model Selection](/concepts/models) - How to choose models
-- [Configuration](/gateway/configuration) - Full config reference
+- [模型提供商](/concepts/model-providers) - 所有提供商概览
+- [模型选择](/concepts/models) - 如何选择模型
+- [配置](/gateway/configuration) - 完整配置参考

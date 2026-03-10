@@ -1,15 +1,15 @@
-# Auth Credential Semantics
+# 认证凭证语义
 
-This document defines the canonical credential eligibility and resolution semantics used across:
+本文档定义了以下组件使用的规范凭证资格和解析语义：
 
 - `resolveAuthProfileOrder`
 - `resolveApiKeyForProfile`
 - `models status --probe`
 - `doctor-auth`
 
-The goal is to keep selection-time and runtime behavior aligned.
+目标是保持选择时和运行时行为一致。
 
-## Stable Reason Codes
+## 稳定的原因代码
 
 - `ok`
 - `missing_credential`
@@ -17,29 +17,29 @@ The goal is to keep selection-time and runtime behavior aligned.
 - `expired`
 - `unresolved_ref`
 
-## Token Credentials
+## 令牌凭证
 
-Token credentials (`type: "token"`) support inline `token` and/or `tokenRef`.
+令牌凭证（`type: "token"`）支持内联 `token` 和/或 `tokenRef`。
 
-### Eligibility rules
+### 资格规则
 
-1. A token profile is ineligible when both `token` and `tokenRef` are absent.
-2. `expires` is optional.
-3. If `expires` is present, it must be a finite number greater than `0`.
-4. If `expires` is invalid (`NaN`, `0`, negative, non-finite, or wrong type), the profile is ineligible with `invalid_expires`.
-5. If `expires` is in the past, the profile is ineligible with `expired`.
-6. `tokenRef` does not bypass `expires` validation.
+1. 当 `token` 和 `tokenRef` 都不存在时，令牌配置文件不合格。
+2. `expires` 是可选的。
+3. 如果存在 `expires`，它必须是大于 `0` 的有限数字。
+4. 如果 `expires` 无效（`NaN`、`0`、负数、非有限或类型错误），配置文件因 `invalid_expires` 而不合格。
+5. 如果 `expires` 已过期，配置文件因 `expired` 而不合格。
+6. `tokenRef` 不会绕过 `expires` 验证。
 
-### Resolution rules
+### 解析规则
 
-1. Resolver semantics match eligibility semantics for `expires`.
-2. For eligible profiles, token material may be resolved from inline value or `tokenRef`.
-3. Unresolvable refs produce `unresolved_ref` in `models status --probe` output.
+1. 解析器对 `expires` 的语义与资格语义一致。
+2. 对于合格的配置文件，令牌材料可以从内联值或 `tokenRef` 解析。
+3. 不可解析的引用在 `models status --probe` 输出中产生 `unresolved_ref`。
 
-## Legacy-Compatible Messaging
+## 旧版兼容消息
 
-For script compatibility, probe errors keep this first line unchanged:
+为了脚本兼容性，探测错误保持第一行不变：
 
 `Auth profile credentials are missing or expired.`
 
-Human-friendly detail and stable reason codes may be added on subsequent lines.
+后续行可以添加人类友好的详情和稳定的原因代码。

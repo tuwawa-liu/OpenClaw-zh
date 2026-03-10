@@ -1,64 +1,57 @@
 ---
-summary: "Expose an OpenAI-compatible /v1/chat/completions HTTP endpoint from the Gateway"
 read_when:
-  - Integrating tools that expect OpenAI Chat Completions
-title: "OpenAI Chat Completions"
+  - 集成需要 OpenAI Chat Completions 的工具
+summary: 从 Gateway 网关暴露 OpenAI 兼容的 /v1/chat/completions HTTP 端点
+title: OpenAI Chat Completions
+x-i18n:
+  generated_at: "2026-02-03T07:48:15Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 6f935777f489bff925a3bf18b1e4b7493f83ae7b1e581890092e5779af59b732
+  source_path: gateway/openai-http-api.md
+  workflow: 15
 ---
 
-# OpenAI Chat Completions (HTTP)
+# OpenAI Chat Completions（HTTP）
 
-OpenClaw’s Gateway can serve a small OpenAI-compatible Chat Completions endpoint.
+OpenClaw 的 Gateway 网关可以提供一个小型的 OpenAI 兼容 Chat Completions 端点。
 
-This endpoint is **disabled by default**. Enable it in config first.
+此端点**默认禁用**。请先在配置中启用它。
 
 - `POST /v1/chat/completions`
-- Same port as the Gateway (WS + HTTP multiplex): `http://<gateway-host>:<port>/v1/chat/completions`
+- 与 Gateway 网关相同的端口（WS + HTTP 多路复用）：`http://<gateway-host>:<port>/v1/chat/completions`
 
-Under the hood, requests are executed as a normal Gateway agent run (same codepath as `openclaw agent`), so routing/permissions/config match your Gateway.
+底层实现中，请求作为普通的 Gateway 网关智能体运行执行（与 `openclaw agent` 相同的代码路径），因此路由/权限/配置与你的 Gateway 网关一致。
 
-## Authentication
+## 认证
 
-Uses the Gateway auth configuration. Send a bearer token:
+使用 Gateway 网关认证配置。发送 bearer 令牌：
 
 - `Authorization: Bearer <token>`
 
-Notes:
+注意事项：
 
-- When `gateway.auth.mode="token"`, use `gateway.auth.token` (or `OPENCLAW_GATEWAY_TOKEN`).
-- When `gateway.auth.mode="password"`, use `gateway.auth.password` (or `OPENCLAW_GATEWAY_PASSWORD`).
-- If `gateway.auth.rateLimit` is configured and too many auth failures occur, the endpoint returns `429` with `Retry-After`.
+- 当 `gateway.auth.mode="token"` 时，使用 `gateway.auth.token`（或 `OPENCLAW_GATEWAY_TOKEN`）。
+- 当 `gateway.auth.mode="password"` 时，使用 `gateway.auth.password`（或 `OPENCLAW_GATEWAY_PASSWORD`）。
 
-## Security boundary (important)
+## 选择智能体
 
-Treat this endpoint as a **full operator-access** surface for the gateway instance.
+无需自定义头：在 OpenAI `model` 字段中编码智能体 ID：
 
-- HTTP bearer auth here is not a narrow per-user scope model.
-- A valid Gateway token/password for this endpoint should be treated like an owner/operator credential.
-- Requests run through the same control-plane agent path as trusted operator actions.
-- There is no separate non-owner/per-user tool boundary on this endpoint; once a caller passes Gateway auth here, OpenClaw treats that caller as a trusted operator for this gateway.
-- If the target agent policy allows sensitive tools, this endpoint can use them.
-- Keep this endpoint on loopback/tailnet/private ingress only; do not expose it directly to the public internet.
+- `model: "openclaw:<agentId>"`（例如：`"openclaw:main"`、`"openclaw:beta"`）
+- `model: "agent:<agentId>"`（别名）
 
-See [Security](/gateway/security) and [Remote access](/gateway/remote).
+或通过头指定特定的 OpenClaw 智能体：
 
-## Choosing an agent
+- `x-openclaw-agent-id: <agentId>`（默认：`main`）
 
-No custom headers required: encode the agent id in the OpenAI `model` field:
+高级选项：
 
-- `model: "openclaw:<agentId>"` (example: `"openclaw:main"`, `"openclaw:beta"`)
-- `model: "agent:<agentId>"` (alias)
+- `x-openclaw-session-key: <sessionKey>` 完全控制会话路由。
 
-Or target a specific OpenClaw agent by header:
+## 启用端点
 
-- `x-openclaw-agent-id: <agentId>` (default: `main`)
-
-Advanced:
-
-- `x-openclaw-session-key: <sessionKey>` to fully control session routing.
-
-## Enabling the endpoint
-
-Set `gateway.http.endpoints.chatCompletions.enabled` to `true`:
+将 `gateway.http.endpoints.chatCompletions.enabled` 设置为 `true`：
 
 ```json5
 {
@@ -72,9 +65,9 @@ Set `gateway.http.endpoints.chatCompletions.enabled` to `true`:
 }
 ```
 
-## Disabling the endpoint
+## 禁用端点
 
-Set `gateway.http.endpoints.chatCompletions.enabled` to `false`:
+将 `gateway.http.endpoints.chatCompletions.enabled` 设置为 `false`：
 
 ```json5
 {
@@ -88,23 +81,23 @@ Set `gateway.http.endpoints.chatCompletions.enabled` to `false`:
 }
 ```
 
-## Session behavior
+## 会话行为
 
-By default the endpoint is **stateless per request** (a new session key is generated each call).
+默认情况下，端点是**每请求无状态**的（每次调用生成新的会话键）。
 
-If the request includes an OpenAI `user` string, the Gateway derives a stable session key from it, so repeated calls can share an agent session.
+如果请求包含 OpenAI `user` 字符串，Gateway 网关会从中派生一个稳定的会话键，因此重复调用可以共享智能体会话。
 
-## Streaming (SSE)
+## 流式传输（SSE）
 
-Set `stream: true` to receive Server-Sent Events (SSE):
+设置 `stream: true` 以接收 Server-Sent Events（SSE）：
 
 - `Content-Type: text/event-stream`
-- Each event line is `data: <json>`
-- Stream ends with `data: [DONE]`
+- 每个事件行是 `data: <json>`
+- 流以 `data: [DONE]` 结束
 
-## Examples
+## 示例
 
-Non-streaming:
+非流式：
 
 ```bash
 curl -sS http://127.0.0.1:18789/v1/chat/completions \
@@ -117,7 +110,7 @@ curl -sS http://127.0.0.1:18789/v1/chat/completions \
   }'
 ```
 
-Streaming:
+流式：
 
 ```bash
 curl -N http://127.0.0.1:18789/v1/chat/completions \

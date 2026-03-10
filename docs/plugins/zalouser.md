@@ -1,51 +1,64 @@
 ---
-summary: "Zalo Personal plugin: QR login + messaging via native zca-js (plugin install + channel config + tool)"
 read_when:
-  - You want Zalo Personal (unofficial) support in OpenClaw
-  - You are configuring or developing the zalouser plugin
-title: "Zalo Personal Plugin"
+  - 你想在 OpenClaw 中支持 Zalo Personal（非官方）
+  - 你正在配置或开发 zalouser 插件
+summary: Zalo Personal 插件：通过 zca-cli 进行 QR 登录 + 消息（插件安装 + 渠道配置 + CLI + 工具）
+title: Zalo Personal 插件
+x-i18n:
+  generated_at: "2026-02-03T07:53:33Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: b29b788b023cd50720e24fe6719f02e9f86c8bca9c73b3638fb53c2316718672
+  source_path: plugins/zalouser.md
+  workflow: 15
 ---
 
-# Zalo Personal (plugin)
+# Zalo Personal（插件）
 
-Zalo Personal support for OpenClaw via a plugin, using native `zca-js` to automate a normal Zalo user account.
+通过插件为 OpenClaw 提供 Zalo Personal 支持，使用 `zca-cli` 自动化普通 Zalo 用户账户。
 
-> **Warning:** Unofficial automation may lead to account suspension/ban. Use at your own risk.
+> **警告：** 非官方自动化可能导致账户被暂停/封禁。使用风险自负。
 
-## Naming
+## 命名
 
-Channel id is `zalouser` to make it explicit this automates a **personal Zalo user account** (unofficial). We keep `zalo` reserved for a potential future official Zalo API integration.
+渠道 id 是 `zalouser`，以明确表示这是自动化**个人 Zalo 用户账户**（非官方）。我们保留 `zalo` 用于潜在的未来官方 Zalo API 集成。
 
-## Where it runs
+## 运行位置
 
-This plugin runs **inside the Gateway process**.
+此插件**在 Gateway 网关进程内**运行。
 
-If you use a remote Gateway, install/configure it on the **machine running the Gateway**, then restart the Gateway.
+如果你使用远程 Gateway 网关，请在**运行 Gateway 网关的机器**上安装/配置它，然后重启 Gateway 网关。
 
-No external `zca`/`openzca` CLI binary is required.
+## 安装
 
-## Install
-
-### Option A: install from npm
+### 选项 A：从 npm 安装
 
 ```bash
 openclaw plugins install @openclaw/zalouser
 ```
 
-Restart the Gateway afterwards.
+之后重启 Gateway 网关。
 
-### Option B: install from a local folder (dev)
+### 选项 B：从本地文件夹安装（开发）
 
 ```bash
 openclaw plugins install ./extensions/zalouser
 cd ./extensions/zalouser && pnpm install
 ```
 
-Restart the Gateway afterwards.
+之后重启 Gateway 网关。
 
-## Config
+## 前置条件：zca-cli
 
-Channel config lives under `channels.zalouser` (not `plugins.entries.*`):
+Gateway 网关机器必须在 `PATH` 中有 `zca`：
+
+```bash
+zca --version
+```
+
+## 配置
+
+渠道配置位于 `channels.zalouser` 下（不是 `plugins.entries.*`）：
 
 ```json5
 {
@@ -68,10 +81,8 @@ openclaw message send --channel zalouser --target <threadId> --message "Hello fr
 openclaw directory peers list --channel zalouser --query "name"
 ```
 
-## Agent tool
+## 智能体工具
 
-Tool name: `zalouser`
+工具名称：`zalouser`
 
-Actions: `send`, `image`, `link`, `friends`, `groups`, `me`, `status`
-
-Channel message actions also support `react` for message reactions.
+操作：`send`、`image`、`link`、`friends`、`groups`、`me`、`status`

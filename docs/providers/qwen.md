@@ -1,53 +1,55 @@
 ---
-summary: "Use Qwen OAuth (free tier) in OpenClaw"
 read_when:
-  - You want to use Qwen with OpenClaw
-  - You want free-tier OAuth access to Qwen Coder
-title: "Qwen"
+  - 你想在 OpenClaw 中使用 Qwen
+  - 你想要免费层 OAuth 访问 Qwen Coder
+summary: 在 OpenClaw 中使用 Qwen OAuth（免费层）
+title: Qwen
+x-i18n:
+  generated_at: "2026-02-03T07:53:34Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 88b88e224e2fecbb1ca26e24fbccdbe25609be40b38335d0451343a5da53fdd4
+  source_path: providers/qwen.md
+  workflow: 15
 ---
 
 # Qwen
 
-Qwen provides a free-tier OAuth flow for Qwen Coder and Qwen Vision models
-(2,000 requests/day, subject to Qwen rate limits).
+Qwen 为 Qwen Coder 和 Qwen Vision 模型提供免费层 OAuth 流程（每天 2,000 次请求，受 Qwen 速率限制约束）。
 
-## Enable the plugin
+## 启用插件
 
 ```bash
 openclaw plugins enable qwen-portal-auth
 ```
 
-Restart the Gateway after enabling.
+启用后重启 Gateway 网关。
 
-## Authenticate
+## 认证
 
 ```bash
 openclaw models auth login --provider qwen-portal --set-default
 ```
 
-This runs the Qwen device-code OAuth flow and writes a provider entry to your
-`models.json` (plus a `qwen` alias for quick switching).
+这会运行 Qwen 设备码 OAuth 流程并将提供商条目写入你的 `models.json`（加上一个 `qwen` 别名以便快速切换）。
 
-## Model IDs
+## 模型 ID
 
 - `qwen-portal/coder-model`
 - `qwen-portal/vision-model`
 
-Switch models with:
+切换模型：
 
 ```bash
 openclaw models set qwen-portal/coder-model
 ```
 
-## Reuse Qwen Code CLI login
+## 复用 Qwen Code CLI 登录
 
-If you already logged in with the Qwen Code CLI, OpenClaw will sync credentials
-from `~/.qwen/oauth_creds.json` when it loads the auth store. You still need a
-`models.providers.qwen-portal` entry (use the login command above to create one).
+如果你已经使用 Qwen Code CLI 登录，OpenClaw 会在加载认证存储时从 `~/.qwen/oauth_creds.json` 同步凭证。你仍然需要一个 `models.providers.qwen-portal` 条目（使用上面的登录命令创建一个）。
 
-## Notes
+## 注意
 
-- Tokens auto-refresh; re-run the login command if refresh fails or access is revoked.
-- Default base URL: `https://portal.qwen.ai/v1` (override with
-  `models.providers.qwen-portal.baseUrl` if Qwen provides a different endpoint).
-- See [Model providers](/concepts/model-providers) for provider-wide rules.
+- 令牌自动刷新；如果刷新失败或访问被撤销，请重新运行登录命令。
+- 默认基础 URL：`https://portal.qwen.ai/v1`（如果 Qwen 提供不同的端点，使用 `models.providers.qwen-portal.baseUrl` 覆盖）。
+- 参阅[模型提供商](/concepts/model-providers)了解提供商级别的规则。

@@ -1,49 +1,49 @@
 ---
-summary: "Channel agnostic session binding architecture and iteration 1 delivery scope"
+summary: "频道无关的会话绑定架构和迭代 1 交付范围"
 read_when:
-  - Refactoring channel-agnostic session routing and bindings
-  - Investigating duplicate, stale, or missing session delivery across channels
+  - 重构频道无关的会话路由和绑定
+  - 调查跨频道的重复、过期或缺失会话交付
 owner: "onutc"
 status: "in-progress"
 last_updated: "2026-02-21"
-title: "Session Binding Channel Agnostic Plan"
+title: "频道无关会话绑定计划"
 ---
 
-# Session Binding Channel Agnostic Plan
+# 频道无关会话绑定计划
 
-## Overview
+## 概述
 
-This document defines the long term channel agnostic session binding model and the concrete scope for the next implementation iteration.
+本文档定义了长期的频道无关会话绑定模型和下一个实现迭代的具体范围。
 
-Goal:
+目标：
 
-- make subagent bound session routing a core capability
-- keep channel specific behavior in adapters
-- avoid regressions in normal Discord behavior
+- 使子代理绑定会话路由成为核心功能
+- 将频道特定行为保留在适配器中
+- 避免正常 Discord 行为的回归
 
-## Why this exists
+## 为什么存在这个计划
 
-Current behavior mixes:
+当前行为混合了：
 
-- completion content policy
-- destination routing policy
-- Discord specific details
+- 补全内容策略
+- 目标路由策略
+- Discord 特定细节
 
-This caused edge cases such as:
+这导致了以下边缘情况：
 
-- duplicate main and thread delivery under concurrent runs
-- stale token usage on reused binding managers
-- missing activity accounting for webhook sends
+- 在并发运行的主频道和线程中重复交付
+- 在复用绑定管理器时使用过期令牌
+- webhook 发送缺少活动记账
 
-## Iteration 1 scope
+## 迭代 1 范围
 
-This iteration is intentionally limited.
+本迭代有意限制范围。
 
-### 1. Add channel agnostic core interfaces
+### 1. 添加频道无关的核心接口
 
-Add core types and service interfaces for bindings and routing.
+添加绑定和路由的核心类型和服务接口。
 
-Proposed core types:
+提议的核心类型：
 
 ```ts
 export type BindingTargetKind = "subagent" | "session";
@@ -68,7 +68,7 @@ export type SessionBindingRecord = {
 };
 ```
 
-Core service contract:
+核心服务合约：
 
 ```ts
 export interface SessionBindingService {
@@ -91,11 +91,11 @@ export interface SessionBindingService {
 }
 ```
 
-### 2. Add one core delivery router for subagent completions
+### 2. 为子代理补全添加一个核心交付路由器
 
-Add a single destination resolution path for completion events.
+为补全事件添加单一的目标解析路径。
 
-Router contract:
+路由器合约：
 
 ```ts
 export interface BoundDeliveryRouter {
@@ -112,115 +112,115 @@ export interface BoundDeliveryRouter {
 }
 ```
 
-For this iteration:
+在本迭代中：
 
-- only `task_completion` is routed through this new path
-- existing paths for other event kinds remain as-is
+- 只有 `task_completion` 通过此新路径路由
+- 其他事件类型的现有路径保持原样
 
-### 3. Keep Discord as adapter
+### 3. 保持 Discord 作为适配器
 
-Discord remains the first adapter implementation.
+Discord 仍然是第一个适配器实现。
 
-Adapter responsibilities:
+适配器职责：
 
-- create/reuse thread conversations
-- send bound messages via webhook or channel send
-- validate thread state (archived/deleted)
-- map adapter metadata (webhook identity, thread ids)
+- 创建/复用线程会话
+- 通过 webhook 或频道发送发送绑定消息
+- 验证线程状态（已归档/已删除）
+- 映射适配器元数据（webhook 身份、线程 ID）
 
-### 4. Fix currently known correctness issues
+### 4. 修复当前已知的正确性问题
 
-Required in this iteration:
+本迭代必须修复：
 
-- refresh token usage when reusing existing thread binding manager
-- record outbound activity for webhook based Discord sends
-- stop implicit main channel fallback when a bound thread destination is selected for session mode completion
+- 复用现有线程绑定管理器时刷新令牌使用
+- 为基于 webhook 的 Discord 发送记录出站活动
+- 在会话模式补全选择绑定线程目标时，停止隐式的主频道后备
 
-### 5. Preserve current runtime safety defaults
+### 5. 保持当前运行时安全默认值
 
-No behavior change for users with thread bound spawn disabled.
+对禁用线程绑定 spawn 的用户无行为变更。
 
-Defaults stay:
+默认值保持：
 
 - `channels.discord.threadBindings.spawnSubagentSessions = false`
 
-Result:
+结果：
 
-- normal Discord users stay on current behavior
-- new core path affects only bound session completion routing where enabled
+- 普通 Discord 用户保持当前行为
+- 新核心路径仅影响已启用的绑定会话补全路由
 
-## Not in iteration 1
+## 不在迭代 1 中
 
-Explicitly deferred:
+明确推迟：
 
-- ACP binding targets (`targetKind: "acp"`)
-- new channel adapters beyond Discord
-- global replacement of all delivery paths (`spawn_ack`, future `subagent_message`)
-- protocol level changes
-- store migration/versioning redesign for all binding persistence
+- ACP 绑定目标（`targetKind: "acp"`）
+- Discord 之外的新频道适配器
+- 全面替换所有交付路径（`spawn_ack`、未来的 `subagent_message`）
+- 协议级变更
+- 所有绑定持久性的存储迁移/版本重设计
 
-Notes on ACP:
+关于 ACP 的说明：
 
-- interface design keeps room for ACP
-- ACP implementation is not started in this iteration
+- 接口设计为 ACP 保留了空间
+- 本迭代不开始 ACP 实现
 
-## Routing invariants
+## 路由不变量
 
-These invariants are mandatory for iteration 1.
+这些不变量在迭代 1 中是强制性的。
 
-- destination selection and content generation are separate steps
-- if session mode completion resolves to an active bound destination, delivery must target that destination
-- no hidden reroute from bound destination to main channel
-- fallback behavior must be explicit and observable
+- 目标选择和内容生成是独立步骤
+- 如果会话模式补全解析到活跃的绑定目标，交付必须针对该目标
+- 不从绑定目标隐式重路由到主频道
+- 后备行为必须是显式的且可观察的
 
-## Compatibility and rollout
+## 兼容性和推出
 
-Compatibility target:
+兼容性目标：
 
-- no regression for users with thread bound spawning off
-- no change to non-Discord channels in this iteration
+- 对关闭线程绑定 spawn 的用户无回归
+- 本迭代不改变非 Discord 频道
 
-Rollout:
+推出：
 
-1. Land interfaces and router behind current feature gates.
-2. Route Discord completion mode bound deliveries through router.
-3. Keep legacy path for non-bound flows.
-4. Verify with targeted tests and canary runtime logs.
+1. 在当前功能门控后着陆接口和路由器。
+2. 通过路由器路由 Discord 补全模式绑定交付。
+3. 保留非绑定流的旧路径。
+4. 通过定向测试和金丝雀运行时日志验证。
 
-## Tests required in iteration 1
+## 迭代 1 所需的测试
 
-Unit and integration coverage required:
+所需的单元和集成覆盖：
 
-- manager token rotation uses latest token after manager reuse
-- webhook sends update channel activity timestamps
-- two active bound sessions in same requester channel do not duplicate to main channel
-- completion for bound session mode run resolves to thread destination only
-- disabled spawn flag keeps legacy behavior unchanged
+- 管理器令牌轮换在管理器复用后使用最新令牌
+- webhook 发送更新频道活动时间戳
+- 同一请求者频道中两个活跃的绑定会话不重复到主频道
+- 绑定会话模式运行的补全仅解析到线程目标
+- 禁用 spawn 标志保持旧行为不变
 
-## Proposed implementation files
+## 提议的实现文件
 
-Core:
+核心：
 
-- `src/infra/outbound/session-binding-service.ts` (new)
-- `src/infra/outbound/bound-delivery-router.ts` (new)
-- `src/agents/subagent-announce.ts` (completion destination resolution integration)
+- `src/infra/outbound/session-binding-service.ts`（新建）
+- `src/infra/outbound/bound-delivery-router.ts`（新建）
+- `src/agents/subagent-announce.ts`（补全目标解析集成）
 
-Discord adapter and runtime:
+Discord 适配器和运行时：
 
 - `src/discord/monitor/thread-bindings.manager.ts`
 - `src/discord/monitor/reply-delivery.ts`
 - `src/discord/send.outbound.ts`
 
-Tests:
+测试：
 
 - `src/discord/monitor/provider*.test.ts`
 - `src/discord/monitor/reply-delivery.test.ts`
 - `src/agents/subagent-announce.format.test.ts`
 
-## Done criteria for iteration 1
+## 迭代 1 完成标准
 
-- core interfaces exist and are wired for completion routing
-- correctness fixes above are merged with tests
-- no main and thread duplicate completion delivery in session mode bound runs
-- no behavior change for disabled bound spawn deployments
-- ACP remains explicitly deferred
+- 核心接口已存在并用于补全路由
+- 上述正确性修复已合并并带有测试
+- 会话模式绑定运行中无主频道和线程的重复补全交付
+- 禁用绑定 spawn 的部署无行为变更
+- ACP 明确推迟

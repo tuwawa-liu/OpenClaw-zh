@@ -1,70 +1,70 @@
-# Kilo Gateway Provider Integration Design
+# Kilo Gateway 提供商集成设计
 
-## Overview
+## 概述
 
-This document outlines the design for integrating "Kilo Gateway" as a first-class provider in OpenClaw, modeled after the existing OpenRouter implementation. Kilo Gateway uses an OpenAI-compatible completions API with a different base URL.
+本文档概述了将 "Kilo Gateway" 作为 OpenClaw 中一等提供商进行集成的设计，以现有的 OpenRouter 实现为模型。Kilo Gateway 使用与 OpenAI 兼容的补全 API，但基础 URL 不同。
 
-## Design Decisions
+## 设计决策
 
-### 1. Provider Naming
+### 1. 提供商命名
 
-**Recommendation: `kilocode`**
+**推荐：`kilocode`**
 
-Rationale:
+理由：
 
-- Matches the user config example provided (`kilocode` provider key)
-- Consistent with existing provider naming patterns (e.g., `openrouter`, `opencode`, `moonshot`)
-- Short and memorable
-- Avoids confusion with generic "kilo" or "gateway" terms
+- 与用户配置示例匹配（`kilocode` 提供商键）
+- 与现有提供商命名模式一致（例如 `openrouter`、`opencode`、`moonshot`）
+- 简短且易记
+- 避免与通用的 "kilo" 或 "gateway" 术语混淆
 
-Alternative considered: `kilo-gateway` - rejected because hyphenated names are less common in the codebase and `kilocode` is more concise.
+考虑过的替代方案：`kilo-gateway` - 因在代码库中连字符名称不常见且 `kilocode` 更简洁而被否决。
 
-### 2. Default Model Reference
+### 2. 默认模型引用
 
-**Recommendation: `kilocode/anthropic/claude-opus-4.6`**
+**推荐：`kilocode/anthropic/claude-opus-4.6`**
 
-Rationale:
+理由：
 
-- Based on user config example
-- Claude Opus 4.5 is a capable default model
-- Explicit model selection avoids reliance on auto-routing
+- 基于用户配置示例
+- Claude Opus 4.5 是一个性能强大的默认模型
+- 显式模型选择避免依赖自动路由
 
-### 3. Base URL Configuration
+### 3. 基础 URL 配置
 
-**Recommendation: Hardcoded default with config override**
+**推荐：硬编码默认值 + 配置覆盖**
 
-- **Default Base URL:** `https://api.kilo.ai/api/gateway/`
-- **Configurable:** Yes, via `models.providers.kilocode.baseUrl`
+- **默认基础 URL：** `https://api.kilo.ai/api/gateway/`
+- **可配置：** 是，通过 `models.providers.kilocode.baseUrl`
 
-This matches the pattern used by other providers like Moonshot, Venice, and Synthetic.
+这与 Moonshot、Venice 和 Synthetic 等其他提供商使用的模式一致。
 
-### 4. Model Scanning
+### 4. 模型扫描
 
-**Recommendation: No dedicated model scanning endpoint initially**
+**推荐：初始阶段不设专用模型扫描端点**
 
-Rationale:
+理由：
 
-- Kilo Gateway proxies to OpenRouter, so models are dynamic
-- Users can manually configure models in their config
-- If Kilo Gateway exposes a `/models` endpoint in the future, scanning can be added
+- Kilo Gateway 代理到 OpenRouter，因此模型是动态的
+- 用户可以在配置中手动配置模型
+- 如果 Kilo Gateway 将来公开 `/models` 端点，可以添加扫描功能
 
-### 5. Special Handling
+### 5. 特殊处理
 
-**Recommendation: Inherit OpenRouter behavior for Anthropic models**
+**推荐：对 Anthropic 模型继承 OpenRouter 行为**
 
-Since Kilo Gateway proxies to OpenRouter, the same special handling should apply:
+由于 Kilo Gateway 代理到 OpenRouter，应应用相同的特殊处理：
 
-- Cache TTL eligibility for `anthropic/*` models
-- Extra params (cacheControlTtl) for `anthropic/*` models
-- Transcript policy follows OpenRouter patterns
+- `anthropic/*` 模型的缓存 TTL 资格
+- `anthropic/*` 模型的额外参数（cacheControlTtl）
+- 对话记录策略遵循 OpenRouter 模式
 
-## Files to Modify
+## 需要修改的文件
 
-### Core Credential Management
+### 核心凭证管理
 
 #### 1. `src/commands/onboard-auth.credentials.ts`
 
-Add:
+添加：
 
 ```typescript
 export const KILOCODE_DEFAULT_MODEL_REF = "kilocode/anthropic/claude-opus-4.6";
@@ -84,36 +84,38 @@ export async function setKilocodeApiKey(key: string, agentDir?: string) {
 
 #### 2. `src/agents/model-auth.ts`
 
-Add to `envMap` in `resolveEnvApiKey()`:
+在 `resolveEnvApiKey()` 的 `envMap` 中添加：
 
 ```typescript
 const envMap: Record<string, string> = {
-  // ... existing entries
+  // ... 现有条目
   kilocode: "KILOCODE_API_KEY",
 };
 ```
 
 #### 3. `src/config/io.ts`
 
-Add to `SHELL_ENV_EXPECTED_KEYS`:
+添加到 `SHELL_ENV_EXPECTED_KEYS`：
 
 ```typescript
 const SHELL_ENV_EXPECTED_KEYS = [
-  // ... existing entries
+  // ... 现有条目
   "KILOCODE_API_KEY",
 ];
 ```
 
-### Config Application
+### 配置应用
 
 #### 4. `src/commands/onboard-auth.config-core.ts`
 
-Add new functions:
+添加新函数：
 
 ```typescript
 export const KILOCODE_BASE_URL = "https://api.kilo.ai/api/gateway/";
 
-export function applyKilocodeProviderConfig(cfg: OpenClawConfig): OpenClawConfig {
+export function applyKilocodeProviderConfig(
+  cfg: OpenClawConfig,
+): OpenClawConfig {
   const models = { ...cfg.agents?.defaults?.models };
   models[KILOCODE_DEFAULT_MODEL_REF] = {
     ...models[KILOCODE_DEFAULT_MODEL_REF],
@@ -122,11 +124,10 @@ export function applyKilocodeProviderConfig(cfg: OpenClawConfig): OpenClawConfig
 
   const providers = { ...cfg.models?.providers };
   const existingProvider = providers.kilocode;
-  const { apiKey: existingApiKey, ...existingProviderRest } = (existingProvider ?? {}) as Record<
-    string,
-    unknown
-  > as { apiKey?: string };
-  const resolvedApiKey = typeof existingApiKey === "string" ? existingApiKey : undefined;
+  const { apiKey: existingApiKey, ...existingProviderRest } =
+    (existingProvider ?? {}) as Record<string, unknown> as { apiKey?: string };
+  const resolvedApiKey =
+    typeof existingApiKey === "string" ? existingApiKey : undefined;
   const normalizedApiKey = resolvedApiKey?.trim();
 
   providers.kilocode = {
@@ -162,9 +163,11 @@ export function applyKilocodeConfig(cfg: OpenClawConfig): OpenClawConfig {
       defaults: {
         ...next.agents?.defaults,
         model: {
-          ...(existingModel && "fallbacks" in (existingModel as Record<string, unknown>)
+          ...(existingModel &&
+          "fallbacks" in (existingModel as Record<string, unknown>)
             ? {
-                fallbacks: (existingModel as { fallbacks?: string[] }).fallbacks,
+                fallbacks: (existingModel as { fallbacks?: string[] })
+                  .fallbacks,
               }
             : undefined),
           primary: KILOCODE_DEFAULT_MODEL_REF,
@@ -175,24 +178,24 @@ export function applyKilocodeConfig(cfg: OpenClawConfig): OpenClawConfig {
 }
 ```
 
-### Auth Choice System
+### 认证选择系统
 
 #### 5. `src/commands/onboard-types.ts`
 
-Add to `AuthChoice` type:
+添加到 `AuthChoice` 类型：
 
 ```typescript
 export type AuthChoice =
-  // ... existing choices
+  // ... 现有选项
   "kilocode-api-key";
 // ...
 ```
 
-Add to `OnboardOptions`:
+添加到 `OnboardOptions`：
 
 ```typescript
 export type OnboardOptions = {
-  // ... existing options
+  // ... 现有选项
   kilocodeApiKey?: string;
   // ...
 };
@@ -200,56 +203,56 @@ export type OnboardOptions = {
 
 #### 6. `src/commands/auth-choice-options.ts`
 
-Add to `AuthChoiceGroupId`:
+添加到 `AuthChoiceGroupId`：
 
 ```typescript
 export type AuthChoiceGroupId =
-  // ... existing groups
+  // ... 现有组
   "kilocode";
 // ...
 ```
 
-Add to `AUTH_CHOICE_GROUP_DEFS`:
+添加到 `AUTH_CHOICE_GROUP_DEFS`：
 
 ```typescript
 {
   value: "kilocode",
   label: "Kilo Gateway",
-  hint: "API key (OpenRouter-compatible)",
+  hint: "API key (OpenRouter 兼容)",
   choices: ["kilocode-api-key"],
 },
 ```
 
-Add to `buildAuthChoiceOptions()`:
+添加到 `buildAuthChoiceOptions()`：
 
 ```typescript
 options.push({
   value: "kilocode-api-key",
   label: "Kilo Gateway API key",
-  hint: "OpenRouter-compatible gateway",
+  hint: "OpenRouter 兼容网关",
 });
 ```
 
 #### 7. `src/commands/auth-choice.preferred-provider.ts`
 
-Add mapping:
+添加映射：
 
 ```typescript
 const PREFERRED_PROVIDER_BY_AUTH_CHOICE: Partial<Record<AuthChoice, string>> = {
-  // ... existing mappings
+  // ... 现有映射
   "kilocode-api-key": "kilocode",
 };
 ```
 
-### Auth Choice Application
+### 认证选择应用
 
 #### 8. `src/commands/auth-choice.apply.api-providers.ts`
 
-Add import:
+添加导入：
 
 ```typescript
 import {
-  // ... existing imports
+  // ... 现有导入
   applyKilocodeConfig,
   applyKilocodeProviderConfig,
   KILOCODE_DEFAULT_MODEL_REF,
@@ -257,7 +260,7 @@ import {
 } from "./onboard-auth.js";
 ```
 
-Add handling for `kilocode-api-key`:
+添加 `kilocode-api-key` 的处理逻辑：
 
 ```typescript
 if (authChoice === "kilocode-api-key") {
@@ -269,8 +272,12 @@ if (authChoice === "kilocode-api-key") {
     store,
     provider: "kilocode",
   });
-  const existingProfileId = profileOrder.find((profileId) => Boolean(store.profiles[profileId]));
-  const existingCred = existingProfileId ? store.profiles[existingProfileId] : undefined;
+  const existingProfileId = profileOrder.find((profileId) =>
+    Boolean(store.profiles[profileId]),
+  );
+  const existingCred = existingProfileId
+    ? store.profiles[existingProfileId]
+    : undefined;
   let profileId = "kilocode:default";
   let mode: "api_key" | "oauth" | "token" = "api_key";
   let hasCredential = false;
@@ -278,12 +285,23 @@ if (authChoice === "kilocode-api-key") {
   if (existingProfileId && existingCred?.type) {
     profileId = existingProfileId;
     mode =
-      existingCred.type === "oauth" ? "oauth" : existingCred.type === "token" ? "token" : "api_key";
+      existingCred.type === "oauth"
+        ? "oauth"
+        : existingCred.type === "token"
+          ? "token"
+          : "api_key";
     hasCredential = true;
   }
 
-  if (!hasCredential && params.opts?.token && params.opts?.tokenProvider === "kilocode") {
-    await setKilocodeApiKey(normalizeApiKeyInput(params.opts.token), params.agentDir);
+  if (
+    !hasCredential &&
+    params.opts?.token &&
+    params.opts?.tokenProvider === "kilocode"
+  ) {
+    await setKilocodeApiKey(
+      normalizeApiKeyInput(params.opts.token),
+      params.agentDir,
+    );
     hasCredential = true;
   }
 
@@ -291,7 +309,7 @@ if (authChoice === "kilocode-api-key") {
     const envKey = resolveEnvApiKey("kilocode");
     if (envKey) {
       const useExisting = await params.prompter.confirm({
-        message: `Use existing KILOCODE_API_KEY (${envKey.source}, ${formatApiKeyPreview(envKey.apiKey)})?`,
+        message: `使用已有的 KILOCODE_API_KEY (${envKey.source}, ${formatApiKeyPreview(envKey.apiKey)})？`,
         initialValue: true,
       });
       if (useExisting) {
@@ -303,7 +321,7 @@ if (authChoice === "kilocode-api-key") {
 
   if (!hasCredential) {
     const key = await params.prompter.text({
-      message: "Enter Kilo Gateway API key",
+      message: "输入 Kilo Gateway API 密钥",
       validate: validateApiKeyInput,
     });
     await setKilocodeApiKey(normalizeApiKeyInput(String(key)), params.agentDir);
@@ -335,7 +353,7 @@ if (authChoice === "kilocode-api-key") {
 }
 ```
 
-Also add tokenProvider mapping at the top of the function:
+还需在函数顶部添加 tokenProvider 映射：
 
 ```typescript
 if (params.opts.tokenProvider === "kilocode") {
@@ -343,36 +361,36 @@ if (params.opts.tokenProvider === "kilocode") {
 }
 ```
 
-### CLI Registration
+### CLI 注册
 
 #### 9. `src/cli/program/register.onboard.ts`
 
-Add CLI option:
+添加 CLI 选项：
 
 ```typescript
-.option("--kilocode-api-key <key>", "Kilo Gateway API key")
+.option("--kilocode-api-key <key>", "Kilo Gateway API 密钥")
 ```
 
-Add to action handler:
+添加到 action 处理器：
 
 ```typescript
 kilocodeApiKey: opts.kilocodeApiKey as string | undefined,
 ```
 
-Update auth-choice help text:
+更新 auth-choice 帮助文本：
 
 ```typescript
 .option(
   "--auth-choice <choice>",
-  "Auth: setup-token|token|chutes|openai-codex|openai-api-key|openrouter-api-key|kilocode-api-key|ai-gateway-api-key|...",
+  "认证：setup-token|token|chutes|openai-codex|openai-api-key|openrouter-api-key|kilocode-api-key|ai-gateway-api-key|...",
 )
 ```
 
-### Non-Interactive Onboarding
+### 非交互式引导
 
 #### 10. `src/commands/onboard-non-interactive/local/auth-choice.ts`
 
-Add handling for `kilocode-api-key`:
+添加 `kilocode-api-key` 处理：
 
 ```typescript
 if (authChoice === "kilocode-api-key") {
@@ -389,64 +407,79 @@ if (authChoice === "kilocode-api-key") {
     provider: "kilocode",
     mode: "api_key",
   });
-  // ... apply default model
+  // ... 应用默认模型
 }
 ```
 
-### Export Updates
+### 导出更新
 
 #### 11. `src/commands/onboard-auth.ts`
 
-Add exports:
+添加导出：
 
 ```typescript
 export {
-  // ... existing exports
+  // ... 现有导出
   applyKilocodeConfig,
   applyKilocodeProviderConfig,
   KILOCODE_BASE_URL,
 } from "./onboard-auth.config-core.js";
 
 export {
-  // ... existing exports
+  // ... 现有导出
   KILOCODE_DEFAULT_MODEL_REF,
   setKilocodeApiKey,
 } from "./onboard-auth.credentials.js";
 ```
 
-### Special Handling (Optional)
+### 特殊处理（可选）
 
 #### 12. `src/agents/pi-embedded-runner/cache-ttl.ts`
 
-Add Kilo Gateway support for Anthropic models:
+添加 Kilo Gateway 对 Anthropic 模型的支持：
 
 ```typescript
-export function isCacheTtlEligibleProvider(provider: string, modelId: string): boolean {
+export function isCacheTtlEligibleProvider(
+  provider: string,
+  modelId: string,
+): boolean {
   const normalizedProvider = provider.toLowerCase();
   const normalizedModelId = modelId.toLowerCase();
   if (normalizedProvider === "anthropic") return true;
-  if (normalizedProvider === "openrouter" && normalizedModelId.startsWith("anthropic/"))
+  if (
+    normalizedProvider === "openrouter" &&
+    normalizedModelId.startsWith("anthropic/")
+  )
     return true;
-  if (normalizedProvider === "kilocode" && normalizedModelId.startsWith("anthropic/")) return true;
+  if (
+    normalizedProvider === "kilocode" &&
+    normalizedModelId.startsWith("anthropic/")
+  )
+    return true;
   return false;
 }
 ```
 
 #### 13. `src/agents/transcript-policy.ts`
 
-Add Kilo Gateway handling (similar to OpenRouter):
+添加 Kilo Gateway 处理（类似于 OpenRouter）：
 
 ```typescript
-const isKilocodeGemini = provider === "kilocode" && modelId.toLowerCase().includes("gemini");
+const isKilocodeGemini =
+  provider === "kilocode" && modelId.toLowerCase().includes("gemini");
 
-// Include in needsNonImageSanitize check
+// 包含在 needsNonImageSanitize 检查中
 const needsNonImageSanitize =
-  isGoogle || isAnthropic || isMistral || isOpenRouterGemini || isKilocodeGemini;
+  isGoogle ||
+  isAnthropic ||
+  isMistral ||
+  isOpenRouterGemini ||
+  isKilocodeGemini;
 ```
 
-## Configuration Structure
+## 配置结构
 
-### User Config Example
+### 用户配置示例
 
 ```json
 {
@@ -470,7 +503,7 @@ const needsNonImageSanitize =
 }
 ```
 
-### Auth Profile Structure
+### 认证配置文件结构
 
 ```json
 {
@@ -484,51 +517,51 @@ const needsNonImageSanitize =
 }
 ```
 
-## Testing Considerations
+## 测试注意事项
 
-1. **Unit Tests:**
-   - Test `setKilocodeApiKey()` writes correct profile
-   - Test `applyKilocodeConfig()` sets correct defaults
-   - Test `resolveEnvApiKey("kilocode")` returns correct env var
+1. **单元测试：**
+   - 测试 `setKilocodeApiKey()` 写入正确的配置文件
+   - 测试 `applyKilocodeConfig()` 设置正确的默认值
+   - 测试 `resolveEnvApiKey("kilocode")` 返回正确的环境变量
 
-2. **Integration Tests:**
-   - Test onboarding flow with `--auth-choice kilocode-api-key`
-   - Test non-interactive onboarding with `--kilocode-api-key`
-   - Test model selection with `kilocode/` prefix
+2. **集成测试：**
+   - 测试使用 `--auth-choice kilocode-api-key` 的引导流程
+   - 测试使用 `--kilocode-api-key` 的非交互式引导
+   - 测试带有 `kilocode/` 前缀的模型选择
 
-3. **E2E Tests:**
-   - Test actual API calls through Kilo Gateway (live tests)
+3. **端到端测试：**
+   - 测试通过 Kilo Gateway 的实际 API 调用（实时测试）
 
-## Migration Notes
+## 迁移说明
 
-- No migration needed for existing users
-- New users can immediately use `kilocode-api-key` auth choice
-- Existing manual config with `kilocode` provider will continue to work
+- 现有用户无需迁移
+- 新用户可以立即使用 `kilocode-api-key` 认证选项
+- 现有使用 `kilocode` 提供商的手动配置将继续工作
 
-## Future Considerations
+## 未来考虑
 
-1. **Model Catalog:** If Kilo Gateway exposes a `/models` endpoint, add scanning support similar to `scanOpenRouterModels()`
+1. **模型目录：** 如果 Kilo Gateway 公开 `/models` 端点，添加类似 `scanOpenRouterModels()` 的扫描支持
 
-2. **OAuth Support:** If Kilo Gateway adds OAuth, extend the auth system accordingly
+2. **OAuth 支持：** 如果 Kilo Gateway 添加 OAuth，相应扩展认证系统
 
-3. **Rate Limiting:** Consider adding rate limit handling specific to Kilo Gateway if needed
+3. **速率限制：** 如有需要，考虑添加 Kilo Gateway 特定的速率限制处理
 
-4. **Documentation:** Add docs at `docs/providers/kilocode.md` explaining setup and usage
+4. **文档：** 在 `docs/providers/kilocode.md` 添加说明设置和使用的文档
 
-## Summary of Changes
+## 变更总结
 
-| File                                                        | Change Type | Description                                                             |
-| ----------------------------------------------------------- | ----------- | ----------------------------------------------------------------------- |
-| `src/commands/onboard-auth.credentials.ts`                  | Add         | `KILOCODE_DEFAULT_MODEL_REF`, `setKilocodeApiKey()`                     |
-| `src/agents/model-auth.ts`                                  | Modify      | Add `kilocode` to `envMap`                                              |
-| `src/config/io.ts`                                          | Modify      | Add `KILOCODE_API_KEY` to shell env keys                                |
-| `src/commands/onboard-auth.config-core.ts`                  | Add         | `applyKilocodeProviderConfig()`, `applyKilocodeConfig()`                |
-| `src/commands/onboard-types.ts`                             | Modify      | Add `kilocode-api-key` to `AuthChoice`, add `kilocodeApiKey` to options |
-| `src/commands/auth-choice-options.ts`                       | Modify      | Add `kilocode` group and option                                         |
-| `src/commands/auth-choice.preferred-provider.ts`            | Modify      | Add `kilocode-api-key` mapping                                          |
-| `src/commands/auth-choice.apply.api-providers.ts`           | Modify      | Add `kilocode-api-key` handling                                         |
-| `src/cli/program/register.onboard.ts`                       | Modify      | Add `--kilocode-api-key` option                                         |
-| `src/commands/onboard-non-interactive/local/auth-choice.ts` | Modify      | Add non-interactive handling                                            |
-| `src/commands/onboard-auth.ts`                              | Modify      | Export new functions                                                    |
-| `src/agents/pi-embedded-runner/cache-ttl.ts`                | Modify      | Add kilocode support                                                    |
-| `src/agents/transcript-policy.ts`                           | Modify      | Add kilocode Gemini handling                                            |
+| 文件                                                        | 变更类型 | 描述                                                                  |
+| ----------------------------------------------------------- | -------- | --------------------------------------------------------------------- |
+| `src/commands/onboard-auth.credentials.ts`                  | 新增     | `KILOCODE_DEFAULT_MODEL_REF`、`setKilocodeApiKey()`                   |
+| `src/agents/model-auth.ts`                                  | 修改     | 添加 `kilocode` 到 `envMap`                                           |
+| `src/config/io.ts`                                          | 修改     | 添加 `KILOCODE_API_KEY` 到 shell 环境变量                             |
+| `src/commands/onboard-auth.config-core.ts`                  | 新增     | `applyKilocodeProviderConfig()`、`applyKilocodeConfig()`              |
+| `src/commands/onboard-types.ts`                             | 修改     | 添加 `kilocode-api-key` 到 `AuthChoice`，添加 `kilocodeApiKey` 到选项 |
+| `src/commands/auth-choice-options.ts`                       | 修改     | 添加 `kilocode` 组和选项                                              |
+| `src/commands/auth-choice.preferred-provider.ts`            | 修改     | 添加 `kilocode-api-key` 映射                                          |
+| `src/commands/auth-choice.apply.api-providers.ts`           | 修改     | 添加 `kilocode-api-key` 处理                                          |
+| `src/cli/program/register.onboard.ts`                       | 修改     | 添加 `--kilocode-api-key` 选项                                        |
+| `src/commands/onboard-non-interactive/local/auth-choice.ts` | 修改     | 添加非交互式处理                                                      |
+| `src/commands/onboard-auth.ts`                              | 修改     | 导出新函数                                                            |
+| `src/agents/pi-embedded-runner/cache-ttl.ts`                | 修改     | 添加 kilocode 支持                                                    |
+| `src/agents/transcript-policy.ts`                           | 修改     | 添加 kilocode Gemini 处理                                             |

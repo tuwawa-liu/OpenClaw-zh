@@ -1,48 +1,53 @@
 ---
-summary: "Command queue design that serializes inbound auto-reply runs"
 read_when:
-  - Changing auto-reply execution or concurrency
-title: "Command Queue"
+  - 更改自动回复执行或并发设置时
+summary: 用于序列化入站自动回复运行的命令队列设计
+title: 命令队列
+x-i18n:
+  generated_at: "2026-02-03T10:05:28Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 2104c24d200fb4f9620e52a19255cd614ababe19d78f3ee42936dc6d0499b73b
+  source_path: concepts/queue.md
+  workflow: 15
 ---
 
-# Command Queue (2026-01-16)
+# 命令队列（2026-01-16）
 
-We serialize inbound auto-reply runs (all channels) through a tiny in-process queue to prevent multiple agent runs from colliding, while still allowing safe parallelism across sessions.
+我们通过一个小型进程内队列序列化入站自动回复运行（所有渠道），以防止多个智能体运行发生冲突，同时仍允许跨会话的安全并行。
 
-## Why
+## 为什么需要
 
-- Auto-reply runs can be expensive (LLM calls) and can collide when multiple inbound messages arrive close together.
-- Serializing avoids competing for shared resources (session files, logs, CLI stdin) and reduces the chance of upstream rate limits.
+- 自动回复运行可能开销很大（LLM 调用），当多条入站消息接近同时到达时可能发生冲突。
+- 序列化可以避免竞争共享资源（会话文件、日志、CLI stdin），并降低上游速率限制的可能性。
 
-## How it works
+## 工作原理
 
-- A lane-aware FIFO queue drains each lane with a configurable concurrency cap (default 1 for unconfigured lanes; main defaults to 4, subagent to 8).
-- `runEmbeddedPiAgent` enqueues by **session key** (lane `session:<key>`) to guarantee only one active run per session.
-- Each session run is then queued into a **global lane** (`main` by default) so overall parallelism is capped by `agents.defaults.maxConcurrent`.
-- When verbose logging is enabled, queued runs emit a short notice if they waited more than ~2s before starting.
-- Typing indicators still fire immediately on enqueue (when supported by the channel) so user experience is unchanged while we wait our turn.
+- 一个支持通道感知的 FIFO 队列以可配置的并发上限排空每个通道（未配置的通道默认为 1；main 默认为 4，subagent 为 8）。
+- `runEmbeddedPiAgent` 按**会话键**入队（通道 `session:<key>`），以保证每个会话只有一个活动运行。
+- 然后每个会话运行被排入**全局通道**（默认为 `main`），因此整体并行度受 `agents.defaults.maxConcurrent` 限制。
+- 启用详细日志时，如果排队运行在开始前等待超过约 2 秒，会发出简短通知。
+- 输入指示器仍在入队时立即触发（当渠道支持时），因此在等待轮次时用户体验不受影响。
 
-## Queue modes (per channel)
+## 队列模式（按渠道）
 
-Inbound messages can steer the current run, wait for a followup turn, or do both:
+入站消息可以引导当前运行、等待后续轮次，或两者兼顾：
 
-- `steer`: inject immediately into the current run (cancels pending tool calls after the next tool boundary). If not streaming, falls back to followup.
-- `followup`: enqueue for the next agent turn after the current run ends.
-- `collect`: coalesce all queued messages into a **single** followup turn (default). If messages target different channels/threads, they drain individually to preserve routing.
-- `steer-backlog` (aka `steer+backlog`): steer now **and** preserve the message for a followup turn.
-- `interrupt` (legacy): abort the active run for that session, then run the newest message.
-- `queue` (legacy alias): same as `steer`.
+- `steer`：立即注入当前运行（在下一个工具边界后取消待处理的工具调用）。如果未在流式传输，则回退到 followup。
+- `followup`：在当前运行结束后为下一个智能体轮次入队。
+- `collect`：将所有排队消息合并为**单个**后续轮次（默认）。如果消息针对不同的渠道/线程，它们会单独排空以保留路由。
+- `steer-backlog`（又名 `steer+backlog`）：现在引导**并**保留消息用于后续轮次。
+- `interrupt`（旧版）：中止该会话的活动运行，然后运行最新消息。
+- `queue`（旧版别名）：与 `steer` 相同。
 
-Steer-backlog means you can get a followup response after the steered run, so
-streaming surfaces can look like duplicates. Prefer `collect`/`steer` if you want
-one response per inbound message.
-Send `/queue collect` as a standalone command (per-session) or set `messages.queue.byChannel.discord: "collect"`.
+steer-backlog 意味着你可以在被引导的运行之后获得后续响应，因此流式传输界面可能看起来像重复。如果你希望每条入站消息只有一个响应，请优先使用 `collect`/`steer`。
+发送 `/queue collect` 作为独立命令（按会话）或设置 `messages.queue.byChannel.discord: "collect"`。
 
-Defaults (when unset in config):
+默认值（配置中未设置时）：
 
-- All surfaces → `collect`
+- 所有界面 → `collect`
 
-Configure globally or per channel via `messages.queue`:
+通过 `messages.queue` 全局或按渠道配置：
 
 ```json5
 {
@@ -58,32 +63,32 @@ Configure globally or per channel via `messages.queue`:
 }
 ```
 
-## Queue options
+## 队列选项
 
-Options apply to `followup`, `collect`, and `steer-backlog` (and to `steer` when it falls back to followup):
+选项适用于 `followup`、`collect` 和 `steer-backlog`（以及当 `steer` 回退到 followup 时）：
 
-- `debounceMs`: wait for quiet before starting a followup turn (prevents “continue, continue”).
-- `cap`: max queued messages per session.
-- `drop`: overflow policy (`old`, `new`, `summarize`).
+- `debounceMs`：在开始后续轮次前等待静默（防止"继续，继续"）。
+- `cap`：每个会话的最大排队消息数。
+- `drop`：溢出策略（`old`、`new`、`summarize`）。
 
-Summarize keeps a short bullet list of dropped messages and injects it as a synthetic followup prompt.
-Defaults: `debounceMs: 1000`, `cap: 20`, `drop: summarize`.
+summarize 保留被丢弃消息的简短要点列表，并将其作为合成的后续提示注入。
+默认值：`debounceMs: 1000`、`cap: 20`、`drop: summarize`。
 
-## Per-session overrides
+## 按会话覆盖
 
-- Send `/queue <mode>` as a standalone command to store the mode for the current session.
-- Options can be combined: `/queue collect debounce:2s cap:25 drop:summarize`
-- `/queue default` or `/queue reset` clears the session override.
+- 发送 `/queue <mode>` 作为独立命令，为当前会话存储该模式。
+- 选项可以组合：`/queue collect debounce:2s cap:25 drop:summarize`
+- `/queue default` 或 `/queue reset` 清除会话覆盖。
 
-## Scope and guarantees
+## 范围和保证
 
-- Applies to auto-reply agent runs across all inbound channels that use the gateway reply pipeline (WhatsApp web, Telegram, Slack, Discord, Signal, iMessage, webchat, etc.).
-- Default lane (`main`) is process-wide for inbound + main heartbeats; set `agents.defaults.maxConcurrent` to allow multiple sessions in parallel.
-- Additional lanes may exist (e.g. `cron`, `subagent`) so background jobs can run in parallel without blocking inbound replies.
-- Per-session lanes guarantee that only one agent run touches a given session at a time.
-- No external dependencies or background worker threads; pure TypeScript + promises.
+- 适用于所有使用 Gateway 网关回复管道的入站渠道的自动回复智能体运行（WhatsApp 网页版、Telegram、Slack、Discord、Signal、iMessage、网页聊天等）。
+- 默认通道（`main`）对入站 + 主心跳是进程范围的；设置 `agents.defaults.maxConcurrent` 以允许多个会话并行。
+- 可能存在额外的通道（例如 `cron`、`subagent`），以便后台任务可以并行运行而不阻塞入站回复。
+- 按会话通道保证一次只有一个智能体运行触及给定会话。
+- 无外部依赖或后台工作线程；纯 TypeScript + promises。
 
-## Troubleshooting
+## 故障排除
 
-- If commands seem stuck, enable verbose logs and look for “queued for …ms” lines to confirm the queue is draining.
-- If you need queue depth, enable verbose logs and watch for queue timing lines.
+- 如果命令似乎卡住，启用详细日志并查找"queued for …ms"行以确认队列正在排空。
+- 如果你需要查看队列深度，启用详细日志并观察队列计时行。

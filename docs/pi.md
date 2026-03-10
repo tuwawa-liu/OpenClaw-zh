@@ -1,27 +1,30 @@
 ---
-title: "Pi Integration Architecture"
-summary: "Architecture of OpenClaw's embedded Pi agent integration and session lifecycle"
-read_when:
-  - Understanding Pi SDK integration design in OpenClaw
-  - Modifying agent session lifecycle, tooling, or provider wiring for Pi
+title: Pi 集成架构
+x-i18n:
+  generated_at: "2026-02-03T07:53:24Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 98b12f1211f70b1a25f58e68c7a4d0fe3827412ca53ba0ea2cd41ac9c0448458
+  source_path: pi.md
+  workflow: 15
 ---
 
-# Pi Integration Architecture
+# Pi 集成架构
 
-This document describes how OpenClaw integrates with [pi-coding-agent](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent) and its sibling packages (`pi-ai`, `pi-agent-core`, `pi-tui`) to power its AI agent capabilities.
+本文档描述了 OpenClaw 如何与 [pi-coding-agent](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent) 及其相关包（`pi-ai`、`pi-agent-core`、`pi-tui`）集成以实现其 AI 智能体能力。
 
-## Overview
+## 概述
 
-OpenClaw uses the pi SDK to embed an AI coding agent into its messaging gateway architecture. Instead of spawning pi as a subprocess or using RPC mode, OpenClaw directly imports and instantiates pi's `AgentSession` via `createAgentSession()`. This embedded approach provides:
+OpenClaw 使用 pi SDK 将 AI 编码智能体嵌入到其消息 Gateway 网关架构中。OpenClaw 不是将 pi 作为子进程生成或使用 RPC 模式，而是通过 `createAgentSession()` 直接导入并实例化 pi 的 `AgentSession`。这种嵌入式方法提供了：
 
-- Full control over session lifecycle and event handling
-- Custom tool injection (messaging, sandbox, channel-specific actions)
-- System prompt customization per channel/context
-- Session persistence with branching/compaction support
-- Multi-account auth profile rotation with failover
-- Provider-agnostic model switching
+- 对会话生命周期和事件处理的完全控制
+- 自定义工具注入（消息、沙箱、渠道特定操作）
+- 每个渠道/上下文的系统提示自定义
+- 支持分支/压缩的会话持久化
+- 带故障转移的多账户认证配置文件轮换
+- 与提供商无关的模型切换
 
-## Package Dependencies
+## 包依赖
 
 ```json
 {
@@ -32,14 +35,14 @@ OpenClaw uses the pi SDK to embed an AI coding agent into its messaging gateway 
 }
 ```
 
-| Package           | Purpose                                                                                                |
-| ----------------- | ------------------------------------------------------------------------------------------------------ |
-| `pi-ai`           | Core LLM abstractions: `Model`, `streamSimple`, message types, provider APIs                           |
-| `pi-agent-core`   | Agent loop, tool execution, `AgentMessage` types                                                       |
-| `pi-coding-agent` | High-level SDK: `createAgentSession`, `SessionManager`, `AuthStorage`, `ModelRegistry`, built-in tools |
-| `pi-tui`          | Terminal UI components (used in OpenClaw's local TUI mode)                                             |
+| 包                | 用途                                                                                       |
+| ----------------- | ------------------------------------------------------------------------------------------ |
+| `pi-ai`           | 核心 LLM 抽象：`Model`、`streamSimple`、消息类型、提供商 API                               |
+| `pi-agent-core`   | 智能体循环、工具执行、`AgentMessage` 类型                                                  |
+| `pi-coding-agent` | 高级 SDK：`createAgentSession`、`SessionManager`、`AuthStorage`、`ModelRegistry`、内置工具 |
+| `pi-tui`          | 终端 UI 组件（用于 OpenClaw 的本地 TUI 模式）                                              |
 
-## File Structure
+## 文件结构
 
 ```
 src/agents/
@@ -132,11 +135,11 @@ src/agents/
 └── ...
 ```
 
-## Core Integration Flow
+## 核心集成流程
 
-### 1. Running an Embedded Agent
+### 1. 运行嵌入式智能体
 
-The main entry point is `runEmbeddedPiAgent()` in `pi-embedded-runner/run.ts`:
+主入口点是 `pi-embedded-runner/run.ts` 中的 `runEmbeddedPiAgent()`：
 
 ```typescript
 import { runEmbeddedPiAgent } from "./agents/pi-embedded-runner.js";
@@ -158,9 +161,9 @@ const result = await runEmbeddedPiAgent({
 });
 ```
 
-### 2. Session Creation
+### 2. 会话创建
 
-Inside `runEmbeddedAttempt()` (called by `runEmbeddedPiAgent()`), the pi SDK is used:
+在 `runEmbeddedAttempt()`（由 `runEmbeddedPiAgent()` 调用）内部，使用 pi SDK：
 
 ```typescript
 import {
@@ -195,9 +198,9 @@ const { session } = await createAgentSession({
 applySystemPromptOverrideToSession(session, systemPromptOverride);
 ```
 
-### 3. Event Subscription
+### 3. 事件订阅
 
-`subscribeEmbeddedPiSession()` subscribes to pi's `AgentSession` events:
+`subscribeEmbeddedPiSession()` 订阅 pi 的 `AgentSession` 事件：
 
 ```typescript
 const subscription = subscribeEmbeddedPiSession({
@@ -214,43 +217,39 @@ const subscription = subscribeEmbeddedPiSession({
 });
 ```
 
-Events handled include:
+处理的事件包括：
 
-- `message_start` / `message_end` / `message_update` (streaming text/thinking)
+- `message_start` / `message_end` / `message_update`（流式文本/思考）
 - `tool_execution_start` / `tool_execution_update` / `tool_execution_end`
 - `turn_start` / `turn_end`
 - `agent_start` / `agent_end`
 - `auto_compaction_start` / `auto_compaction_end`
 
-### 4. Prompting
+### 4. 提示
 
-After setup, the session is prompted:
+设置完成后，会话被提示：
 
 ```typescript
 await session.prompt(effectivePrompt, { images: imageResult.images });
 ```
 
-The SDK handles the full agent loop: sending to LLM, executing tool calls, streaming responses.
+SDK 处理完整的智能体循环：发送到 LLM、执行工具调用、流式响应。
 
-Image injection is prompt-local: OpenClaw loads image refs from the current prompt and
-passes them via `images` for that turn only. It does not re-scan older history turns
-to re-inject image payloads.
+## 工具架构
 
-## Tool Architecture
+### 工具管道
 
-### Tool Pipeline
+1. **基础工具**：pi 的 `codingTools`（read、bash、edit、write）
+2. **自定义替换**：OpenClaw 将 bash 替换为 `exec`/`process`，为沙箱自定义 read/edit/write
+3. **OpenClaw 工具**：消息、浏览器、画布、会话、定时任务、Gateway 网关等
+4. **渠道工具**：Discord/Telegram/Slack/WhatsApp 特定的操作工具
+5. **策略过滤**：工具按配置文件、提供商、智能体、群组、沙箱策略过滤
+6. **Schema 规范化**：为 Gemini/OpenAI 的特殊情况清理 Schema
+7. **AbortSignal 包装**：工具被包装以尊重中止信号
 
-1. **Base Tools**: pi's `codingTools` (read, bash, edit, write)
-2. **Custom Replacements**: OpenClaw replaces bash with `exec`/`process`, customizes read/edit/write for sandbox
-3. **OpenClaw Tools**: messaging, browser, canvas, sessions, cron, gateway, etc.
-4. **Channel Tools**: Discord/Telegram/Slack/WhatsApp-specific action tools
-5. **Policy Filtering**: Tools filtered by profile, provider, agent, group, sandbox policies
-6. **Schema Normalization**: Schemas cleaned for Gemini/OpenAI quirks
-7. **AbortSignal Wrapping**: Tools wrapped to respect abort signals
+### 工具定义适配器
 
-### Tool Definition Adapter
-
-pi-agent-core's `AgentTool` has a different `execute` signature than pi-coding-agent's `ToolDefinition`. The adapter in `pi-tool-definition-adapter.ts` bridges this:
+pi-agent-core 的 `AgentTool` 与 pi-coding-agent 的 `ToolDefinition` 有不同的 `execute` 签名。`pi-tool-definition-adapter.ts` 中的适配器桥接了这一点：
 
 ```typescript
 export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
@@ -267,9 +266,9 @@ export function toToolDefinitions(tools: AnyAgentTool[]): ToolDefinition[] {
 }
 ```
 
-### Tool Split Strategy
+### 工具拆分策略
 
-`splitSdkTools()` passes all tools via `customTools`:
+`splitSdkTools()` 通过 `customTools` 传递所有工具：
 
 ```typescript
 export function splitSdkTools(options: { tools: AnyAgentTool[]; sandboxEnabled: boolean }) {
@@ -280,34 +279,34 @@ export function splitSdkTools(options: { tools: AnyAgentTool[]; sandboxEnabled: 
 }
 ```
 
-This ensures OpenClaw's policy filtering, sandbox integration, and extended toolset remain consistent across providers.
+这确保 OpenClaw 的策略过滤、沙箱集成和扩展工具集在各提供商之间保持一致。
 
-## System Prompt Construction
+## 系统提示构建
 
-The system prompt is built in `buildAgentSystemPrompt()` (`system-prompt.ts`). It assembles a full prompt with sections including Tooling, Tool Call Style, Safety guardrails, OpenClaw CLI reference, Skills, Docs, Workspace, Sandbox, Messaging, Reply Tags, Voice, Silent Replies, Heartbeats, Runtime metadata, plus Memory and Reactions when enabled, and optional context files and extra system prompt content. Sections are trimmed for minimal prompt mode used by subagents.
+系统提示在 `buildAgentSystemPrompt()`（`system-prompt.ts`）中构建。它组装一个完整的提示，包含工具、工具调用风格、安全护栏、OpenClaw CLI 参考、Skills、文档、工作区、沙箱、消息、回复标签、语音、静默回复、心跳、运行时元数据等部分，以及启用时的记忆和反应，还有可选的上下文文件和额外系统提示内容。部分内容在子智能体使用的最小提示模式下会被裁剪。
 
-The prompt is applied after session creation via `applySystemPromptOverrideToSession()`:
+提示在会话创建后通过 `applySystemPromptOverrideToSession()` 应用：
 
 ```typescript
 const systemPromptOverride = createSystemPromptOverride(appendPrompt);
 applySystemPromptOverrideToSession(session, systemPromptOverride);
 ```
 
-## Session Management
+## 会话管理
 
-### Session Files
+### 会话文件
 
-Sessions are JSONL files with tree structure (id/parentId linking). Pi's `SessionManager` handles persistence:
+会话是具有树结构（id/parentId 链接）的 JSONL 文件。Pi 的 `SessionManager` 处理持久化：
 
 ```typescript
 const sessionManager = SessionManager.open(params.sessionFile);
 ```
 
-OpenClaw wraps this with `guardSessionManager()` for tool result safety.
+OpenClaw 用 `guardSessionManager()` 包装它以确保工具结果安全。
 
-### Session Caching
+### 会话缓存
 
-`session-manager-cache.ts` caches SessionManager instances to avoid repeated file parsing:
+`session-manager-cache.ts` 缓存 SessionManager 实例以避免重复的文件解析：
 
 ```typescript
 await prewarmSessionFile(params.sessionFile);
@@ -315,13 +314,13 @@ sessionManager = SessionManager.open(params.sessionFile);
 trackSessionManagerAccess(params.sessionFile);
 ```
 
-### History Limiting
+### 历史限制
 
-`limitHistoryTurns()` trims conversation history based on channel type (DM vs group).
+`limitHistoryTurns()` 根据渠道类型（私信 vs 群组）裁剪对话历史。
 
-### Compaction
+### 压缩
 
-Auto-compaction triggers on context overflow. `compactEmbeddedPiSessionDirect()` handles manual compaction:
+自动压缩在上下文溢出时触发。`compactEmbeddedPiSessionDirect()` 处理手动压缩：
 
 ```typescript
 const compactResult = await compactEmbeddedPiSessionDirect({
@@ -329,25 +328,25 @@ const compactResult = await compactEmbeddedPiSessionDirect({
 });
 ```
 
-## Authentication & Model Resolution
+## 认证与模型解析
 
-### Auth Profiles
+### 认证配置文件
 
-OpenClaw maintains an auth profile store with multiple API keys per provider:
+OpenClaw 维护一个认证配置文件存储，每个提供商有多个 API 密钥：
 
 ```typescript
 const authStore = ensureAuthProfileStore(agentDir, { allowKeychainPrompt: false });
 const profileOrder = resolveAuthProfileOrder({ cfg, store: authStore, provider, preferredProfile });
 ```
 
-Profiles rotate on failures with cooldown tracking:
+配置文件在失败时轮换，并带有冷却跟踪：
 
 ```typescript
 await markAuthProfileFailure({ store, profileId, reason, cfg, agentDir });
 const rotated = await advanceAuthProfile();
 ```
 
-### Model Resolution
+### 模型解析
 
 ```typescript
 import { resolveModel } from "./pi-embedded-runner/model.js";
@@ -363,9 +362,9 @@ const { model, error, authStorage, modelRegistry } = resolveModel(
 authStorage.setRuntimeApiKey(model.provider, apiKeyInfo.apiKey);
 ```
 
-### Failover
+### 故障转移
 
-`FailoverError` triggers model fallback when configured:
+`FailoverError` 在配置了回退时触发模型回退：
 
 ```typescript
 if (fallbackConfigured && isFailoverErrorMessage(errorText)) {
@@ -379,13 +378,13 @@ if (fallbackConfigured && isFailoverErrorMessage(errorText)) {
 }
 ```
 
-## Pi Extensions
+## Pi 扩展
 
-OpenClaw loads custom pi extensions for specialized behavior:
+OpenClaw 加载自定义 pi 扩展以实现特殊行为：
 
-### Compaction Safeguard
+### 压缩安全护栏
 
-`src/agents/pi-extensions/compaction-safeguard.ts` adds guardrails to compaction, including adaptive token budgeting plus tool failure and file operation summaries:
+`pi-extensions/compaction-safeguard.ts` 为压缩添加护栏，包括自适应令牌预算以及工具失败和文件操作摘要：
 
 ```typescript
 if (resolveCompactionMode(params.cfg) === "safeguard") {
@@ -394,9 +393,9 @@ if (resolveCompactionMode(params.cfg) === "safeguard") {
 }
 ```
 
-### Context Pruning
+### 上下文裁剪
 
-`src/agents/pi-extensions/context-pruning.ts` implements cache-TTL based context pruning:
+`pi-extensions/context-pruning.ts` 实现基于缓存 TTL 的上下文裁剪：
 
 ```typescript
 if (cfg?.agents?.defaults?.contextPruning?.mode === "cache-ttl") {
@@ -410,19 +409,19 @@ if (cfg?.agents?.defaults?.contextPruning?.mode === "cache-ttl") {
 }
 ```
 
-## Streaming & Block Replies
+## 流式传输与块回复
 
-### Block Chunking
+### 块分块
 
-`EmbeddedBlockChunker` manages streaming text into discrete reply blocks:
+`EmbeddedBlockChunker` 管理将流式文本分成离散的回复块：
 
 ```typescript
 const blockChunker = blockChunking ? new EmbeddedBlockChunker(blockChunking) : null;
 ```
 
-### Thinking/Final Tag Stripping
+### 思考/最终标签剥离
 
-Streaming output is processed to strip `<think>`/`<thinking>` blocks and extract `<final>` content:
+流式输出被处理以剥离 `<think>`/`<thinking>` 块并提取 `<final>` 内容：
 
 ```typescript
 const stripBlockTags = (text: string, state: { thinking: boolean; final: boolean }) => {
@@ -431,19 +430,19 @@ const stripBlockTags = (text: string, state: { thinking: boolean; final: boolean
 };
 ```
 
-### Reply Directives
+### 回复指令
 
-Reply directives like `[[media:url]]`, `[[voice]]`, `[[reply:id]]` are parsed and extracted:
+回复指令如 `[[media:url]]`、`[[voice]]`、`[[reply:id]]` 被解析和提取：
 
 ```typescript
 const { text: cleanedText, mediaUrls, audioAsVoice, replyToId } = consumeReplyDirectives(chunk);
 ```
 
-## Error Handling
+## 错误处理
 
-### Error Classification
+### 错误分类
 
-`pi-embedded-helpers.ts` classifies errors for appropriate handling:
+`pi-embedded-helpers.ts` 对错误进行分类以进行适当处理：
 
 ```typescript
 isContextOverflowError(errorText)     // Context too large
@@ -454,9 +453,9 @@ isFailoverAssistantError(...)         // Should failover
 classifyFailoverReason(errorText)     // "auth" | "rate_limit" | "quota" | "timeout" | ...
 ```
 
-### Thinking Level Fallback
+### 思考级别回退
 
-If a thinking level is unsupported, it falls back:
+如果思考级别不受支持，它会回退：
 
 ```typescript
 const fallbackThinking = pickFallbackThinkingLevel({
@@ -469,9 +468,9 @@ if (fallbackThinking) {
 }
 ```
 
-## Sandbox Integration
+## 沙箱集成
 
-When sandbox mode is enabled, tools and paths are constrained:
+当启用沙箱模式时，工具和路径受到约束：
 
 ```typescript
 const sandbox = await resolveSandboxContext({
@@ -487,76 +486,134 @@ if (sandboxRoot) {
 }
 ```
 
-## Provider-Specific Handling
+## 提供商特定处理
 
 ### Anthropic
 
-- Refusal magic string scrubbing
-- Turn validation for consecutive roles
-- Claude Code parameter compatibility
+- 拒绝魔术字符串清除
+- 连续角色的回合验证
+- Claude Code 参数兼容性
 
 ### Google/Gemini
 
-- Turn ordering fixes (`applyGoogleTurnOrderingFix`)
-- Tool schema sanitization (`sanitizeToolsForGoogle`)
-- Session history sanitization (`sanitizeSessionHistory`)
+- 回合排序修复（`applyGoogleTurnOrderingFix`）
+- 工具 schema 清理（`sanitizeToolsForGoogle`）
+- 会话历史清理（`sanitizeSessionHistory`）
 
 ### OpenAI
 
-- `apply_patch` tool for Codex models
-- Thinking level downgrade handling
+- Codex 模型的 `apply_patch` 工具
+- 思考级别降级处理
 
-## TUI Integration
+## TUI 集成
 
-OpenClaw also has a local TUI mode that uses pi-tui components directly:
+OpenClaw 还有一个本地 TUI 模式，直接使用 pi-tui 组件：
 
 ```typescript
 // src/tui/tui.ts
 import { ... } from "@mariozechner/pi-tui";
 ```
 
-This provides the interactive terminal experience similar to pi's native mode.
+这提供了与 pi 原生模式类似的交互式终端体验。
 
-## Key Differences from Pi CLI
+## 与 Pi CLI 的主要区别
 
-| Aspect          | Pi CLI                  | OpenClaw Embedded                                                                              |
-| --------------- | ----------------------- | ---------------------------------------------------------------------------------------------- |
-| Invocation      | `pi` command / RPC      | SDK via `createAgentSession()`                                                                 |
-| Tools           | Default coding tools    | Custom OpenClaw tool suite                                                                     |
-| System prompt   | AGENTS.md + prompts     | Dynamic per-channel/context                                                                    |
-| Session storage | `~/.pi/agent/sessions/` | `~/.openclaw/agents/<agentId>/sessions/` (or `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`) |
-| Auth            | Single credential       | Multi-profile with rotation                                                                    |
-| Extensions      | Loaded from disk        | Programmatic + disk paths                                                                      |
-| Event handling  | TUI rendering           | Callback-based (onBlockReply, etc.)                                                            |
+| 方面     | Pi CLI                  | OpenClaw 嵌入式                                                                                 |
+| -------- | ----------------------- | ----------------------------------------------------------------------------------------------- |
+| 调用方式 | `pi` 命令 / RPC         | 通过 `createAgentSession()` 的 SDK                                                              |
+| 工具     | 默认编码工具            | 自定义 OpenClaw 工具套件                                                                        |
+| 系统提示 | AGENTS.md + prompts     | 按渠道/上下文动态生成                                                                           |
+| 会话存储 | `~/.pi/agent/sessions/` | `~/.openclaw/agents/<agentId>/sessions/`（或 `$OPENCLAW_STATE_DIR/agents/<agentId>/sessions/`） |
+| 认证     | 单一凭证                | 带轮换的多配置文件                                                                              |
+| 扩展     | 从磁盘加载              | 编程方式 + 磁盘路径                                                                             |
+| 事件处理 | TUI 渲染                | 基于回调（onBlockReply 等）                                                                     |
 
-## Future Considerations
+## 未来考虑
 
-Areas for potential rework:
+可能需要重构的领域：
 
-1. **Tool signature alignment**: Currently adapting between pi-agent-core and pi-coding-agent signatures
-2. **Session manager wrapping**: `guardSessionManager` adds safety but increases complexity
-3. **Extension loading**: Could use pi's `ResourceLoader` more directly
-4. **Streaming handler complexity**: `subscribeEmbeddedPiSession` has grown large
-5. **Provider quirks**: Many provider-specific codepaths that pi could potentially handle
+1. **工具签名对齐**：目前在 pi-agent-core 和 pi-coding-agent 签名之间适配
+2. **会话管理器包装**：`guardSessionManager` 增加了安全性但增加了复杂性
+3. **扩展加载**：可以更直接地使用 pi 的 `ResourceLoader`
+4. **流式处理器复杂性**：`subscribeEmbeddedPiSession` 已经变得很大
+5. **提供商特殊情况**：许多提供商特定的代码路径，pi 可能可以处理
 
-## Tests
+## 测试
 
-Pi integration coverage spans these suites:
+所有涵盖 pi 集成及其扩展的现有测试：
 
-- `src/agents/pi-*.test.ts`
-- `src/agents/pi-auth-json.test.ts`
-- `src/agents/pi-embedded-*.test.ts`
-- `src/agents/pi-embedded-helpers*.test.ts`
-- `src/agents/pi-embedded-runner*.test.ts`
-- `src/agents/pi-embedded-runner/**/*.test.ts`
-- `src/agents/pi-embedded-subscribe*.test.ts`
-- `src/agents/pi-tools*.test.ts`
-- `src/agents/pi-tool-definition-adapter*.test.ts`
+- `src/agents/pi-embedded-block-chunker.test.ts`
+- `src/agents/pi-embedded-helpers.buildbootstrapcontextfiles.test.ts`
+- `src/agents/pi-embedded-helpers.classifyfailoverreason.test.ts`
+- `src/agents/pi-embedded-helpers.downgradeopenai-reasoning.test.ts`
+- `src/agents/pi-embedded-helpers.formatassistanterrortext.test.ts`
+- `src/agents/pi-embedded-helpers.formatrawassistanterrorforui.test.ts`
+- `src/agents/pi-embedded-helpers.image-dimension-error.test.ts`
+- `src/agents/pi-embedded-helpers.image-size-error.test.ts`
+- `src/agents/pi-embedded-helpers.isautherrormessage.test.ts`
+- `src/agents/pi-embedded-helpers.isbillingerrormessage.test.ts`
+- `src/agents/pi-embedded-helpers.iscloudcodeassistformaterror.test.ts`
+- `src/agents/pi-embedded-helpers.iscompactionfailureerror.test.ts`
+- `src/agents/pi-embedded-helpers.iscontextoverflowerror.test.ts`
+- `src/agents/pi-embedded-helpers.isfailovererrormessage.test.ts`
+- `src/agents/pi-embedded-helpers.islikelycontextoverflowerror.test.ts`
+- `src/agents/pi-embedded-helpers.ismessagingtoolduplicate.test.ts`
+- `src/agents/pi-embedded-helpers.messaging-duplicate.test.ts`
+- `src/agents/pi-embedded-helpers.normalizetextforcomparison.test.ts`
+- `src/agents/pi-embedded-helpers.resolvebootstrapmaxchars.test.ts`
+- `src/agents/pi-embedded-helpers.sanitize-session-messages-images.keeps-tool-call-tool-result-ids-unchanged.test.ts`
+- `src/agents/pi-embedded-helpers.sanitize-session-messages-images.removes-empty-assistant-text-blocks-but-preserves.test.ts`
+- `src/agents/pi-embedded-helpers.sanitizegoogleturnordering.test.ts`
+- `src/agents/pi-embedded-helpers.sanitizesessionmessagesimages-thought-signature-stripping.test.ts`
+- `src/agents/pi-embedded-helpers.sanitizetoolcallid.test.ts`
+- `src/agents/pi-embedded-helpers.sanitizeuserfacingtext.test.ts`
+- `src/agents/pi-embedded-helpers.stripthoughtsignatures.test.ts`
+- `src/agents/pi-embedded-helpers.validate-turns.test.ts`
+- `src/agents/pi-embedded-runner-extraparams.live.test.ts`（实时）
+- `src/agents/pi-embedded-runner-extraparams.test.ts`
+- `src/agents/pi-embedded-runner.applygoogleturnorderingfix.test.ts`
+- `src/agents/pi-embedded-runner.buildembeddedsandboxinfo.test.ts`
+- `src/agents/pi-embedded-runner.createsystempromptoverride.test.ts`
+- `src/agents/pi-embedded-runner.get-dm-history-limit-from-session-key.falls-back-provider-default-per-dm-not.test.ts`
+- `src/agents/pi-embedded-runner.get-dm-history-limit-from-session-key.returns-undefined-sessionkey-is-undefined.test.ts`
+- `src/agents/pi-embedded-runner.google-sanitize-thinking.test.ts`
+- `src/agents/pi-embedded-runner.guard.test.ts`
+- `src/agents/pi-embedded-runner.limithistoryturns.test.ts`
+- `src/agents/pi-embedded-runner.resolvesessionagentids.test.ts`
+- `src/agents/pi-embedded-runner.run-embedded-pi-agent.auth-profile-rotation.test.ts`
+- `src/agents/pi-embedded-runner.sanitize-session-history.test.ts`
+- `src/agents/pi-embedded-runner.splitsdktools.test.ts`
+- `src/agents/pi-embedded-runner.test.ts`
+- `src/agents/pi-embedded-subscribe.code-span-awareness.test.ts`
+- `src/agents/pi-embedded-subscribe.reply-tags.test.ts`
+- `src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.calls-onblockreplyflush-before-tool-execution-start-preserve.test.ts`
+- `src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.does-not-append-text-end-content-is.test.ts`
+- `src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.does-not-call-onblockreplyflush-callback-is-not.test.ts`
+- `src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.does-not-duplicate-text-end-repeats-full.test.ts`
+- `src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.does-not-emit-duplicate-block-replies-text.test.ts`
+- `src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.emits-block-replies-text-end-does-not.test.ts`
+- `src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.emits-reasoning-as-separate-message-enabled.test.ts`
+- `src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.filters-final-suppresses-output-without-start-tag.test.ts`
+- `src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.includes-canvas-action-metadata-tool-summaries.test.ts`
+- `src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.keeps-assistanttexts-final-answer-block-replies-are.test.ts`
+- `src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.keeps-indented-fenced-blocks-intact.test.ts`
+- `src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.reopens-fenced-blocks-splitting-inside-them.test.ts`
+- `src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.splits-long-single-line-fenced-blocks-reopen.test.ts`
+- `src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.streams-soft-chunks-paragraph-preference.test.ts`
+- `src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.subscribeembeddedpisession.test.ts`
+- `src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.suppresses-message-end-block-replies-message-tool.test.ts`
+- `src/agents/pi-embedded-subscribe.subscribe-embedded-pi-session.waits-multiple-compaction-retries-before-resolving.test.ts`
+- `src/agents/pi-embedded-subscribe.tools.test.ts`
+- `src/agents/pi-embedded-utils.test.ts`
+- `src/agents/pi-extensions/compaction-safeguard.test.ts`
+- `src/agents/pi-extensions/context-pruning.test.ts`
 - `src/agents/pi-settings.test.ts`
-- `src/agents/pi-extensions/**/*.test.ts`
-
-Live/opt-in:
-
-- `src/agents/pi-embedded-runner-extraparams.live.test.ts` (enable `OPENCLAW_LIVE_TEST=1`)
-
-For current run commands, see [Pi Development Workflow](/pi-dev).
+- `src/agents/pi-tool-definition-adapter.test.ts`
+- `src/agents/pi-tools-agent-config.test.ts`
+- `src/agents/pi-tools.create-openclaw-coding-tools.adds-claude-style-aliases-schemas-without-dropping-b.test.ts`
+- `src/agents/pi-tools.create-openclaw-coding-tools.adds-claude-style-aliases-schemas-without-dropping-d.test.ts`
+- `src/agents/pi-tools.create-openclaw-coding-tools.adds-claude-style-aliases-schemas-without-dropping-f.test.ts`
+- `src/agents/pi-tools.create-openclaw-coding-tools.adds-claude-style-aliases-schemas-without-dropping.test.ts`
+- `src/agents/pi-tools.policy.test.ts`
+- `src/agents/pi-tools.safe-bins.test.ts`
+- `src/agents/pi-tools.workspace-paths.test.ts`

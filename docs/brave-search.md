@@ -1,22 +1,29 @@
 ---
-summary: "Brave Search API setup for web_search"
 read_when:
-  - You want to use Brave Search for web_search
-  - You need a BRAVE_API_KEY or plan details
-title: "Brave Search"
+  - 你想使用 Brave Search 进行 web_search
+  - 你需要 BRAVE_API_KEY 或套餐详情
+summary: 用于 web_search 的 Brave Search API 设置
+title: Brave Search
+x-i18n:
+  generated_at: "2026-02-03T07:43:09Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: cdcb037b092b8a10609f02acf062b4164cb826ac22bdb3fb2909c842a1405341
+  source_path: brave-search.md
+  workflow: 15
 ---
 
 # Brave Search API
 
-OpenClaw supports Brave Search API as a `web_search` provider.
+OpenClaw 使用 Brave Search 作为 `web_search` 的默认提供商。
 
-## Get an API key
+## 获取 API 密钥
 
-1. Create a Brave Search API account at [https://brave.com/search/api/](https://brave.com/search/api/)
-2. In the dashboard, choose the **Search** plan and generate an API key.
-3. Store the key in config or set `BRAVE_API_KEY` in the Gateway environment.
+1. 在 https://brave.com/search/api/ 创建 Brave Search API 账户
+2. 在控制面板中，选择 **Data for Search** 套餐并生成 API 密钥。
+3. 将密钥存储在配置中（推荐），或在 Gateway 网关环境中设置 `BRAVE_API_KEY`。
 
-## Config example
+## 配置示例
 
 ```json5
 {
@@ -33,48 +40,9 @@ OpenClaw supports Brave Search API as a `web_search` provider.
 }
 ```
 
-## Tool parameters
+## 注意事项
 
-| Parameter     | Description                                                         |
-| ------------- | ------------------------------------------------------------------- |
-| `query`       | Search query (required)                                             |
-| `count`       | Number of results to return (1-10, default: 5)                      |
-| `country`     | 2-letter ISO country code (e.g., "US", "DE")                        |
-| `language`    | ISO 639-1 language code for search results (e.g., "en", "de", "fr") |
-| `ui_lang`     | ISO language code for UI elements                                   |
-| `freshness`   | Time filter: `day` (24h), `week`, `month`, or `year`                |
-| `date_after`  | Only results published after this date (YYYY-MM-DD)                 |
-| `date_before` | Only results published before this date (YYYY-MM-DD)                |
+- Data for AI 套餐与 `web_search` **不**兼容。
+- Brave 提供免费层级和付费套餐；请查看 Brave API 门户了解当前限制。
 
-**Examples:**
-
-```javascript
-// Country and language-specific search
-await web_search({
-  query: "renewable energy",
-  country: "DE",
-  language: "de",
-});
-
-// Recent results (past week)
-await web_search({
-  query: "AI news",
-  freshness: "week",
-});
-
-// Date range search
-await web_search({
-  query: "AI developments",
-  date_after: "2024-01-01",
-  date_before: "2024-06-30",
-});
-```
-
-## Notes
-
-- OpenClaw uses the Brave **Search** plan. If you have a legacy subscription (e.g. the original Free plan with 2,000 queries/month), it remains valid but does not include newer features like LLM Context or higher rate limits.
-- Each Brave plan includes **$5/month in free credit** (renewing). The Search plan costs $5 per 1,000 requests, so the credit covers 1,000 queries/month. Set your usage limit in the Brave dashboard to avoid unexpected charges. See the [Brave API portal](https://brave.com/search/api/) for current plans.
-- The Search plan includes the LLM Context endpoint and AI inference rights. Storing results to train or tune models requires a plan with explicit storage rights. See the Brave [Terms of Service](https://api-dashboard.search.brave.com/terms-of-service).
-- Results are cached for 15 minutes by default (configurable via `cacheTtlMinutes`).
-
-See [Web tools](/tools/web) for the full web_search configuration.
+请参阅 [Web 工具](/tools/web) 了解完整的 web_search 配置。

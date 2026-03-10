@@ -1,33 +1,39 @@
 ---
-summary: "Invoke a single tool directly via the Gateway HTTP endpoint"
 read_when:
-  - Calling tools without running a full agent turn
-  - Building automations that need tool policy enforcement
-title: "Tools Invoke API"
+  - 不运行完整智能体回合直接调用工具
+  - 构建需要工具策略强制执行的自动化
+summary: 通过 Gateway 网关 HTTP 端点直接调用单个工具
+title: 工具调用 API
+x-i18n:
+  generated_at: "2026-02-03T07:48:58Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 17ccfbe0b0d9bb61cc46fb21f5c09b106ba6e8e4c2c14135a11ca8d5b77b8a88
+  source_path: gateway/tools-invoke-http-api.md
+  workflow: 15
 ---
 
-# Tools Invoke (HTTP)
+# 工具调用（HTTP）
 
-OpenClaw’s Gateway exposes a simple HTTP endpoint for invoking a single tool directly. It is always enabled, but gated by Gateway auth and tool policy.
+OpenClaw 的 Gateway 网关暴露了一个简单的 HTTP 端点用于直接调用单个工具。它始终启用，但受 Gateway 网关认证和工具策略限制。
 
 - `POST /tools/invoke`
-- Same port as the Gateway (WS + HTTP multiplex): `http://<gateway-host>:<port>/tools/invoke`
+- 与 Gateway 网关相同的端口（WS + HTTP 多路复用）：`http://<gateway-host>:<port>/tools/invoke`
 
-Default max payload size is 2 MB.
+默认最大负载大小为 2 MB。
 
-## Authentication
+## 认证
 
-Uses the Gateway auth configuration. Send a bearer token:
+使用 Gateway 网关认证配置。发送 bearer 令牌：
 
 - `Authorization: Bearer <token>`
 
-Notes:
+说明：
 
-- When `gateway.auth.mode="token"`, use `gateway.auth.token` (or `OPENCLAW_GATEWAY_TOKEN`).
-- When `gateway.auth.mode="password"`, use `gateway.auth.password` (or `OPENCLAW_GATEWAY_PASSWORD`).
-- If `gateway.auth.rateLimit` is configured and too many auth failures occur, the endpoint returns `429` with `Retry-After`.
+- 当 `gateway.auth.mode="token"` 时，使用 `gateway.auth.token`（或 `OPENCLAW_GATEWAY_TOKEN`）。
+- 当 `gateway.auth.mode="password"` 时，使用 `gateway.auth.password`（或 `OPENCLAW_GATEWAY_PASSWORD`）。
 
-## Request body
+## 请求体
 
 ```json
 {
@@ -39,64 +45,40 @@ Notes:
 }
 ```
 
-Fields:
+字段：
 
-- `tool` (string, required): tool name to invoke.
-- `action` (string, optional): mapped into args if the tool schema supports `action` and the args payload omitted it.
-- `args` (object, optional): tool-specific arguments.
-- `sessionKey` (string, optional): target session key. If omitted or `"main"`, the Gateway uses the configured main session key (honors `session.mainKey` and default agent, or `global` in global scope).
-- `dryRun` (boolean, optional): reserved for future use; currently ignored.
+- `tool`（string，必需）：要调用的工具名称。
+- `action`（string，可选）：如果工具 schema 支持 `action` 且 args 负载省略了它，则映射到 args。
+- `args`（object，可选）：工具特定的参数。
+- `sessionKey`（string，可选）：目标会话键。如果省略或为 `"main"`，Gateway 网关使用配置的主会话键（遵循 `session.mainKey` 和默认智能体，或在全局范围中使用 `global`）。
+- `dryRun`（boolean，可选）：保留供将来使用；当前忽略。
 
-## Policy + routing behavior
+## 策略 + 路由行为
 
-Tool availability is filtered through the same policy chain used by Gateway agents:
+工具可用性通过 Gateway 网关智能体使用的相同策略链过滤：
 
 - `tools.profile` / `tools.byProvider.profile`
 - `tools.allow` / `tools.byProvider.allow`
 - `agents.<id>.tools.allow` / `agents.<id>.tools.byProvider.allow`
-- group policies (if the session key maps to a group or channel)
-- subagent policy (when invoking with a subagent session key)
+- 群组策略（如果会话键映射到群组或渠道）
+- 子智能体策略（使用子智能体会话键调用时）
 
-If a tool is not allowed by policy, the endpoint returns **404**.
+如果工具不被策略允许，端点返回 **404**。
 
-Gateway HTTP also applies a hard deny list by default (even if session policy allows the tool):
+为帮助群组策略解析上下文，你可以选择设置：
 
-- `sessions_spawn`
-- `sessions_send`
-- `gateway`
-- `whatsapp_login`
+- `x-openclaw-message-channel: <channel>`（示例：`slack`、`telegram`）
+- `x-openclaw-account-id: <accountId>`（当存在多个账户时）
 
-You can customize this deny list via `gateway.tools`:
-
-```json5
-{
-  gateway: {
-    tools: {
-      // Additional tools to block over HTTP /tools/invoke
-      deny: ["browser"],
-      // Remove tools from the default deny list
-      allow: ["gateway"],
-    },
-  },
-}
-```
-
-To help group policies resolve context, you can optionally set:
-
-- `x-openclaw-message-channel: <channel>` (example: `slack`, `telegram`)
-- `x-openclaw-account-id: <accountId>` (when multiple accounts exist)
-
-## Responses
+## 响应
 
 - `200` → `{ ok: true, result }`
-- `400` → `{ ok: false, error: { type, message } }` (invalid request or tool input error)
-- `401` → unauthorized
-- `429` → auth rate-limited (`Retry-After` set)
-- `404` → tool not available (not found or not allowlisted)
-- `405` → method not allowed
-- `500` → `{ ok: false, error: { type, message } }` (unexpected tool execution error; sanitized message)
+- `400` → `{ ok: false, error: { type, message } }`（无效请求或工具错误）
+- `401` → 未授权
+- `404` → 工具不可用（未找到或未在允许列表中）
+- `405` → 方法不允许
 
-## Example
+## 示例
 
 ```bash
 curl -sS http://127.0.0.1:18789/tools/invoke \

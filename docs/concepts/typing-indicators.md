@@ -1,41 +1,47 @@
 ---
-summary: "When OpenClaw shows typing indicators and how to tune them"
 read_when:
-  - Changing typing indicator behavior or defaults
-title: "Typing Indicators"
+  - 更改输入指示器的行为或默认设置
+summary: OpenClaw 何时显示输入指示器以及如何调整它们
+title: 输入指示器
+x-i18n:
+  generated_at: "2026-02-01T20:24:47Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 8ee82d02829c4ff58462be8bf5bb52f23f519aeda816c2fd8a583e7a317a2e98
+  source_path: concepts/typing-indicators.md
+  workflow: 14
 ---
 
-# Typing indicators
+# 输入指示器
 
-Typing indicators are sent to the chat channel while a run is active. Use
-`agents.defaults.typingMode` to control **when** typing starts and `typingIntervalSeconds`
-to control **how often** it refreshes.
+在运行活跃期间，输入指示器会发送到聊天渠道。使用
+`agents.defaults.typingMode` 控制输入指示器**何时**开始显示，使用 `typingIntervalSeconds`
+控制**刷新频率**。
 
-## Defaults
+## 默认行为
 
-When `agents.defaults.typingMode` is **unset**, OpenClaw keeps the legacy behavior:
+当 `agents.defaults.typingMode` **未设置**时，OpenClaw 保持旧版行为：
 
-- **Direct chats**: typing starts immediately once the model loop begins.
-- **Group chats with a mention**: typing starts immediately.
-- **Group chats without a mention**: typing starts only when message text begins streaming.
-- **Heartbeat runs**: typing is disabled.
+- **私聊**：模型循环开始后立即显示输入指示器。
+- **群聊中被提及**：立即显示输入指示器。
+- **群聊中未被提及**：仅在消息文本开始流式传输时显示输入指示器。
+- **心跳运行**：输入指示器禁用。
 
-## Modes
+## 模式
 
-Set `agents.defaults.typingMode` to one of:
+将 `agents.defaults.typingMode` 设置为以下值之一：
 
-- `never` — no typing indicator, ever.
-- `instant` — start typing **as soon as the model loop begins**, even if the run
-  later returns only the silent reply token.
-- `thinking` — start typing on the **first reasoning delta** (requires
-  `reasoningLevel: "stream"` for the run).
-- `message` — start typing on the **first non-silent text delta** (ignores
-  the `NO_REPLY` silent token).
+- `never` — 永远不显示输入指示器。
+- `instant` — **模型循环开始后立即**显示输入指示器，即使运行最终只返回静默回复令牌。
+- `thinking` — 在**第一个推理增量**时开始显示输入指示器（需要运行时设置
+  `reasoningLevel: "stream"`）。
+- `message` — 在**第一个非静默文本增量**时开始显示输入指示器（忽略
+  `NO_REPLY` 静默令牌）。
 
-Order of “how early it fires”:
+触发时机从晚到早的顺序：
 `never` → `message` → `thinking` → `instant`
 
-## Configuration
+## 配置
 
 ```json5
 {
@@ -46,7 +52,7 @@ Order of “how early it fires”:
 }
 ```
 
-You can override mode or cadence per session:
+可以按会话覆盖模式或刷新频率：
 
 ```json5
 {
@@ -57,12 +63,12 @@ You can override mode or cadence per session:
 }
 ```
 
-## Notes
+## 注意事项
 
-- `message` mode won’t show typing for silent-only replies (e.g. the `NO_REPLY`
-  token used to suppress output).
-- `thinking` only fires if the run streams reasoning (`reasoningLevel: "stream"`).
-  If the model doesn’t emit reasoning deltas, typing won’t start.
-- Heartbeats never show typing, regardless of mode.
-- `typingIntervalSeconds` controls the **refresh cadence**, not the start time.
-  The default is 6 seconds.
+- `message` 模式不会为纯静默回复显示输入指示器（例如用于抑制输出的 `NO_REPLY`
+  令牌）。
+- `thinking` 仅在运行流式传输推理时触发（`reasoningLevel: "stream"`）。
+  如果模型未产生推理增量，则不会显示输入指示器。
+- 无论使用何种模式，心跳运行都不会显示输入指示器。
+- `typingIntervalSeconds` 控制的是**刷新频率**，而非开始时间。
+  默认值为 6 秒。

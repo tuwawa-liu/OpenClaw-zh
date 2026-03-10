@@ -1,23 +1,29 @@
 ---
-summary: "Reaction semantics shared across channels"
 read_when:
-  - Working on reactions in any channel
-title: "Reactions"
+  - 在任何渠道中处理表情回应相关工作
+summary: 跨渠道共享的表情回应语义
+title: 表情回应
+x-i18n:
+  generated_at: "2026-02-01T21:42:41Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: 0f11bff9adb4bd02604f96ebe2573a623702796732b6e17dfeda399cb7be0fa6
+  source_path: tools/reactions.md
+  workflow: 15
 ---
 
-# Reaction tooling
+# 表情回应工具
 
-Shared reaction semantics across channels:
+跨渠道共享的表情回应语义：
 
-- `emoji` is required when adding a reaction.
-- `emoji=""` removes the bot's reaction(s) when supported.
-- `remove: true` removes the specified emoji when supported (requires `emoji`).
+- 添加表情回应时，`emoji` 为必填项。
+- `emoji=""` 在支持的情况下移除机器人的表情回应。
+- `remove: true` 在支持的情况下移除指定的表情（需要提供 `emoji`）。
 
-Channel notes:
+渠道说明：
 
-- **Discord/Slack**: empty `emoji` removes all of the bot's reactions on the message; `remove: true` removes just that emoji.
-- **Google Chat**: empty `emoji` removes the app's reactions on the message; `remove: true` removes just that emoji.
-- **Telegram**: empty `emoji` removes the bot's reactions; `remove: true` also removes reactions but still requires a non-empty `emoji` for tool validation.
-- **WhatsApp**: empty `emoji` removes the bot reaction; `remove: true` maps to empty emoji (still requires `emoji`).
-- **Zalo Personal (`zalouser`)**: requires non-empty `emoji`; `remove: true` removes that specific emoji reaction.
-- **Signal**: inbound reaction notifications emit system events when `channels.signal.reactionNotifications` is enabled.
+- **Discord/Slack**：空 `emoji` 移除机器人在该消息上的所有表情回应；`remove: true` 仅移除指定的表情。
+- **Google Chat**：空 `emoji` 移除应用在该消息上的表情回应；`remove: true` 仅移除指定的表情。
+- **Telegram**：空 `emoji` 移除机器人的表情回应；`remove: true` 同样移除表情回应，但工具验证仍要求 `emoji` 为非空值。
+- **WhatsApp**：空 `emoji` 移除机器人的表情回应；`remove: true` 映射为空 emoji（仍需提供 `emoji`）。
+- **Signal**：当启用 `channels.signal.reactionNotifications` 时，收到的表情回应通知会触发系统事件。

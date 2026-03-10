@@ -1,66 +1,72 @@
 ---
-summary: "Global voice wake words (Gateway-owned) and how they sync across nodes"
 read_when:
-  - Changing voice wake words behavior or defaults
-  - Adding new node platforms that need wake word sync
-title: "Voice Wake"
+  - 更改语音唤醒词行为或默认值
+  - 添加需要唤醒词同步的新节点平台
+summary: 全局语音唤醒词（Gateway 网关拥有）及其如何跨节点同步
+title: 语音唤醒
+x-i18n:
+  generated_at: "2026-02-03T07:51:10Z"
+  model: claude-opus-4-5
+  provider: pi
+  source_hash: eb34f52dfcdc3fc1ae088ae1f621f245546d3cf388299fbeea62face61788c37
+  source_path: nodes/voicewake.md
+  workflow: 15
 ---
 
-# Voice Wake (Global Wake Words)
+# 语音唤醒（全局唤醒词）
 
-OpenClaw treats **wake words as a single global list** owned by the **Gateway**.
+OpenClaw 将**唤醒词作为单一全局列表**，由 **Gateway 网关**拥有。
 
-- There are **no per-node custom wake words**.
-- **Any node/app UI may edit** the list; changes are persisted by the Gateway and broadcast to everyone.
-- macOS and iOS keep local **Voice Wake enabled/disabled** toggles (local UX + permissions differ).
-- Android currently keeps Voice Wake off and uses a manual mic flow in the Voice tab.
+- **没有**每节点的自定义唤醒词。
+- **任何节点/应用 UI 都可以编辑**列表；更改由 Gateway 网关持久化并广播给所有人。
+- 每个设备仍保留自己的**语音唤醒启用/禁用**开关（本地用户体验 + 权限不同）。
 
-## Storage (Gateway host)
+## 存储（Gateway 网关主机）
 
-Wake words are stored on the gateway machine at:
+唤醒词存储在 Gateway 网关机器上：
 
 - `~/.openclaw/settings/voicewake.json`
 
-Shape:
+结构：
 
 ```json
 { "triggers": ["openclaw", "claude", "computer"], "updatedAtMs": 1730000000000 }
 ```
 
-## Protocol
+## 协议
 
-### Methods
+### 方法
 
 - `voicewake.get` → `{ triggers: string[] }`
-- `voicewake.set` with params `{ triggers: string[] }` → `{ triggers: string[] }`
+- `voicewake.set`，参数 `{ triggers: string[] }` → `{ triggers: string[] }`
 
-Notes:
+注意事项：
 
-- Triggers are normalized (trimmed, empties dropped). Empty lists fall back to defaults.
-- Limits are enforced for safety (count/length caps).
+- 触发词会被规范化（修剪空格、删除空值）。空列表回退到默认值。
+- 为安全起见会强制执行限制（数量/长度上限）。
 
-### Events
+### 事件
 
-- `voicewake.changed` payload `{ triggers: string[] }`
+- `voicewake.changed` 载荷 `{ triggers: string[] }`
 
-Who receives it:
+接收者：
 
-- All WebSocket clients (macOS app, WebChat, etc.)
-- All connected nodes (iOS/Android), and also on node connect as an initial “current state” push.
+- 所有 WebSocket 客户端（macOS 应用、WebChat 等）
+- 所有已连接的节点（iOS/Android），以及节点连接时作为初始"当前状态"推送。
 
-## Client behavior
+## 客户端行为
 
-### macOS app
+### macOS 应用
 
-- Uses the global list to gate `VoiceWakeRuntime` triggers.
-- Editing “Trigger words” in Voice Wake settings calls `voicewake.set` and then relies on the broadcast to keep other clients in sync.
+- 使用全局列表来控制 `VoiceWakeRuntime` 触发器。
+- 在语音唤醒设置中编辑"触发词"会调用 `voicewake.set`，然后依赖广播保持其他客户端同步。
 
-### iOS node
+### iOS 节点
 
-- Uses the global list for `VoiceWakeManager` trigger detection.
-- Editing Wake Words in Settings calls `voicewake.set` (over the Gateway WS) and also keeps local wake-word detection responsive.
+- 使用全局列表进行 `VoiceWakeManager` 触发检测。
+- 在设置中编辑唤醒词会调用 `voicewake.set`（通过 Gateway 网关 WS），同时保持本地唤醒词检测的响应性。
 
-### Android node
+### Android 节点
 
-- Voice Wake is currently disabled in Android runtime/Settings.
-- Android voice uses manual mic capture in the Voice tab instead of wake-word triggers.
+- 在设置中暴露唤醒词编辑器。
+- 通过 Gateway 网关 WS 调用 `voicewake.set`，使编辑在所有地方同步。
