@@ -549,7 +549,7 @@ async function prepareAgentCommandExecution(
     const knownAgents = listAgentIds(cfg);
     if (!knownAgents.includes(agentIdOverride)) {
       throw new Error(
-        t("commands.agent.unknownAgentId", { agentId: agentIdOverrideRaw }),
+        t("commands.agent.unknownAgentId", { agentId: agentIdOverrideRaw ?? "" }),
       );
     }
   }
@@ -557,7 +557,7 @@ async function prepareAgentCommandExecution(
     const sessionAgentId = resolveAgentIdFromSessionKey(opts.sessionKey);
     if (sessionAgentId !== agentIdOverride) {
       throw new Error(
-        t("commands.agent.agentMismatch", { agentId: agentIdOverrideRaw, sessionAgent: sessionAgentId }),
+        t("commands.agent.agentMismatch", { agentId: agentIdOverrideRaw ?? "", sessionAgent: sessionAgentId }),
       );
     }
   }

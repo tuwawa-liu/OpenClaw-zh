@@ -49,7 +49,7 @@ export function normalizePollInput(
     throw new Error(t("polls.minTwoOptions"));
   }
   if (options.maxOptions !== undefined && cleaned.length > options.maxOptions) {
-    throw new Error(t("polls.maxOptions", { maxOptions: options.maxOptions }));
+    throw new Error(t("polls.maxOptions", { maxOptions: String(options.maxOptions) }));
   }
   const maxSelectionsRaw = input.maxSelections;
   const maxSelections =

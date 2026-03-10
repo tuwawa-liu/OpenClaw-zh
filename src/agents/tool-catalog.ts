@@ -1,4 +1,4 @@
-export type ToolProfileId = "最小" | "编码" | "消息" | "完整";
+export type ToolProfileId = "minimal" | "coding" | "messaging" | "full";
 
 type ToolProfilePolicy = {
   allow?: string[];
