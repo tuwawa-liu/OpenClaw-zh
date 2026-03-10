@@ -10,6 +10,7 @@ export type DebugProps = {
   models: unknown[];
   heartbeat: unknown;
   eventLog: EventLogEntry[];
+  methods: string[];
   callMethod: string;
   callParams: string;
   callResult: string | null;
@@ -72,14 +73,22 @@ export function renderDebug(props: DebugProps) {
       <div class="card">
         <div class="card-title">${t("debug.manualRpc")}</div>
         <div class="card-sub">${t("debug.manualRpcSubtitle")}</div>
-        <div class="form-grid" style="margin-top: 16px;">
+        <div class="stack" style="margin-top: 16px;">
           <label class="field">
             <span>${t("debug.method")}</span>
-            <input
+            <select
               .value=${props.callMethod}
-              @input=${(e: Event) => props.onCallMethodChange((e.target as HTMLInputElement).value)}
-              placeholder="system-presence"
-            />
+              @change=${(e: Event) => props.onCallMethodChange((e.target as HTMLSelectElement).value)}
+            >
+              ${
+                !props.callMethod
+                  ? html`
+                      <option value="" disabled>Select a method…</option>
+                    `
+                  : nothing
+              }
+              ${props.methods.map((m) => html`<option value=${m}>${m}</option>`)}
+            </select>
           </label>
           <label class="field">
             <span>${t("debug.paramsJson")}</span>

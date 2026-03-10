@@ -118,7 +118,14 @@ Mattermost 自动响应私信。频道行为由 `chatmode` 控制：
 - `user:<id>` 用于私信
 - `@username` 用于私信（通过 Mattermost API 解析）
 
-裸 ID 被视为频道。
+裸不透明 ID（如 `64ifufp...`）在 Mattermost 中是 **有歧义的**（用户 ID 还是频道 ID）。
+
+OpenClaw 按 **用户优先** 解析：
+
+- 如果该 ID 作为用户存在（`GET /api/v4/users/<id>` 成功），OpenClaw 会通过 `/api/v4/channels/direct` 解析直连频道来发送 **私信**。
+- 否则该 ID 被视为 **频道 ID**。
+
+如果需要确定性行为，请始终使用显式前缀（`user:<id>` / `channel:<id>`）。
 
 ## 多账户
 
@@ -129,8 +136,16 @@ Mattermost 支持在 `channels.mattermost.accounts` 下配置多个账户：
   channels: {
     mattermost: {
       accounts: {
-        default: { name: "Primary", botToken: "mm-token", baseUrl: "https://chat.example.com" },
-        alerts: { name: "Alerts", botToken: "mm-token-2", baseUrl: "https://alerts.example.com" },
+        default: {
+          name: "Primary",
+          botToken: "mm-token",
+          baseUrl: "https://chat.example.com",
+        },
+        alerts: {
+          name: "Alerts",
+          botToken: "mm-token-2",
+          baseUrl: "https://alerts.example.com",
+        },
       },
     },
   },
