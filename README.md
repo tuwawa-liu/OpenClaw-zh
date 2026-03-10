@@ -69,6 +69,24 @@ pnpm openclaw onboard --install-daemon
 
 向导会安装 Gateway 守护进程（launchd/systemd 用户服务），使其持续运行。
 
+## 卸载
+
+如果需要彻底卸载（例如旧版本冲突），运行项目自带的卸载脚本：
+
+```bash
+bash uninstall-openclaw.sh
+```
+
+脚本会自动完成以下清理：
+
+1. **停止并移除 launchd 守护进程**（`ai.openclaw.gateway`）
+2. **终止残留的 openclaw 进程**
+3. **卸载所有 Node 版本下的全局 npm 包**
+4. **删除配置和数据目录**（`~/.openclaw`，配置文件会自动备份到 `~/openclaw.json.backup.*`）
+5. **清除 npx 缓存**中的 openclaw 相关内容
+
+卸载后如需重新安装，回到源码目录执行 `pnpm openclaw onboard --install-daemon` 即可。
+
 ## 快速开始（精简版）
 
 运行环境：**Node ≥22**。
