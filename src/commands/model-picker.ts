@@ -1,7 +1,7 @@
 import { t } from "../i18n/index.js";
 import { ensureAuthProfileStore, listProfilesForProvider } from "../agents/auth-profiles.js";
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../agents/defaults.js";
-import { getCustomProviderApiKey, resolveEnvApiKey } from "../agents/model-auth.js";
+import { hasUsableCustomProviderApiKey, resolveEnvApiKey } from "../agents/model-auth.js";
 import { loadModelCatalog } from "../agents/model-catalog.js";
 import {
   buildAllowedModelSet,
@@ -53,7 +53,7 @@ function hasAuthForProvider(
   if (resolveEnvApiKey(provider)) {
     return true;
   }
-  if (getCustomProviderApiKey(cfg, provider)) {
+  if (hasUsableCustomProviderApiKey(cfg, provider)) {
     return true;
   }
   return false;

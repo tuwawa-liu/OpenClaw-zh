@@ -1,4 +1,4 @@
-import type { OAuthCredentials } from "@mariozechner/pi-ai/oauth";
+import type { OAuthCredentials } from "@mariozechner/pi-ai";
 import { loginOpenAICodex } from "@mariozechner/pi-ai/oauth";
 import { t } from "../i18n/index.js";
 import type { RuntimeEnv } from "../runtime.js";

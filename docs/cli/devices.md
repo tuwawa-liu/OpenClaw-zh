@@ -1,44 +1,59 @@
 ---
+summary: "CLI reference for `openclaw devices` (device pairing + token rotation/revocation)"
 read_when:
-  - 你正在批准设备配对请求
-  - 你需要轮换或撤销设备 token
-summary: "`openclaw devices` 的 CLI 参考（设备配对 + token 轮换/撤销）"
-title: devices
-x-i18n:
-  generated_at: "2026-02-03T07:44:52Z"
-  model: claude-opus-4-5
-  provider: pi
-  source_hash: 52f903817d2886c1dc29b85d30168d1edff7944bd120a1e139159c9d99a1f517
-  source_path: cli/devices.md
-  workflow: 15
+  - You are approving device pairing requests
+  - You need to rotate or revoke device tokens
+title: "devices"
 ---
 
 # `openclaw devices`
 
-管理设备配对请求和设备范围的 token。
+Manage device pairing requests and device-scoped tokens.
 
-## 命令
+## Commands
 
 ### `openclaw devices list`
 
-列出待处理的配对请求和已配对的设备。
+List pending pairing requests and paired devices.
 
 ```
 openclaw devices list
 openclaw devices list --json
 ```
 
-### `openclaw devices approve <requestId>`
+### `openclaw devices remove <deviceId>`
 
-批准待处理的设备配对请求。
+Remove one paired device entry.
 
 ```
+openclaw devices remove <deviceId>
+openclaw devices remove <deviceId> --json
+```
+
+### `openclaw devices clear --yes [--pending]`
+
+Clear paired devices in bulk.
+
+```
+openclaw devices clear --yes
+openclaw devices clear --yes --pending
+openclaw devices clear --yes --pending --json
+```
+
+### `openclaw devices approve [requestId] [--latest]`
+
+Approve a pending device pairing request. If `requestId` is omitted, OpenClaw
+automatically approves the most recent pending request.
+
+```
+openclaw devices approve
 openclaw devices approve <requestId>
+openclaw devices approve --latest
 ```
 
 ### `openclaw devices reject <requestId>`
 
-拒绝待处理的设备配对请求。
+Reject a pending device pairing request.
 
 ```
 openclaw devices reject <requestId>
@@ -46,7 +61,7 @@ openclaw devices reject <requestId>
 
 ### `openclaw devices rotate --device <id> --role <role> [--scope <scope...>]`
 
-为特定角色轮换设备 token（可选更新 scope）。
+Rotate a device token for a specific role (optionally updating scopes).
 
 ```
 openclaw devices rotate --device <deviceId> --role operator --scope operator.read --scope operator.write
@@ -54,21 +69,63 @@ openclaw devices rotate --device <deviceId> --role operator --scope operator.rea
 
 ### `openclaw devices revoke --device <id> --role <role>`
 
-为特定角色撤销设备 token。
+Revoke a device token for a specific role.
 
 ```
 openclaw devices revoke --device <deviceId> --role node
 ```
 
-## 通用选项
+## Common options
 
-- `--url <url>`：Gateway 网关 WebSocket URL（配置后默认使用 `gateway.remote.url`）。
-- `--token <token>`：Gateway 网关 token（如需要）。
-- `--password <password>`：Gateway 网关密码（密码认证）。
-- `--timeout <ms>`：RPC 超时。
-- `--json`：JSON 输出（推荐用于脚本）。
+- `--url <url>`: Gateway WebSocket URL (defaults to `gateway.remote.url` when configured).
+- `--token <token>`: Gateway token (if required).
+- `--password <password>`: Gateway password (password auth).
+- `--timeout <ms>`: RPC timeout.
+- `--json`: JSON output (recommended for scripting).
 
-## 注意事项
+Note: when you set `--url`, the CLI does not fall back to config or environment credentials.
+Pass `--token` or `--password` explicitly. Missing explicit credentials is an error.
 
-- Token 轮换会返回新 token（敏感信息）。请像对待密钥一样对待它。
-- 这些命令需要 `operator.pairing`（或 `operator.admin`）scope。
+## Notes
+
+- Token rotation returns a new token (sensitive). Treat it like a secret.
+- These commands require `operator.pairing` (or `operator.admin`) scope.
+- `devices clear` is intentionally gated by `--yes`.
+- If pairing scope is unavailable on local loopback (and no explicit `--url` is passed), list/approve can use a local pairing fallback.
+
+## Token drift recovery checklist
+
+Use this when Control UI or other clients keep failing with `AUTH_TOKEN_MISMATCH` or `AUTH_DEVICE_TOKEN_MISMATCH`.
+
+1. Confirm current gateway token source:
+
+```bash
+openclaw config get gateway.auth.token
+```
+
+2. List paired devices and identify the affected device id:
+
+```bash
+openclaw devices list
+```
+
+3. Rotate operator token for the affected device:
+
+```bash
+openclaw devices rotate --device <deviceId> --role operator
+```
+
+4. If rotation is not enough, remove stale pairing and approve again:
+
+```bash
+openclaw devices remove <deviceId>
+openclaw devices list
+openclaw devices approve <requestId>
+```
+
+5. Retry client connection with the current shared token/password.
+
+Related:
+
+- [Dashboard auth troubleshooting](/web/dashboard#if-you-see-unauthorized-1008)
+- [Gateway troubleshooting](/gateway/troubleshooting#dashboard-control-ui-connectivity)

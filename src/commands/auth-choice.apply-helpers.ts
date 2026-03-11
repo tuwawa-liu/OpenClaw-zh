@@ -9,6 +9,8 @@ import {
 import { encodeJsonPointerToken } from "../secrets/json-pointer.js";
 import { PROVIDER_ENV_VARS } from "../secrets/provider-env-vars.js";
 import {
+  formatExecSecretRefIdValidationMessage,
+  isValidExecSecretRefId,
   isValidFileSecretRefId,
   resolveDefaultSecretProviderAlias,
 } from "../secrets/ref-contract.js";
@@ -238,6 +240,9 @@ export async function promptSecretRefForOnboarding(params: {
           candidate !== "value"
         ) {
           return t("commands.authHelpers.secretIdSingleValue");
+        }
+        if (providerEntry.source === "exec" && !isValidExecSecretRefId(candidate)) {
+          return formatExecSecretRefIdValidationMessage();
         }
         return undefined;
       },
