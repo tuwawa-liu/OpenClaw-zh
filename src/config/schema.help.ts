@@ -950,7 +950,7 @@ export const FIELD_HELP: Record<string, string> = {
   "plugins.entries.*.env":
     "仅为该插件运行时上下文注入的逐插件环境变量映射。使用此项将提供商凭据范围限定到一个插件而非共享全局进程环境。",
   "plugins.entries.*.config":
-    "由该插件自己的架构和验证规则解释的插件定义配置负载。仅使用插件文档中记录的字段以防止被忽略或无效的设置。"'s own schema and validation rules. Use only documented fields from the plugin to prevent ignored or invalid settings.",
+    "由该插件自己的架构和验证规则解释的插件定义配置负载。仅使用插件文档中记录的字段以防止被忽略或无效的设置。",
   "plugins.installs":
     "CLI 管理的安装元数据（由 `openclaw plugins update` 用于定位安装源）。",
   "plugins.installs.*.source": '安装源（"npm"、"archive" 或 "path"）。',
@@ -1463,17 +1463,17 @@ export const FIELD_HELP: Record<string, string> = {
   "messages.inbound.debounceMs":
     "用于批量处理同一发送者快速入站消息的防抖窗口（毫秒，0 禁用）。",
   "channels.telegram.dmPolicy":
-    '私信访问控制（推荐 "pairing"）。"open" 需要 channels.telegram.allowFrom=["*"]。',,
+    '私信访问控制（推荐 "pairing"）。"open" 需要 channels.telegram.allowFrom=["*"]。',
   "channels.telegram.streaming":
-    '统一的 Telegram 流式预览模式："off" | "partial" | "block" | "progress"（默认："partial"）。"progress" 在 Telegram 上映射为 "partial"。旧版布尔值/streamMode 键会自动映射。',,
+    '统一的 Telegram 流式预览模式："off" | "partial" | "block" | "progress"（默认："partial"）。"progress" 在 Telegram 上映射为 "partial"。旧版布尔值/streamMode 键会自动映射。',
   "channels.discord.streaming":
-    '统一的 Discord 流式预览模式："off" | "partial" | "block" | "progress"。"progress" 在 Discord 上映射为 "partial"。旧版布尔值/streamMode 键会自动映射。',,
+    '统一的 Discord 流式预览模式："off" | "partial" | "block" | "progress"。"progress" 在 Discord 上映射为 "partial"。旧版布尔值/streamMode 键会自动映射。',
   "channels.discord.streamMode":
     "旧版 Discord 预览模式别名（off | partial | block）；自动迁移到 channels.discord.streaming。",
   "channels.discord.draftChunk.minChars":
-    '当 channels.discord.streaming="block" 时，发出 Discord 流式预览更新前的最小字符数（默认：200）。',,
+    '当 channels.discord.streaming="block" 时，发出 Discord 流式预览更新前的最小字符数（默认：200）。',
   "channels.discord.draftChunk.maxChars":
-    '当 channels.discord.streaming="block" 时，Discord 流式预览块的目标最大大小（默认：800；限制为 channels.discord.textChunkLimit）。',,
+    '当 channels.discord.streaming="block" 时，Discord 流式预览块的目标最大大小（默认：800；限制为 channels.discord.textChunkLimit）。',
   "channels.discord.draftChunk.breakPreference":
     "Discord 草稿块的首选断点（paragraph | newline | sentence）。默认：paragraph。",
   "channels.telegram.retry.attempts":
@@ -1502,15 +1502,15 @@ export const FIELD_HELP: Record<string, string> = {
   "channels.whatsapp.debounceMs":
     "用于批量处理同一发送者快速连续消息的防抖窗口（毫秒，0 禁用）。",
   "channels.signal.dmPolicy":
-    '私信访问控制（推荐 "pairing"）。"open" 需要 channels.signal.allowFrom=["*"]。',,
+    '私信访问控制（推荐 "pairing"）。"open" 需要 channels.signal.allowFrom=["*"]。',
   "channels.imessage.dmPolicy":
-    '私信访问控制（推荐 "pairing"）。"open" 需要 channels.imessage.allowFrom=["*"]。',,
+    '私信访问控制（推荐 "pairing"）。"open" 需要 channels.imessage.allowFrom=["*"]。',
   "channels.bluebubbles.dmPolicy":
-    '私信访问控制（推荐 "pairing"）。"open" 需要 channels.bluebubbles.allowFrom=["*"]。',,
+    '私信访问控制（推荐 "pairing"）。"open" 需要 channels.bluebubbles.allowFrom=["*"]。',
   "channels.discord.dmPolicy":
-    '私信访问控制（推荐 "pairing"）。"open" 需要 channels.discord.allowFrom=["*"]。',,
+    '私信访问控制（推荐 "pairing"）。"open" 需要 channels.discord.allowFrom=["*"]。',
   "channels.discord.dm.policy":
-    '私信访问控制（推荐 "pairing"）。"open" 需要 channels.discord.allowFrom=["*"]（旧版：channels.discord.dm.allowFrom）。',,
+    '私信访问控制（推荐 "pairing"）。"open" 需要 channels.discord.allowFrom=["*"]（旧版：channels.discord.dm.allowFrom）。',
   "channels.discord.retry.attempts":
     "Discord 出站 API 调用的最大重试次数（默认：3）。",
   "channels.discord.retry.minDelayMs": "Discord 出站调用的最小重试延迟（毫秒）。",
