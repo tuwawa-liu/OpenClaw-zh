@@ -123,7 +123,7 @@ openclaw onboard --non-interactive \
       --gateway-bind loopback
     ```
   </Accordion>
-  <Accordion title="OpenCode Zen 示例">
+  <Accordion title="OpenCode 示例">
     ```bash
     openclaw onboard --non-interactive \
       --mode local \
@@ -132,6 +132,7 @@ openclaw onboard --non-interactive \
       --gateway-port 18789 \
       --gateway-bind loopback
     ```
+    换成 `--auth-choice opencode-go --opencode-go-api-key "$OPENCODE_API_KEY"` 可使用 Go 目录。
   </Accordion>
   <Accordion title="自定义提供商示例">
     ```bash

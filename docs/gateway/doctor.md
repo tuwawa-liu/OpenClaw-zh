@@ -69,8 +69,9 @@ cat ~/.openclaw/openclaw.json
 - 健康检查 + 重启提示。
 - Skills 状态摘要（符合条件/缺失/被阻止）。
 - 遗留值的配置规范化。
-- OpenCode Zen 提供商覆盖警告（`models.providers.opencode`）。
+- OpenCode 提供商覆盖警告（`models.providers.opencode` / `models.providers.opencode-go`）。
 - 遗留磁盘状态迁移（会话/智能体目录/WhatsApp 认证）。
+- 遗留 cron 存储迁移（`jobId`、`schedule.cron`、顶层 delivery/payload 字段、payload `provider`、简单 `notify: true` webhook 回退任务）。
 - 状态完整性和权限检查（会话、记录、状态目录）。
 - 本地运行时的配置文件权限检查（chmod 600）。
 - 模型认证健康：检查 OAuth 过期，可刷新即将过期的 token，并报告认证配置文件冷却/禁用状态。
@@ -83,7 +84,7 @@ cat ~/.openclaw/openclaw.json
 - Gateway 网关运行时最佳实践检查（Node vs Bun，版本管理器路径）。
 - Gateway 网关端口冲突诊断（默认 `18789`）。
 - 开放私信策略的安全警告。
-- 未设置 `gateway.auth.token` 时的 Gateway 网关认证警告（本地模式；提供 token 生成）。
+- 未设置 `gateway.auth.token` 时的 Gateway 网关认证检查（本地模式；当没有 token 源时提供 token 生成；不会覆盙 token SecretRef 配置）。
 - Linux 上的 systemd linger 检查。
 - 源码安装检查（pnpm workspace 不匹配、缺失 UI 资产、缺失 tsx 二进制文件）。
 - 写入更新后的配置 + 向导元数据。
@@ -130,6 +131,8 @@ Gateway 网关在检测到遗留配置格式时也会在启动时自动运行 do
 ### 2b）OpenCode Zen 提供商覆盖
 
 如果你手动添加了 `models.providers.opencode`（或 `opencode-zen`），它会覆盖 `@mariozechner/pi-ai` 中内置的 OpenCode Zen 目录。这可能会强制将每个模型放到单个 API 上或将成本归零。Doctor 会发出警告，以便你可以移除覆盖并恢复每模型 API 路由 + 成本。
+
+如果你手动添加了 `models.providers.opencode`、`opencode-zen` 或 `opencode-go`，它会覆盖 `@mariozechner/pi-ai` 中内置的 OpenCode 目录。这可能会强制将模型放到错误的 API 上或将成本归零。Doctor 会发出警告，以便你可以移除覆盖并恢复每模型 API 路由 + 成本。
 
 ### 3）遗留状态迁移（磁盘布局）
 

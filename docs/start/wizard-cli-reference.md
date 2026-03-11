@@ -155,8 +155,8 @@ sidebarTitle: "CLI 参考"
   <Accordion title="xAI (Grok) API 密钥">
     提示输入 `XAI_API_KEY` 并配置 xAI 作为模型提供商。
   </Accordion>
-  <Accordion title="OpenCode Zen">
-    提示输入 `OPENCODE_API_KEY`（或 `OPENCODE_ZEN_API_KEY`）。
+  <Accordion title="OpenCode">
+    提示输入 `OPENCODE_API_KEY`（或 `OPENCODE_ZEN_API_KEY`）并让你选择 Zen 或 Go 目录。
     设置 URL：[opencode.ai/auth](https://opencode.ai/auth)。
   </Accordion>
   <Accordion title="API 密钥（通用）">

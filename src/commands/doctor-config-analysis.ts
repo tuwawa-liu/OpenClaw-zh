@@ -106,18 +106,22 @@ export function noteOpencodeProviderOverrides(cfg: OpenClawConfig): void {
   if (providers["opencode-zen"]) {
     overrides.push("opencode-zen");
   }
+  if (providers["opencode-go"]) {
+    overrides.push("opencode-go");
+  }
   if (overrides.length === 0) {
     return;
   }
 
   const lines = overrides.flatMap((id) => {
+    const providerLabel = id === "opencode-go" ? "OpenCode Go" : "OpenCode Zen";
     const providerEntry = providers[id];
     const api =
       isRecord(providerEntry) && typeof providerEntry.api === "string"
         ? providerEntry.api
         : undefined;
     return [
-      `- ${t("doctorConfigAnalysis.providerOverride", { id })}`,
+`- ${t("doctorConfigAnalysis.providerOverride", { id })}`,
       api ? `- models.providers.${id}.api=${api}` : null,
     ].filter((line): line is string => Boolean(line));
   });
@@ -125,7 +129,7 @@ export function noteOpencodeProviderOverrides(cfg: OpenClawConfig): void {
   lines.push(
     `- ${t("doctorConfigAnalysis.removeEntries")}`,
   );
-  note(lines.join("\n"), t("doctorConfigAnalysis.openCodeZen"));
+note(lines.join("\n"), t("doctorConfigAnalysis.openCode"));
 }
 
 export function noteIncludeConfinementWarning(snapshot: {

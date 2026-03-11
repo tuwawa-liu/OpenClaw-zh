@@ -1,28 +1,34 @@
 ---
+summary: "在 OpenClaw 中使用 OpenCode Zen 和 Go 目录"
 read_when:
-  - 你想通过 OpenCode Zen 访问模型
-  - 你想要一个适合编程的精选模型列表
-summary: 在 OpenClaw 中使用 OpenCode Zen（精选模型）
-title: OpenCode Zen
-x-i18n:
-  generated_at: "2026-02-01T21:35:16Z"
-  model: claude-opus-4-5
-  provider: pi
-  source_hash: 1390f9803a3cac48cb40694dd69267e3ddccd203a4ce8babda3198b926b5f6a3
-  source_path: providers/opencode.md
-  workflow: 15
+  - 你想通过 OpenCode 托管访问模型
+  - 你想在 Zen 和 Go 目录之间选择
+title: "OpenCode"
 ---
 
-# OpenCode Zen
+# OpenCode
 
-OpenCode Zen 是由 OpenCode 团队推荐的一组**精选模型列表**，适用于编程智能体。它是一个可选的托管模型访问路径，使用 API 密钥和 `opencode` 提供商。Zen 目前处于测试阶段。
+OpenCode 在 OpenClaw 中提供两个托管目录：
+
+- `opencode/...` 用于 **Zen** 目录
+- `opencode-go/...` 用于 **Go** 目录
+
+两个目录使用相同的 OpenCode API 密钥。OpenClaw 保持运行时提供商 ID 分离以确保上游按模型路由正确，但引导和文档将它们视为一个 OpenCode 设置。
 
 ## CLI 设置
 
+### Zen 目录
+
 ```bash
 openclaw onboard --auth-choice opencode-zen
-# 或非交互式
 openclaw onboard --opencode-zen-api-key "$OPENCODE_API_KEY"
+```
+
+### Go 目录
+
+```bash
+openclaw onboard --auth-choice opencode-go
+openclaw onboard --opencode-go-api-key "$OPENCODE_API_KEY"
 ```
 
 ## 配置片段
@@ -34,8 +40,23 @@ openclaw onboard --opencode-zen-api-key "$OPENCODE_API_KEY"
 }
 ```
 
+## 目录
+
+### Zen
+
+- 运行时提供商：`opencode`
+- 示例模型：`opencode/claude-opus-4-6`、`opencode/gpt-5.2`、`opencode/gemini-3-pro`
+- 当你需要精选的 OpenCode 多模型代理时选择
+
+### Go
+
+- 运行时提供商：`opencode-go`
+- 示例模型：`opencode-go/kimi-k2.5`、`opencode-go/glm-5`、`opencode-go/minimax-m2.5`
+- 当你需要 OpenCode 托管的 Kimi/GLM/MiniMax 系列时选择
+
 ## 注意事项
 
 - 也支持 `OPENCODE_ZEN_API_KEY`。
-- 你需要登录 Zen，添加账单信息，然后复制你的 API 密钥。
-- OpenCode Zen 按请求计费；详情请查看 OpenCode 控制台。
+- 在引导过程中输入一个 OpenCode 密钥会同时为两个运行时提供商存储凭据。
+- 你需要登录 OpenCode，添加账单信息，然后复制你的 API 密钥。
+- 账单和目录可用性在 OpenCode 控制面板中管理。

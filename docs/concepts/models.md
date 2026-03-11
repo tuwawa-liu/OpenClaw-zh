@@ -57,7 +57,7 @@ openclaw onboard
 
 模型引用会规范化为小写。提供商别名如 `z.ai/*` 会规范化为 `zai/*`。
 
-提供商配置示例（包括 OpenCode Zen）在 [/gateway/configuration](/gateway/configuration#opencode-zen-multi-model-proxy)。
+提供商配置示例（包括 OpenCode）在 [/gateway/configuration](/gateway/configuration#opencode)。
 
 ## "Model is not allowed"（以及为什么回复停止）
 

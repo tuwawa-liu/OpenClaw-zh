@@ -13,6 +13,8 @@ Docs: https://docs.openclaw.ai
 - iOS/Home canvas: add a bundled welcome screen with a live agent overview that refreshes on connect, reconnect, and foreground return, and move the compact connection pill off the top-left canvas overlay. (#42456) Thanks @ngutman.
 - iOS/Home canvas: replace floating controls with a docked toolbar, make the bundled home scaffold adapt to smaller phones, and open chat in the resolved main session instead of a synthetic `ios` session. (#42456) Thanks @ngutman.
 - Discord/auto threads: add `autoArchiveDuration` channel config for auto-created threads so Discord thread archiving can stay at 1 hour, 1 day, 3 days, or 1 week instead of always using the 1-hour default. (#35065) Thanks @davidguttman.
+- OpenCode/引导：新增 OpenCode Go 提供商，在向导/文档中将 Zen 和 Go 视为一个 OpenCode 设置，同时保持运行时提供商分离，为两个配置文件存储一个共享的 OpenCode 密钥，并停止覆盖内置的 `opencode-go` 目录路由。(#42313) 感谢 @ImLukeF 和 @vincentkoc。
+- macOS/聊天 UI：新增聊天模型选择器，跨重启保持显式思考级别选择，并加强共享聊天编辑器的提供商感知会话模型同步。(#42314) 感谢 @ImLukeF。
 
 ### Breaking
 
@@ -89,6 +91,7 @@ Docs: https://docs.openclaw.ai
 - Commands/config writes: enforce `configWrites` against both the originating account and the targeted account scope for `/config` and config-backed `/allowlist` edits, blocking sibling-account mutations while preserving gateway `operator.admin` flows. Thanks @tdjackey for reporting.
 - Security/system.run: fail closed for approval-backed interpreter/runtime commands when OpenClaw cannot bind exactly one concrete local file operand, while extending best-effort direct-file binding to additional runtime forms. Thanks @tdjackey for reporting.
 - Gateway/session reset auth: split conversation `/new` and `/reset` handling away from the admin-only `sessions.reset` control-plane RPC so write-scoped gateway callers can no longer reach the privileged reset path through `agent`. Thanks @tdjackey for reporting.
+- Telegram/最终预览投递后续：仅在预览已可见时保留缺少 `message_id` 的模糊最终消息，而首次预览/无 ID 情况仍回退，确保 Telegram 用户不会丢失最终回复。(#41932) 感谢 @hougangdev。
 
 ## 2026.3.8
 

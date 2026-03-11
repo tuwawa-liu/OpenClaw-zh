@@ -35,6 +35,8 @@ import {
   applyMoonshotConfigCn,
   applyMoonshotProviderConfig,
   applyMoonshotProviderConfigCn,
+  applyOpencodeGoConfig,
+  applyOpencodeGoProviderConfig,
   applyOpencodeZenConfig,
   applyOpencodeZenProviderConfig,
   applySyntheticConfig,
@@ -69,6 +71,7 @@ import {
   setKimiCodingApiKey,
   setMistralApiKey,
   setMoonshotApiKey,
+  setOpencodeGoApiKey,
   setOpencodeZenApiKey,
   setSyntheticApiKey,
   setTogetherApiKey,
@@ -85,6 +88,7 @@ import {
   setModelStudioApiKey,
 } from "./onboard-auth.js";
 import type { AuthChoice, SecretInputMode } from "./onboard-types.js";
+import { OPENCODE_GO_DEFAULT_MODEL_REF } from "./opencode-go-model-default.js";
 import { OPENCODE_ZEN_DEFAULT_MODEL } from "./opencode-zen-model-default.js";
 import { detectZaiEndpoint } from "./zai-endpoint-detect.js";
 
@@ -105,6 +109,7 @@ const API_KEY_TOKEN_PROVIDER_AUTH_CHOICE: Record<string, AuthChoice> = {
   huggingface: "huggingface-api-key",
   mistral: "mistral-api-key",
   opencode: "opencode-zen",
+  "opencode-go": "opencode-go",
   kilocode: "kilocode-api-key",
   qianfan: "qianfan-api-key",
 };
@@ -241,20 +246,40 @@ const SIMPLE_API_KEY_PROVIDER_FLOWS: Partial<Record<AuthChoice, SimpleApiKeyProv
   "opencode-zen": {
     provider: "opencode",
     profileId: "opencode:default",
-    expectedProviders: ["opencode"],
+    expectedProviders: ["opencode", "opencode-go"],
     envLabel: "OPENCODE_API_KEY",
-    promptMessage: "输入 OpenCode Zen API 密钥",
+promptMessage: "输入 OpenCode API 密钥",
     setCredential: setOpencodeZenApiKey,
     defaultModel: OPENCODE_ZEN_DEFAULT_MODEL,
     applyDefaultConfig: applyOpencodeZenConfig,
     applyProviderConfig: applyOpencodeZenProviderConfig,
     noteDefault: OPENCODE_ZEN_DEFAULT_MODEL,
     noteMessage: [
-      "OpenCode Zen 提供 Claude、GPT、Gemini 等更多模型的访问。",
+"OpenCode 的 Zen 和 Go 目录共用一个 API 密钥。",
+      "Zen 提供 Claude、GPT、Gemini 等更多模型的访问。",
       "在此获取 API 密钥：https://opencode.ai/auth",
-      "OpenCode Zen 按请求计费。请查看 OpenCode 控制台了解详情。",
+      "当您需要精选的多模型代理时，请选择 Zen 目录。",
     ].join("\n"),
-    noteTitle: "OpenCode Zen",
+    noteTitle: "OpenCode",
+  },
+  "opencode-go": {
+    provider: "opencode-go",
+    profileId: "opencode-go:default",
+    expectedProviders: ["opencode", "opencode-go"],
+    envLabel: "OPENCODE_API_KEY",
+    promptMessage: "输入 OpenCode API 密钥",
+    setCredential: setOpencodeGoApiKey,
+    defaultModel: OPENCODE_GO_DEFAULT_MODEL_REF,
+    applyDefaultConfig: applyOpencodeGoConfig,
+    applyProviderConfig: applyOpencodeGoProviderConfig,
+    noteDefault: OPENCODE_GO_DEFAULT_MODEL_REF,
+    noteMessage: [
+      "OpenCode 的 Zen 和 Go 目录共用一个 API 密钥。",
+      "Go 通过 Go 目录提供 Kimi、GLM 和 MiniMax 模型的访问。",
+      "在此获取 API 密钥：https://opencode.ai/auth",
+      "当您需要 OpenCode 托管的 Kimi/GLM/MiniMax 系列时，请选择 Go 目录。",
+    ].join("\n"),
+    noteTitle: "OpenCode",
   },
   "together-api-key": {
     provider: "together",

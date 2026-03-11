@@ -140,10 +140,10 @@ function getAuthChoiceGroupDefs(): {
       choices: ["ai-gateway-api-key"],
     },
     {
-      value: "opencode-zen",
-      label: "OpenCode Zen",
-      hint: t("authChoiceOptions.groupHintOpenCodeZen"),
-      choices: ["opencode-zen"],
+      value: "opencode",
+      label: "OpenCode",
+      hint: t("authChoiceOptions.groupHintOpenCode"),
+      choices: ["opencode-zen", "opencode-go"],
     },
     {
       value: "xiaomi",
@@ -203,6 +203,8 @@ function getProviderAuthChoiceOptionHints(): Partial<Record<AuthChoice, string>>
     "venice-api-key": t("authChoiceOptions.providerHintVenice"),
     "together-api-key": t("authChoiceOptions.providerHintTogether"),
     "huggingface-api-key": t("authChoiceOptions.providerHintHuggingface"),
+    "opencode-zen": t("authChoiceOptions.providerHintOpenCodeZen"),
+    "opencode-go": t("authChoiceOptions.providerHintOpenCodeGo"),
   };
 }
 
@@ -212,6 +214,8 @@ function getProviderAuthChoiceOptionLabels(): Partial<Record<AuthChoice, string>
     "moonshot-api-key-cn": t("authChoiceOptions.labelMoonshotApiCn"),
     "kimi-code-api-key": t("authChoiceOptions.labelKimiCode"),
     "cloudflare-ai-gateway-api-key": t("authChoiceOptions.labelCloudflare"),
+    "opencode-zen": t("authChoiceOptions.labelOpenCodeZen"),
+    "opencode-go": t("authChoiceOptions.labelOpenCodeGo"),
   };
 }
 
@@ -299,6 +303,11 @@ function getBaseAuthChoiceOptions(): ReadonlyArray<AuthChoiceOption> {
       value: "opencode-zen",
       label: t("authChoiceOptions.labelOpenCodeZen"),
       hint: t("authChoiceOptions.hintOpenCodeZen"),
+    },
+    {
+      value: "opencode-go",
+      label: t("authChoiceOptions.labelOpenCodeGo"),
+      hint: t("authChoiceOptions.hintOpenCodeGo"),
     },
     { value: "minimax-api", label: t("authChoiceOptions.labelMinimaxApi") },
     {
