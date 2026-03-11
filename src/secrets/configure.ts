@@ -127,12 +127,12 @@ function removeSecretProvider(config: OpenClawConfig, providerAlias: string): bo
 
 function providerHint(provider: SecretProviderConfig): string {
   if (provider.source === "env") {
-    return provider.allowlist?.length ? `env (${provider.allowlist.length} allowlisted)` : "env";
+    return provider.allowlist?.length ? `env（${provider.allowlist.length} 个已允许）` : "env";
   }
   if (provider.source === "file") {
-    return `file (${provider.mode ?? "json"})`;
+    return `file（${provider.mode ?? "json"}）`;
   }
-  return `exec (${provider.jsonOnly === false ? "json+text" : "json"})`;
+  return `exec（${provider.jsonOnly === false ? "json+text" : "json"}）`;
 }
 
 function toSourceChoices(config: OpenClawConfig): Array<{ value: SecretRefSource; label: string }> {
@@ -265,7 +265,7 @@ function resolveConfigureAgentId(config: OpenClawConfig, explicitAgentId?: strin
   }
   const known = [...knownAgentIds].toSorted().join(", ");
   throw new Error(
-    `Unknown agent id "${explicitAgentId}". Known agents: ${known || "none configured"}.`,
+    `未知代理 ID "${explicitAgentId}"。已知代理：${known || "未配置"}。`,
   );
 }
 

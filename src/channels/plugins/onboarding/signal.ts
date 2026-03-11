@@ -18,7 +18,7 @@ const MIN_E164_DIGITS = 5;
 const MAX_E164_DIGITS = 15;
 const DIGITS_ONLY = /^\d+$/;
 const INVALID_SIGNAL_ACCOUNT_ERROR =
-  "Invalid E.164 phone number (must start with + and country code, e.g. +15555550123)";
+  "无效的 E.164 电话号码（必须以 + 和国家代码开头，例如 +15555550123）";
 
 export function normalizeSignalAccountInput(value: string | null | undefined): string | null {
   const trimmed = value?.trim();
@@ -45,7 +45,7 @@ export function parseSignalAllowFromEntries(raw: string): { entries: string[]; e
     if (entry.toLowerCase().startsWith("uuid:")) {
       const id = entry.slice("uuid:".length).trim();
       if (!id) {
-        return { error: "Invalid uuid entry" };
+        return { error: "无效的 uuid 条目" };
       }
       return { value: `uuid:${id}` };
     }
@@ -54,7 +54,7 @@ export function parseSignalAllowFromEntries(raw: string): { entries: string[]; e
     }
     const normalized = normalizeSignalAccountInput(entry);
     if (!normalized) {
-      return { error: `Invalid entry: ${entry}` };
+      return { error: `无效条目：${entry}` };
     }
     return { value: normalized };
   });
@@ -71,16 +71,16 @@ async function promptSignalAllowFrom(params: {
     accountId: params.accountId,
     defaultAccountId: resolveDefaultSignalAccountId(params.cfg),
     prompter: params.prompter,
-    noteTitle: "Signal allowlist",
+    noteTitle: "Signal 白名单",
     noteLines: [
-      "Allowlist Signal DMs by sender id.",
-      "Examples:",
+      "通过发送者 ID 将 Signal 私信加入白名单。",
+      "示例：",
       "- +15555550123",
       "- uuid:123e4567-e89b-12d3-a456-426614174000",
-      "Multiple entries: comma-separated.",
-      `Docs: ${formatDocsLink("/signal", "signal")}`,
+      "多个条目：逗号分隔。",
+      `文档：${formatDocsLink("/signal", "signal")}`,
     ],
-    message: "Signal allowFrom (E.164 or uuid)",
+    message: "Signal allowFrom（E.164 或 uuid）",
     placeholder: "+15555550123, uuid:123e4567-e89b-12d3-a456-426614174000",
     parseEntries: parseSignalAllowFromEntries,
     getExistingAllowFrom: ({ cfg, accountId }) => {
@@ -117,10 +117,10 @@ export const signalOnboardingAdapter: ChannelOnboardingAdapter = {
       channel,
       configured,
       statusLines: [
-        `Signal: ${configured ? "configured" : "needs setup"}`,
-        `signal-cli: ${signalCliDetected ? "found" : "missing"} (${signalCliPath})`,
+        `Signal: ${configured ? "已配置" : "需要设置"}`,
+        `signal-cli: ${signalCliDetected ? "已找到" : "缺失"} (${signalCliPath})`,
       ],
-      selectionHint: signalCliDetected ? "signal-cli found" : "signal-cli missing",
+      selectionHint: signalCliDetected ? "已找到 signal-cli" : "缺失 signal-cli",
       quickstartScore: signalCliDetected ? 1 : 0,
     };
   },
@@ -154,8 +154,8 @@ export const signalOnboardingAdapter: ChannelOnboardingAdapter = {
     if (options?.allowSignalInstall) {
       const wantsInstall = await prompter.confirm({
         message: cliDetected
-          ? "signal-cli detected. Reinstall/update now?"
-          : "signal-cli not found. Install now?",
+          ? "检测到 signal-cli。现在重新安装/更新？"
+          : "未找到 signal-cli。现在安装？",
         initialValue: !cliDetected,
       });
       if (wantsInstall) {
@@ -164,19 +164,19 @@ export const signalOnboardingAdapter: ChannelOnboardingAdapter = {
           if (result.ok && result.cliPath) {
             cliDetected = true;
             resolvedCliPath = result.cliPath;
-            await prompter.note(`Installed signal-cli at ${result.cliPath}`, "Signal");
+            await prompter.note(`已安装 signal-cli 到 ${result.cliPath}`, "Signal");
           } else if (!result.ok) {
-            await prompter.note(result.error ?? "signal-cli install failed.", "Signal");
+            await prompter.note(result.error ?? "signal-cli 安装失败。", "Signal");
           }
         } catch (err) {
-          await prompter.note(`signal-cli install failed: ${String(err)}`, "Signal");
+          await prompter.note(`signal-cli 安装失败：${String(err)}`, "Signal");
         }
       }
     }
 
     if (!cliDetected) {
       await prompter.note(
-        "signal-cli not found. Install it, then rerun this step or set channels.signal.cliPath.",
+        "未找到 signal-cli。请安装后重新运行此步骤，或设置 channels.signal.cliPath。",
         "Signal",
       );
     }
@@ -186,14 +186,14 @@ export const signalOnboardingAdapter: ChannelOnboardingAdapter = {
       const normalizedExisting = normalizeSignalAccountInput(account);
       if (!normalizedExisting) {
         await prompter.note(
-          "Existing Signal account isn't a valid E.164 number. Please enter it again.",
+          "现有 Signal 账号不是有效的 E.164 号码。请重新输入。",
           "Signal",
         );
         account = "";
       } else {
         account = normalizedExisting;
         const keep = await prompter.confirm({
-          message: `Signal account set (${account}). Keep it?`,
+          message: `Signal 账号已设置 (${account})。保留它？`,
           initialValue: true,
         });
         if (!keep) {
@@ -205,7 +205,7 @@ export const signalOnboardingAdapter: ChannelOnboardingAdapter = {
     if (!account) {
       const rawAccount = String(
         await prompter.text({
-          message: "Signal bot number (E.164)",
+          message: "Signal 机器人号码（E.164）",
           validate: (value) =>
             normalizeSignalAccountInput(String(value ?? ""))
               ? undefined
@@ -229,12 +229,12 @@ export const signalOnboardingAdapter: ChannelOnboardingAdapter = {
 
     await prompter.note(
       [
-        'Link device with: signal-cli link -n "OpenClaw"',
-        "Scan QR in Signal → Linked Devices",
-        `Then run: ${formatCliCommand("openclaw gateway call channels.status --params '{\"probe\":true}'")}`,
-        `Docs: ${formatDocsLink("/signal", "signal")}`,
+        '关联设备：signal-cli link -n "OpenClaw"',
+        "在 Signal → 已关联设备中扫描二维码",
+        `然后运行：${formatCliCommand("openclaw gateway call channels.status --params '{\"probe\":true}'")}`,
+        `文档：${formatDocsLink("/signal", "signal")}`,
       ].join("\n"),
-      "Signal next steps",
+      "Signal 后续步骤",
     );
 
     return { cfg: next, accountId: signalAccountId };

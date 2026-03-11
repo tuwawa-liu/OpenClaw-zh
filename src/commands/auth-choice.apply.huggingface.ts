@@ -38,7 +38,7 @@ export async function applyAuthChoiceHuggingface(
     config: nextConfig,
     expectedProviders: ["huggingface"],
     provider: "huggingface",
-    envLabel: "Hugging Face token",
+    envLabel: "Hugging Face 令牌",
     promptMessage: t("commands.authHuggingface.enterApiKey"),
     normalize: normalizeApiKeyInput,
     validate: validateApiKeyInput,
@@ -63,8 +63,8 @@ export async function applyAuthChoiceHuggingface(
     const baseRef = `${modelRefPrefix}${m.id}`;
     const label = m.name ?? m.id;
     options.push({ value: baseRef, label });
-    options.push({ value: `${baseRef}:cheapest`, label: `${label} (cheapest)` });
-    options.push({ value: `${baseRef}:fastest`, label: `${label} (fastest)` });
+    options.push({ value: `${baseRef}:cheapest`, label: `${label}（最便宜）` });
+    options.push({ value: `${baseRef}:fastest`, label: `${label}（最快）` });
   }
   const defaultRef = HUGGINGFACE_DEFAULT_MODEL_REF;
   options.sort((a, b) => {

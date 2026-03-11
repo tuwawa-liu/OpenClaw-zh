@@ -25,7 +25,7 @@ type SearchProviderEntry = {
 export const SEARCH_PROVIDER_OPTIONS: readonly SearchProviderEntry[] = [
   {
     value: "brave",
-    label: "Brave Search",
+    label: "Brave 搜索",
     hint: t("onboardSearch.braveHint"),
     envKeys: ["BRAVE_API_KEY"],
     placeholder: "BSA...",
@@ -33,7 +33,7 @@ export const SEARCH_PROVIDER_OPTIONS: readonly SearchProviderEntry[] = [
   },
   {
     value: "gemini",
-    label: "Gemini (Google Search)",
+    label: "Gemini（Google 搜索）",
     hint: t("onboardSearch.geminiHint"),
     envKeys: ["GEMINI_API_KEY"],
     placeholder: "AIza...",
@@ -57,7 +57,7 @@ export const SEARCH_PROVIDER_OPTIONS: readonly SearchProviderEntry[] = [
   },
   {
     value: "perplexity",
-    label: "Perplexity Search",
+    label: "Perplexity 搜索",
     hint: t("onboardSearch.perplexityHint"),
     envKeys: ["PERPLEXITY_API_KEY"],
     placeholder: "pplx-...",
@@ -276,11 +276,11 @@ export async function setupSearch(
 
   const keyInput = await prompter.text({
     message: keyConfigured
-      ? `${entry.label} API key (leave blank to keep current)`
+      ? `${entry.label} API 密钥（留空以保留当前值）`
       : envAvailable
-        ? `${entry.label} API key (leave blank to use env var)`
-        : `${entry.label} API key`,
-    placeholder: keyConfigured ? "Leave blank to keep current" : entry.placeholder,
+        ? `${entry.label} API 密钥（留空以使用环境变量）`
+        : `${entry.label} API 密钥`,
+    placeholder: keyConfigured ? "留空以保留当前值" : entry.placeholder,
   });
 
   const key = keyInput?.trim() ?? "";

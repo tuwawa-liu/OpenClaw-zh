@@ -189,7 +189,7 @@ function getAuthChoiceGroupDefs(): {
     },
     {
       value: "custom",
-      label: "Custom Provider",
+      label: "自定义提供商",
       hint: t("authChoiceOptions.groupHintCustom"),
       choices: ["custom-api-key"],
     },

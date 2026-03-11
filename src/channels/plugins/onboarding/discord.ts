@@ -38,13 +38,13 @@ const channel = "discord" as const;
 async function noteDiscordTokenHelp(prompter: WizardPrompter): Promise<void> {
   await prompter.note(
     [
-      "1) Discord Developer Portal → Applications → New Application",
-      "2) Bot → Add Bot → Reset Token → copy token",
-      "3) OAuth2 → URL Generator → scope 'bot' → invite to your server",
-      "Tip: enable Message Content Intent if you need message text. (Bot → Privileged Gateway Intents → Message Content Intent)",
-      `Docs: ${formatDocsLink("/discord", "discord")}`,
+      "1) Discord 开发者门户 → 应用程序 → 新建应用",
+      "2) Bot → 添加 Bot → 重置令牌 → 复制令牌",
+      "3) OAuth2 → URL 生成器 → 勾选 'bot' → 邀请到您的服务器",
+      "提示：如果需要消息文本，请启用 Message Content Intent。（Bot → Privileged Gateway Intents → Message Content Intent）",
+      `文档：${formatDocsLink("/discord", "discord")}`,
     ].join("\n"),
-    "Discord bot token",
+    "Discord 机器人令牌",
   );
 }
 
@@ -107,20 +107,20 @@ async function promptDiscordAllowFrom(params: {
     prompter: params.prompter,
     existing,
     token,
-    noteTitle: "Discord allowlist",
+    noteTitle: "Discord 白名单",
     noteLines: [
-      "Allowlist Discord DMs by username (we resolve to user ids).",
-      "Examples:",
+      "通过用户名将 Discord 私信加入白名单（我们会解析为用户 ID）。",
+      "示例：",
       "- 123456789012345678",
       "- @alice",
       "- alice#1234",
-      "Multiple entries: comma-separated.",
-      `Docs: ${formatDocsLink("/discord", "discord")}`,
+      "多个条目：逗号分隔。",
+      `文档：${formatDocsLink("/discord", "discord")}`,
     ],
-    message: "Discord allowFrom (usernames or ids)",
+    message: "Discord allowFrom（用户名或 ID）",
     placeholder: "@alice, 123456789012345678",
     parseId,
-    invalidWithoutTokenNote: "Bot token missing; use numeric user ids (or mention form) only.",
+    invalidWithoutTokenNote: "缺少机器人令牌；请仅使用数字用户 ID（或提及格式）。",
     resolveEntries: ({ token, entries }) =>
       resolveDiscordUserAllowlist({
         token,
@@ -155,8 +155,8 @@ export const discordOnboardingAdapter: ChannelOnboardingAdapter = {
     return {
       channel,
       configured,
-      statusLines: [`Discord: ${configured ? "configured" : "needs token"}`],
-      selectionHint: configured ? "configured" : "needs token",
+      statusLines: [`Discord: ${configured ? "已配置" : "需要令牌"}`],
+      selectionHint: configured ? "已配置" : "需要令牌",
       quickstartScore: configured ? 2 : 1,
     };
   },
@@ -182,15 +182,15 @@ export const discordOnboardingAdapter: ChannelOnboardingAdapter = {
       cfg: next,
       prompter,
       providerHint: "discord",
-      credentialLabel: "Discord bot token",
+      credentialLabel: "Discord 机器人令牌",
       secretInputMode: options?.secretInputMode,
       accountConfigured: Boolean(resolvedAccount.token),
       hasConfigToken: hasConfiguredSecretInput(resolvedAccount.config.token),
       allowEnv,
       envValue: process.env.DISCORD_BOT_TOKEN,
-      envPrompt: "DISCORD_BOT_TOKEN detected. Use env var?",
-      keepPrompt: "Discord token already configured. Keep it?",
-      inputPrompt: "Enter Discord bot token",
+      envPrompt: "检测到 DISCORD_BOT_TOKEN。使用环境变量？",
+      keepPrompt: "Discord 令牌已配置。保留它？",
+      inputPrompt: "输入 Discord 机器人令牌",
       preferredEnvVar: allowEnv ? "DISCORD_BOT_TOKEN" : undefined,
       onMissingConfigured: async () => await noteDiscordTokenHelp(prompter),
       applyUseEnv: async (cfg) =>
@@ -226,7 +226,7 @@ export const discordOnboardingAdapter: ChannelOnboardingAdapter = {
     next = await configureChannelAccessWithAllowlist({
       cfg: next,
       prompter,
-      label: "Discord channels",
+      label: "Discord 频道",
       currentPolicy: resolvedAccount.config.groupPolicy ?? "allowlist",
       currentEntries,
       placeholder: "My Server/#general, guildId/channelId, #support",
@@ -263,16 +263,16 @@ export const discordOnboardingAdapter: ChannelOnboardingAdapter = {
               .map((entry) => entry.input);
             await noteChannelLookupSummary({
               prompter,
-              label: "Discord channels",
+              label: "Discord 频道",
               resolvedSections: [
                 {
-                  title: "Resolved channels",
+                  title: "已解析频道",
                   values: resolvedChannels
                     .map((entry) => entry.channelId)
                     .filter((value): value is string => Boolean(value)),
                 },
                 {
-                  title: "Resolved guilds",
+                  title: "已解析服务器",
                   values: resolvedGuilds
                     .map((entry) => entry.guildId)
                     .filter((value): value is string => Boolean(value)),
@@ -283,7 +283,7 @@ export const discordOnboardingAdapter: ChannelOnboardingAdapter = {
           } catch (err) {
             await noteChannelLookupFailure({
               prompter,
-              label: "Discord channels",
+              label: "Discord 频道",
               error: err,
             });
           }
