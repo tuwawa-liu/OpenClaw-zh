@@ -7,1037 +7,1037 @@ import { IRC_FIELD_HELP } from "./schema.irc.js";
 import { describeTalkSilenceTimeoutDefaults } from "./talk-defaults.js";
 
 export const FIELD_HELP: Record<string, string> = {
-  meta: "Metadata fields automatically maintained by OpenClaw to record write/version history for this config file. Keep these values system-managed and avoid manual edits unless debugging migration history.",
-  "meta.lastTouchedVersion": "Auto-set when OpenClaw writes the config.",
-  "meta.lastTouchedAt": "ISO timestamp of the last config write (auto-set).",
-  env: "Environment import and override settings used to supply runtime variables to the gateway process. Use this section to control shell-env loading and explicit variable injection behavior.",
+  meta: "由 OpenClaw 自动维护的元数据字段，用于记录此配置文件的写入/版本历史。保持这些值由系统管理，除非调试迁移历史，否则避免手动编辑。",
+  "meta.lastTouchedVersion": "OpenClaw 写入配置时自动设置。",
+  "meta.lastTouchedAt": "上次配置写入的 ISO 时间戳（自动设置）。",
+  env: "环境导入和覆盖设置，用于向网关进程提供运行时变量。使用此部分控制 shell 环境加载和显式变量注入行为。",
   "env.shellEnv":
-    "Shell environment import controls for loading variables from your login shell during startup. Keep this enabled when you depend on profile-defined secrets or PATH customizations.",
+    "Shell 环境导入控制，用于在启动时从登录 shell 加载变量。当依赖 profile 中定义的密钥或 PATH 自定义时保持启用。",
   "env.shellEnv.enabled":
-    "Enables loading environment variables from the user shell profile during startup initialization. Keep enabled for developer machines, or disable in locked-down service environments with explicit env management.",
+    "启用在启动初始化期间从用户 shell profile 加载环境变量。开发机器上保持启用，或在具有显式环境管理的锁定服务环境中禁用。",
   "env.shellEnv.timeoutMs":
-    "Maximum time in milliseconds allowed for shell environment resolution before fallback behavior applies. Use tighter timeouts for faster startup, or increase when shell initialization is heavy.",
+    "Shell 环境解析允许的最大时间（毫秒），超时后使用回退行为。使用更短的超时以加快启动，或在 shell 初始化较重时增加。",
   "env.vars":
-    "Explicit key/value environment variable overrides merged into runtime process environment for OpenClaw. Use this for deterministic env configuration instead of relying only on shell profile side effects.",
+    "显式键/值环境变量覆盖，合并到 OpenClaw 的运行时进程环境中。使用此项进行确定性环境配置，而不是仅依赖 shell profile 的副作用。",
   wizard:
-    "Setup wizard state tracking fields that record the most recent guided onboarding run details. Keep these fields for observability and troubleshooting of setup flows across upgrades.",
+    "设置向导状态跟踪字段，记录最近一次引导式入门运行的详情。保留这些字段以便在升级过程中观察和排查设置流程。",
   "wizard.lastRunAt":
-    "ISO timestamp for when the setup wizard most recently completed on this host. Use this to confirm onboarding recency during support and operational audits.",
+    "设置向导在此主机上最近完成时的 ISO 时间戳。用于在支持和运维审计期间确认入门的时效性。",
   "wizard.lastRunVersion":
-    "OpenClaw version recorded at the time of the most recent wizard run on this config. Use this when diagnosing behavior differences across version-to-version onboarding changes.",
+    "此配置上最近一次向导运行时记录的 OpenClaw 版本。用于诊断跨版本入门变更导致的行为差异。",
   "wizard.lastRunCommit":
-    "Source commit identifier recorded for the last wizard execution in development builds. Use this to correlate onboarding behavior with exact source state during debugging.",
+    "开发构建中最后一次向导执行时记录的源代码提交标识符。用于在调试期间将入门行为与精确的源码状态关联。",
   "wizard.lastRunCommand":
-    "Command invocation recorded for the latest wizard run to preserve execution context. Use this to reproduce onboarding steps when verifying setup regressions.",
+    "为保留执行上下文而记录的最新向导运行命令调用。用于在验证设置回归时重现入门步骤。",
   "wizard.lastRunMode":
-    'Wizard execution mode recorded as "local" or "remote" for the most recent onboarding flow. Use this to understand whether setup targeted direct local runtime or remote gateway topology.',
+    '最近一次入门流程记录的向导执行模式，为 "local" 或 "remote"。用于了解设置是针对直接本地运行时还是远程网关拓扑。',
   diagnostics:
-    "Diagnostics controls for targeted tracing, telemetry export, and cache inspection during debugging. Keep baseline diagnostics minimal in production and enable deeper signals only when investigating issues.",
+    "诊断控制，用于调试期间的目标追踪、遥测导出和缓存检查。在生产环境中保持基线诊断最小化，仅在调查问题时启用更深层信号。",
   "diagnostics.otel":
-    "OpenTelemetry export settings for traces, metrics, and logs emitted by gateway components. Use this when integrating with centralized observability backends and distributed tracing pipelines.",
+    "网关组件发出的追踪、指标和日志的 OpenTelemetry 导出设置。在与集中式可观测性后端和分布式追踪管道集成时使用。",
   "diagnostics.cacheTrace":
-    "Cache-trace logging settings for observing cache decisions and payload context in embedded runs. Enable this temporarily for debugging and disable afterward to reduce sensitive log footprint.",
+    "缓存追踪日志设置，用于观察内嵌运行中的缓存决策和负载上下文。临时启用以进行调试，之后禁用以减少敏感日志占用。",
   logging:
-    "Logging behavior controls for severity, output destinations, formatting, and sensitive-data redaction. Keep levels and redaction strict enough for production while preserving useful diagnostics.",
+    "日志行为控制，包括严重性、输出目的地、格式化和敏感数据脱敏。保持级别和脱敏对生产环境足够严格，同时保留有用的诊断信息。",
   "logging.level":
-    'Primary log level threshold for runtime logger output: "silent", "fatal", "error", "warn", "info", "debug", or "trace". Keep "info" or "warn" for production, and use debug/trace only during investigation.',
+    '运行时日志输出的主日志级别阈值："silent"、"fatal"、"error"、"warn"、"info"、"debug" 或 "trace"。生产环境保持 "info" 或 "warn"，仅在调查期间使用 debug/trace。',
   "logging.file":
-    "Optional file path for persisted log output in addition to or instead of console logging. Use a managed writable path and align retention/rotation with your operational policy.",
+    "用于持久化日志输出的可选文件路径，作为控制台日志的补充或替代。使用受管理的可写路径，并将保留/轮转与你的运维策略对齐。",
   "logging.consoleLevel":
-    'Console-specific log threshold: "silent", "fatal", "error", "warn", "info", "debug", or "trace" for terminal output control. Use this to keep local console quieter while retaining richer file logging if needed.',
+    '控制台专用日志阈值："silent"、"fatal"、"error"、"warn"、"info"、"debug" 或 "trace"，用于终端输出控制。使用此项在需要时保持本地控制台安静，同时保留更丰富的文件日志。',
   "logging.consoleStyle":
-    'Console output format style: "pretty", "compact", or "json" based on operator and ingestion needs. Use json for machine parsing pipelines and pretty/compact for human-first terminal workflows.',
+    '控制台输出格式样式：根据操作者和摄取需求选择 "pretty"、"compact" 或 "json"。机器解析管道使用 json，人优先的终端工作流使用 pretty/compact。',
   "logging.redactSensitive":
-    'Sensitive redaction mode: "off" disables built-in masking, while "tools" redacts sensitive tool/config payload fields. Keep "tools" in shared logs unless you have isolated secure log sinks.',
+    '敏感数据脱敏模式："off" 禁用内置遮蔽，"tools" 脱敏敏感的工具/配置负载字段。在共享日志中保持 "tools"，除非你有隔离的安全日志接收器。',
   "logging.redactPatterns":
-    "Additional custom redact regex patterns applied to log output before emission/storage. Use this to mask org-specific tokens and identifiers not covered by built-in redaction rules.",
-  cli: "CLI presentation controls for local command output behavior such as banner and tagline style. Use this section to keep startup output aligned with operator preference without changing runtime behavior.",
+    "应用于日志输出发送/存储前的额外自定义脱敏正则模式。用于遮蔽内置脱敏规则未覆盖的组织特定令牌和标识符。",
+  cli: "CLI 展示控制，用于本地命令输出行为，如横幅和标语样式。使用此部分使启动输出与操作者偏好一致，不改变运行时行为。",
   "cli.banner":
-    "CLI startup banner controls for title/version line and tagline style behavior. Keep banner enabled for fast version/context checks, then tune tagline mode to your preferred noise level.",
+    "CLI 启动横幅控制，包括标题/版本行和标语样式行为。保持横幅启用以快速检查版本/上下文，然后调整标语模式到偏好的噪音级别。",
   "cli.banner.taglineMode":
-    'Controls tagline style in the CLI startup banner: "random" (default) picks from the rotating tagline pool, "default" always shows the neutral default tagline, and "off" hides tagline text while keeping the banner version line.',
+    '控制 CLI 启动横幅中的标语样式："random"（默认）从轮换标语池中选取，"default" 始终显示中性默认标语，"off" 隐藏标语文本但保留横幅版本行。',
   update:
-    "Update-channel and startup-check behavior for keeping OpenClaw runtime versions current. Use conservative channels in production and more experimental channels only in controlled environments.",
-  "update.channel": 'Update channel for git + npm installs ("stable", "beta", or "dev").',
-  "update.checkOnStart": "Check for npm updates when the gateway starts (default: true).",
-  "update.auto.enabled": "Enable background auto-update for package installs (default: false).",
+    "更新通道和启动检查行为，用于保持 OpenClaw 运行时版本最新。在生产环境中使用保守通道，仅在受控环境中使用实验性通道。",
+  "update.channel": 'git + npm 安装的更新通道（"stable"、"beta" 或 "dev"）。',
+  "update.checkOnStart": "网关启动时检查 npm 更新（默认：true）。",
+  "update.auto.enabled": "启用后台自动更新包安装（默认：false）。",
   "update.auto.stableDelayHours":
-    "Minimum delay before stable-channel auto-apply starts (default: 6).",
+    "稳定通道自动应用开始前的最小延迟（默认：6）。",
   "update.auto.stableJitterHours":
-    "Extra stable-channel rollout spread window in hours (default: 12).",
-  "update.auto.betaCheckIntervalHours": "How often beta-channel checks run in hours (default: 1).",
+    "稳定通道推出分散窗口的额外小时数（默认：12）。",
+  "update.auto.betaCheckIntervalHours": "Beta 通道检查运行频率（小时，默认：1）。",
   gateway:
-    "Gateway runtime surface for bind mode, auth, control UI, remote transport, and operational safety controls. Keep conservative defaults unless you intentionally expose the gateway beyond trusted local interfaces.",
+    "网关运行时界面，包括绑定模式、认证、控制面板 UI、远程传输和运维安全控制。保持保守默认值，除非你有意将网关暴露到可信本地接口之外。",
   "gateway.port":
-    "TCP port used by the gateway listener for API, control UI, and channel-facing ingress paths. Use a dedicated port and avoid collisions with reverse proxies or local developer services.",
+    "网关侦听器使用的 TCP 端口，用于 API、控制面板 UI 和面向频道的入口路径。使用专用端口，避免与反向代理或本地开发服务冲突。",
   "gateway.mode":
-    'Gateway operation mode: "local" runs channels and agent runtime on this host, while "remote" connects through remote transport. Keep "local" unless you intentionally run a split remote gateway topology.',
+    '网关运行模式："local" 在此主机上运行频道和代理运行时，"remote" 通过远程传输连接。除非你有意运行分离的远程网关拓扑，否则保持 "local"。',
   "gateway.bind":
-    'Network bind profile: "auto", "lan", "loopback", "custom", or "tailnet" to control interface exposure. Keep "loopback" or "auto" for safest local operation unless external clients must connect.',
+    '网络绑定配置："auto"、"lan"、"loopback"、"custom" 或 "tailnet"，控制接口暴露。保持 "loopback" 或 "auto" 以获得最安全的本地运行，除非外部客户端必须连接。',
   "gateway.customBindHost":
-    "Explicit bind host/IP used when gateway.bind is set to custom for manual interface targeting. Use a precise address and avoid wildcard binds unless external exposure is required.",
+    "当 gateway.bind 设置为 custom 时用于手动接口定位的显式绑定主机/IP。使用精确地址，避免通配符绑定，除非需要外部暴露。",
   "gateway.controlUi":
-    "Control UI hosting settings including enablement, pathing, and browser-origin/auth hardening behavior. Keep UI exposure minimal and pair with strong auth controls before internet-facing deployments.",
+    "控制面板 UI 托管设置，包括启用、路径配置和浏览器来源/认证加固行为。保持 UI 最小暴露，在面向互联网的部署前配合强认证控制。",
   "gateway.controlUi.enabled":
-    "Enables serving the gateway Control UI from the gateway HTTP process when true. Keep enabled for local administration, and disable when an external control surface replaces it.",
+    "启用时从网关 HTTP 进程提供控制面板 UI 服务。本地管理保持启用，当外部控制界面替代时禁用。",
   "gateway.auth":
-    "Authentication policy for gateway HTTP/WebSocket access including mode, credentials, trusted-proxy behavior, and rate limiting. Keep auth enabled for every non-loopback deployment.",
+    "网关 HTTP/WebSocket 访问的认证策略，包括模式、凭据、可信代理行为和速率限制。每个非回环部署都要启用认证。",
   "gateway.auth.mode":
-    'Gateway auth mode: "none", "token", "password", or "trusted-proxy" depending on your edge architecture. Use token/password for direct exposure, and trusted-proxy only behind hardened identity-aware proxies.',
+    '网关认证模式："none"、"token"、"password" 或 "trusted-proxy"，取决于你的边缘架构。直接暴露使用 token/password，仅在加固的身份感知代理后面使用 trusted-proxy。',
   "gateway.auth.allowTailscale":
-    "Allows trusted Tailscale identity paths to satisfy gateway auth checks when configured. Use this only when your tailnet identity posture is strong and operator workflows depend on it.",
+    "允许可信 Tailscale 身份路径满足网关认证检查。仅在你的尾网身份态势强大且操作者工作流依赖它时使用。",
   "gateway.auth.rateLimit":
-    "Login/auth attempt throttling controls to reduce credential brute-force risk at the gateway boundary. Keep enabled in exposed environments and tune thresholds to your traffic baseline.",
+    "登录/认证尝试限流控制，以减少网关边界的凭据暴力破解风险。在暴露环境中保持启用，并根据你的流量基线调整阈值。",
   "gateway.auth.trustedProxy":
-    "Trusted-proxy auth header mapping for upstream identity providers that inject user claims. Use only with known proxy CIDRs and strict header allowlists to prevent spoofed identity headers.",
+    "可信代理认证头映射，用于注入用户声明的上游身份提供者。仅与已知代理 CIDR 和严格的头部允许列表一起使用，以防止伪造的身份头。",
   "gateway.trustedProxies":
-    "CIDR/IP allowlist of upstream proxies permitted to provide forwarded client identity headers. Keep this list narrow so untrusted hops cannot impersonate users.",
+    "允许提供转发客户端身份头的上游代理的 CIDR/IP 允许列表。保持此列表精简，以防止不可信跳点冒充用户。",
   "gateway.allowRealIpFallback":
-    "Enables x-real-ip fallback when x-forwarded-for is missing in proxy scenarios. Keep disabled unless your ingress stack requires this compatibility behavior.",
+    "在代理场景中 x-forwarded-for 缺失时启用 x-real-ip 回退。除非你的入口栈需要此兼容行为，否则保持禁用。",
   "gateway.tools":
-    "Gateway-level tool exposure allow/deny policy that can restrict runtime tool availability independent of agent/tool profiles. Use this for coarse emergency controls and production hardening.",
+    "网关级工具暴露允许/拒绝策略，可独立于代理/工具配置限制运行时工具可用性。用于粗粒度紧急控制和生产加固。",
   "gateway.tools.allow":
-    "Explicit gateway-level tool allowlist when you want a narrow set of tools available at runtime. Use this for locked-down environments where tool scope must be tightly controlled.",
+    "网关级工具显式允许列表，当你需要运行时可用的精简工具集时使用。用于需要严格控制工具范围的锁定环境。",
   "gateway.tools.deny":
-    "Explicit gateway-level tool denylist to block risky tools even if lower-level policies allow them. Use deny rules for emergency response and defense-in-depth hardening.",
+    "网关级工具显式拒绝列表，即使低级策略允许也会阻止高风险工具。用于紧急响应和纵深防御加固。",
   "gateway.channelHealthCheckMinutes":
-    "Interval in minutes for automatic channel health probing and status updates. Use lower intervals for faster detection, or higher intervals to reduce periodic probe noise.",
+    "自动频道健康探测和状态更新的间隔（分钟）。使用较低间隔以更快检测，或较高间隔以减少定期探测噪音。",
   "gateway.tailscale":
-    "Tailscale integration settings for Serve/Funnel exposure and lifecycle handling on gateway start/exit. Keep off unless your deployment intentionally relies on Tailscale ingress.",
+    "Tailscale 集成设置，用于网关启动/退出时的 Serve/Funnel 暴露和生命周期处理。除非你的部署有意依赖 Tailscale 入口，否则保持关闭。",
   "gateway.tailscale.mode":
-    'Tailscale publish mode: "off", "serve", or "funnel" for private or public exposure paths. Use "serve" for tailnet-only access and "funnel" only when public internet reachability is required.',
+    'Tailscale 发布模式："off"、"serve" 或 "funnel"，用于私有或公开暴露路径。尾网内访问使用 "serve"，仅在需要公开互联网可达性时使用 "funnel"。',
   "gateway.tailscale.resetOnExit":
-    "Resets Tailscale Serve/Funnel state on gateway exit to avoid stale published routes after shutdown. Keep enabled unless another controller manages publish lifecycle outside the gateway.",
+    "网关退出时重置 Tailscale Serve/Funnel 状态，以避免关闭后的过时发布路由。除非其他控制器在网关外管理发布生命周期，否则保持启用。",
   "gateway.remote":
-    "Remote gateway connection settings for direct or SSH transport when this instance proxies to another runtime host. Use remote mode only when split-host operation is intentionally configured.",
+    "此实例代理到另一个运行时主机时的远程网关连接设置。仅在有意配置分离主机运行时使用远程模式。",
   "gateway.remote.transport":
-    'Remote connection transport: "direct" uses configured URL connectivity, while "ssh" tunnels through SSH. Use SSH when you need encrypted tunnel semantics without exposing remote ports.',
+    '远程连接传输方式："direct" 使用配置的 URL 连接，"ssh" 通过 SSH 隧道。当你需要加密隧道语义而无需暴露远程端口时使用 SSH。',
   "gateway.reload":
-    "Live config-reload policy for how edits are applied and when full restarts are triggered. Keep hybrid behavior for safest operational updates unless debugging reload internals.",
+    "实时配置重载策略，控制编辑如何应用以及何时触发完全重启。保持混合行为以获得最安全的运维更新，除非调试重载内部。",
   "gateway.tls":
-    "TLS certificate and key settings for terminating HTTPS directly in the gateway process. Use explicit certificates in production and avoid plaintext exposure on untrusted networks.",
+    "用于在网关进程中直接终止 HTTPS 的 TLS 证书和密钥设置。在生产环境中使用显式证书，避免在不可信网络上明文暴露。",
   "gateway.tls.enabled":
-    "Enables TLS termination at the gateway listener so clients connect over HTTPS/WSS directly. Keep enabled for direct internet exposure or any untrusted network boundary.",
+    "在网关侦听器启用 TLS 终止，使客户端直接通过 HTTPS/WSS 连接。直接面向互联网或任何不可信网络边界时保持启用。",
   "gateway.tls.autoGenerate":
-    "Auto-generates a local TLS certificate/key pair when explicit files are not configured. Use only for local/dev setups and replace with real certificates for production traffic.",
+    "未配置显式文件时自动生成本地 TLS 证书/密钥对。仅用于本地/开发设置，生产流量请替换为真实证书。",
   "gateway.tls.certPath":
-    "Filesystem path to the TLS certificate file used by the gateway when TLS is enabled. Use managed certificate paths and keep renewal automation aligned with this location.",
+    "启用 TLS 时网关使用的 TLS 证书文件的文件系统路径。使用受管理的证书路径，并保持续签自动化与此位置对齐。",
   "gateway.tls.keyPath":
-    "Filesystem path to the TLS private key file used by the gateway when TLS is enabled. Keep this key file permission-restricted and rotate per your security policy.",
+    "启用 TLS 时网关使用的 TLS 私钥文件的文件系统路径。保持此密钥文件权限受限，并按安全策略轮换。",
   "gateway.tls.caPath":
-    "Optional CA bundle path for client verification or custom trust-chain requirements at the gateway edge. Use this when private PKI or custom certificate chains are part of deployment.",
+    "网关边缘的客户端验证或自定义信任链要求的可选 CA 捆绑包路径。当私有 PKI 或自定义证书链是部署的一部分时使用。",
   "gateway.http":
-    "Gateway HTTP API configuration grouping endpoint toggles and transport-facing API exposure controls. Keep only required endpoints enabled to reduce attack surface.",
+    "网关 HTTP API 配置，分组端点切换和面向传输的 API 暴露控制。仅启用必需的端点以减少攻击面。",
   "gateway.http.endpoints":
-    "HTTP endpoint feature toggles under the gateway API surface for compatibility routes and optional integrations. Enable endpoints intentionally and monitor access patterns after rollout.",
+    "网关 API 表面下的 HTTP 端点功能切换，用于兼容路由和可选集成。有意启用端点并在推出后监控访问模式。",
   "gateway.http.securityHeaders":
-    "Optional HTTP response security headers applied by the gateway process itself. Prefer setting these at your reverse proxy when TLS terminates there.",
+    "网关进程自身应用的可选 HTTP 响应安全头。当 TLS 在反向代理终止时，优先在反向代理设置。",
   "gateway.http.securityHeaders.strictTransportSecurity":
-    "Value for the Strict-Transport-Security response header. Set only on HTTPS origins that you fully control; use false to explicitly disable.",
-  "gateway.remote.url": "Remote Gateway WebSocket URL (ws:// or wss://).",
+    "Strict-Transport-Security 响应头的值。仅在你完全控制的 HTTPS 来源上设置；使用 false 显式禁用。",
+  "gateway.remote.url": "远程网关 WebSocket URL（ws:// 或 wss://）。",
   "gateway.remote.token":
-    "Bearer token used to authenticate this client to a remote gateway in token-auth deployments. Store via secret/env substitution and rotate alongside remote gateway auth changes.",
+    "用于在令牌认证部署中向远程网关认证此客户端的 Bearer 令牌。通过密钥/环境替换存储，并随远程网关认证变更一起轮换。",
   "gateway.remote.password":
-    "Password credential used for remote gateway authentication when password mode is enabled. Keep this secret managed externally and avoid plaintext values in committed config.",
+    "启用密码模式时用于远程网关认证的密码凭据。保持此密钥在外部管理，避免在提交的配置中使用明文值。",
   "gateway.remote.tlsFingerprint":
-    "Expected sha256 TLS fingerprint for the remote gateway (pin to avoid MITM).",
+    "远程网关的预期 sha256 TLS 指纹（固定以避免中间人攻击）。",
   "gateway.remote.sshTarget":
-    "Remote gateway over SSH (tunnels the gateway port to localhost). Format: user@host or user@host:port.",
-  "gateway.remote.sshIdentity": "Optional SSH identity file path (passed to ssh -i).",
-  "talk.provider": 'Active Talk provider id (for example "elevenlabs").',
+    "通过 SSH 的远程网关（将网关端口隧道到 localhost）。格式：user@host 或 user@host:port。",
+  "gateway.remote.sshIdentity": "可选的 SSH 身份文件路径（传递给 ssh -i）。",
+  "talk.provider": '活动的语音提供商 ID（例如 "elevenlabs"）。',
   "talk.providers":
-    "Provider-specific Talk settings keyed by provider id. During migration, prefer this over legacy talk.* keys.",
-  "talk.providers.*.voiceId": "Provider default voice ID for Talk mode.",
-  "talk.providers.*.voiceAliases": "Optional provider voice alias map for Talk directives.",
-  "talk.providers.*.modelId": "Provider default model ID for Talk mode.",
-  "talk.providers.*.outputFormat": "Provider default output format for Talk mode.",
-  "talk.providers.*.apiKey": "Provider API key for Talk mode.", // pragma: allowlist secret
+    "按提供商 ID 键控的特定提供商语音设置。迁移期间优先使用此项而非旧版 talk.* 键。",
+  "talk.providers.*.voiceId": "提供商默认语音 ID，用于语音模式。",
+  "talk.providers.*.voiceAliases": "可选的提供商语音别名映射，用于语音指令。",
+  "talk.providers.*.modelId": "提供商默认模型 ID，用于语音模式。",
+  "talk.providers.*.outputFormat": "提供商默认输出格式，用于语音模式。",
+  "talk.providers.*.apiKey": "提供商 API 密钥，用于语音模式。", // pragma: allowlist secret
   "talk.voiceId":
-    "Legacy ElevenLabs default voice ID for Talk mode. Prefer talk.providers.elevenlabs.voiceId.",
+    "旧版 ElevenLabs 默认语音 ID，用于语音模式。优先使用 talk.providers.elevenlabs.voiceId。",
   "talk.voiceAliases":
-    'Use this legacy ElevenLabs voice alias map (for example {"Clawd":"EXAVITQu4vr4xnSDxMaL"}) only during migration. Prefer talk.providers.elevenlabs.voiceAliases.',
+    '仅在迁移期间使用此旧版 ElevenLabs 语音别名映射（例如 {"Clawd":"EXAVITQu4vr4xnSDxMaL"}）。优先使用 talk.providers.elevenlabs.voiceAliases。',
   "talk.modelId":
-    "Legacy ElevenLabs model ID for Talk mode (default: eleven_v3). Prefer talk.providers.elevenlabs.modelId.",
+    "旧版 ElevenLabs 模型 ID，用于语音模式（默认：eleven_v3）。优先使用 talk.providers.elevenlabs.modelId。",
   "talk.outputFormat":
-    "Use this legacy ElevenLabs output format for Talk mode (for example pcm_44100 or mp3_44100_128) only during migration. Prefer talk.providers.elevenlabs.outputFormat.",
+    "仅在迁移期间使用此旧版 ElevenLabs 语音模式输出格式（例如 pcm_44100 或 mp3_44100_128）。优先使用 talk.providers.elevenlabs.outputFormat。",
   "talk.apiKey":
-    "Use this legacy ElevenLabs API key for Talk mode only during migration, and keep secrets in env-backed storage. Prefer talk.providers.elevenlabs.apiKey (fallback: ELEVENLABS_API_KEY).",
+    "仅在迁移期间使用此旧版 ElevenLabs 语音模式 API 密钥，并将密钥保存在环境变量支持的存储中。优先使用 talk.providers.elevenlabs.apiKey（回退：ELEVENLABS_API_KEY）。",
   "talk.interruptOnSpeech":
-    "If true (default), stop assistant speech when the user starts speaking in Talk mode. Keep enabled for conversational turn-taking.",
+    "如果为 true（默认），当用户在语音模式中开始说话时停止助手语音。保持启用以实现对话轮换。",
   "talk.silenceTimeoutMs": `Milliseconds of user silence before Talk mode finalizes and sends the current transcript. Leave unset to keep the platform default pause window (${describeTalkSilenceTimeoutDefaults()}).`,
-  acp: "ACP runtime controls for enabling dispatch, selecting backends, constraining allowed agent targets, and tuning streamed turn projection behavior.",
+  acp: "ACP 运行时控制，用于启用调度、选择后端、约束允许的代理目标和调整流式轮次投影行为。",
   "acp.enabled":
-    "Global ACP feature gate. Keep disabled unless ACP runtime + policy are configured.",
+    "全局 ACP 功能开关。除非 ACP 运行时 + 策略已配置，否则保持禁用。",
   "acp.dispatch.enabled":
-    "Independent dispatch gate for ACP session turns (default: true). Set false to keep ACP commands available while blocking ACP turn execution.",
+    "ACP 会话轮次的独立调度开关（默认：true）。设置 false 可保持 ACP 命令可用同时阻止 ACP 轮次执行。",
   "acp.backend":
-    "Default ACP runtime backend id (for example: acpx). Must match a registered ACP runtime plugin backend.",
+    "默认 ACP 运行时后端 ID（例如：acpx）。必须匹配已注册的 ACP 运行时插件后端。",
   "acp.defaultAgent":
-    "Fallback ACP target agent id used when ACP spawns do not specify an explicit target.",
+    "ACP 生成未指定显式目标时使用的回退 ACP 目标代理 ID。",
   "acp.allowedAgents":
-    "Allowlist of ACP target agent ids permitted for ACP runtime sessions. Empty means no additional allowlist restriction.",
+    "ACP 运行时会话允许的 ACP 目标代理 ID 允许列表。空表示无额外允许列表限制。",
   "acp.maxConcurrentSessions":
-    "Maximum concurrently active ACP sessions across this gateway process.",
+    "此网关进程中同时活动的最大 ACP 会话数。",
   "acp.stream":
-    "ACP streaming projection controls for chunk sizing, metadata visibility, and deduped delivery behavior.",
+    "ACP 流式投影控制，用于块大小、元数据可见性和去重投递行为。",
   "acp.stream.coalesceIdleMs":
-    "Coalescer idle flush window in milliseconds for ACP streamed text before block replies are emitted.",
+    "发出块回复前 ACP 流式文本的合并器空闲刷新窗口（毫秒）。",
   "acp.stream.maxChunkChars":
-    "Maximum chunk size for ACP streamed block projection before splitting into multiple block replies.",
+    "分割为多个块回复前 ACP 流式块投影的最大块大小。",
   "acp.stream.repeatSuppression":
-    "When true (default), suppress repeated ACP status/tool projection lines in a turn while keeping raw ACP events unchanged.",
+    "当为 true（默认）时，在轮次中抑制重复的 ACP 状态/工具投影行，同时保持原始 ACP 事件不变。",
   "acp.stream.deliveryMode":
-    "ACP delivery style: live streams projected output incrementally, final_only buffers all projected ACP output until terminal turn events.",
+    "ACP 投递样式：live 增量投影输出，final_only 缓冲所有投影 ACP 输出直到终端轮次事件。",
   "acp.stream.hiddenBoundarySeparator":
-    "Separator inserted before next visible assistant text when hidden ACP tool lifecycle events occurred (none|space|newline|paragraph). Default: paragraph.",
+    "当隐藏 ACP 工具生命周期事件发生时，在下一个可见助手文本前插入的分隔符（none|space|newline|paragraph）。默认：paragraph。",
   "acp.stream.maxOutputChars":
-    "Maximum assistant output characters projected per ACP turn before truncation notice is emitted.",
+    "每个 ACP 轮次投影的最大助手输出字符数，超出后发出截断通知。",
   "acp.stream.maxSessionUpdateChars":
-    "Maximum characters for projected ACP session/update lines (tool/status updates).",
+    "投影 ACP 会话/更新行（工具/状态更新）的最大字符数。",
   "acp.stream.tagVisibility":
-    "Per-sessionUpdate visibility overrides for ACP projection (for example usage_update, available_commands_update).",
+    "ACP 投影的每 sessionUpdate 可见性覆盖（例如 usage_update、available_commands_update）。",
   "acp.runtime.ttlMinutes":
-    "Idle runtime TTL in minutes for ACP session workers before eligible cleanup.",
+    "ACP 会话工作器在符合清理条件前的空闲运行时 TTL（分钟）。",
   "acp.runtime.installCommand":
-    "Optional operator install/setup command shown by `/acp install` and `/acp doctor` when ACP backend wiring is missing.",
+    "`/acp install` 和 `/acp doctor` 在 ACP 后端缺失时显示的可选操作者安装/设置命令。",
   "agents.list.*.skills":
-    "Optional allowlist of skills for this agent (omit = all skills; empty = no skills).",
+    "此代理的可选技能允许列表（省略 = 所有技能；空 = 无技能）。",
   "agents.list[].skills":
-    "Optional allowlist of skills for this agent (omit = all skills; empty = no skills).",
+    "此代理的可选技能允许列表（省略 = 所有技能；空 = 无技能）。",
   agents:
-    "Agent runtime configuration root covering defaults and explicit agent entries used for routing and execution context. Keep this section explicit so model/tool behavior stays predictable across multi-agent workflows.",
+    "代理运行时配置根节点，涵盖用于路由和执行上下文的默认值和显式代理条目。保持此部分显式配置，以便模型/工具行为在多代理工作流中保持可预测。",
   "agents.defaults":
-    "Shared default settings inherited by agents unless overridden per entry in agents.list. Use defaults to enforce consistent baseline behavior and reduce duplicated per-agent configuration.",
+    "代理继承的共享默认设置，除非在 agents.list 中按条目覆盖。使用默认值来强制一致的基线行为，减少重复的逐代理配置。",
   "agents.list":
-    "Explicit list of configured agents with IDs and optional overrides for model, tools, identity, and workspace. Keep IDs stable over time so bindings, approvals, and session routing remain deterministic.",
+    "带 ID 和可选覆盖的配置代理显式列表。保持 ID 随时间稳定，以便绑定、审批和会话路由保持确定性。",
   "agents.list[].runtime":
-    "Optional runtime descriptor for this agent. Use embedded for default OpenClaw execution or acp for external ACP harness defaults.",
+    "此代理的可选运行时描述符。内嵌使用 embedded（默认 OpenClaw 执行），外部使用 acp（ACP 挂载默认值）。",
   "agents.list[].runtime.type":
-    'Runtime type for this agent: "embedded" (default OpenClaw runtime) or "acp" (ACP harness defaults).',
+    '此代理的运行时类型："embedded"（默认 OpenClaw 运行时）或 "acp"（ACP 挂载默认值）。',
   "agents.list[].runtime.acp":
-    "ACP runtime defaults for this agent when runtime.type=acp. Binding-level ACP overrides still take precedence per conversation.",
+    "runtime.type=acp 时此代理的 ACP 运行时默认值。绑定级别的 ACP 覆盖仍按对话优先。",
   "agents.list[].runtime.acp.agent":
-    "Optional ACP harness agent id to use for this OpenClaw agent (for example codex, claude).",
+    "此 OpenClaw 代理使用的可选 ACP 挂载代理 ID（例如 codex、claude）。",
   "agents.list[].runtime.acp.backend":
-    "Optional ACP backend override for this agent's ACP sessions (falls back to global acp.backend).",
+    "此代理 ACP 会话的可选 ACP 后端覆盖（回退到全局 acp.backend）。",
   "agents.list[].runtime.acp.mode":
-    "Optional ACP session mode default for this agent (persistent or oneshot).",
+    "此代理的可选 ACP 会话模式默认值（persistent 或 oneshot）。",
   "agents.list[].runtime.acp.cwd":
-    "Optional default working directory for this agent's ACP sessions.",
+    "此代理 ACP 会话的可选默认工作目录。",
   "agents.list[].identity.avatar":
-    "Avatar image path (relative to the agent workspace only) or a remote URL/data URL.",
+    "头像图片路径（仅相对于代理工作区）或远程 URL/data URL。",
   "agents.defaults.heartbeat.suppressToolErrorWarnings":
-    "Suppress tool error warning payloads during heartbeat runs.",
+    "心跳运行期间抑制工具错误警告负载。",
   "agents.list[].heartbeat.suppressToolErrorWarnings":
-    "Suppress tool error warning payloads during heartbeat runs.",
+    "心跳运行期间抑制工具错误警告负载。",
   browser:
-    "Browser runtime controls for local or remote CDP attachment, profile routing, and screenshot/snapshot behavior. Keep defaults unless your automation workflow requires custom browser transport settings.",
+    "浏览器运行时控制，用于本地或远程 CDP 连接、配置文件路由和截图/快照行为。保持默认值，除非你的自动化工作流需要自定义浏览器传输设置。",
   "browser.enabled":
-    "Enables browser capability wiring in the gateway so browser tools and CDP-driven workflows can run. Disable when browser automation is not needed to reduce surface area and startup work.",
+    "在网关中启用浏览器能力连接，以便浏览器工具和 CDP 驱动的工作流可以运行。不需要浏览器自动化时禁用以减少攻击面和启动工作。",
   "browser.cdpUrl":
-    "Remote CDP websocket URL used to attach to an externally managed browser instance. Use this for centralized browser hosts and keep URL access restricted to trusted network paths.",
+    "用于连接到外部管理的浏览器实例的远程 CDP WebSocket URL。用于集中式浏览器主机，保持 URL 访问限制在可信网络路径。",
   "browser.color":
-    "Default accent color used for browser profile/UI cues where colored identity hints are displayed. Use consistent colors to help operators identify active browser profile context quickly.",
+    "浏览器配置文件/UI 提示中显示彩色身份标识时使用的默认强调色。使用一致的颜色帮助操作者快速识别活动的浏览器配置文件上下文。",
   "browser.executablePath":
-    "Explicit browser executable path when auto-discovery is insufficient for your host environment. Use absolute stable paths so launch behavior stays deterministic across restarts.",
+    "当自动发现不足以满足你的主机环境时的显式浏览器可执行文件路径。使用绝对稳定路径使启动行为在重启后保持确定性。",
   "browser.headless":
-    "Forces browser launch in headless mode when the local launcher starts browser instances. Keep headless enabled for server environments and disable only when visible UI debugging is required.",
+    "当本地启动器启动浏览器实例时强制无头模式。服务器环境保持无头启用，仅在需要可见 UI 调试时禁用。",
   "browser.noSandbox":
-    "Disables Chromium sandbox isolation flags for environments where sandboxing fails at runtime. Keep this off whenever possible because process isolation protections are reduced.",
+    "为运行时沙箱失败的环境禁用 Chromium 沙箱隔离标志。尽可能保持关闭，因为进程隔离保护会降低。",
   "browser.attachOnly":
-    "Restricts browser mode to attach-only behavior without starting local browser processes. Use this when all browser sessions are externally managed by a remote CDP provider.",
+    "将浏览器模式限制为仅连接行为，不启动本地浏览器进程。当所有浏览器会话由远程 CDP 提供商外部管理时使用。",
   "browser.cdpPortRangeStart":
-    "Starting local CDP port used for auto-allocated browser profile ports. Increase this when host-level port defaults conflict with other local services.",
+    "用于自动分配浏览器配置文件端口的起始本地 CDP 端口。当主机级端口默认值与其他本地服务冲突时增加。",
   "browser.defaultProfile":
-    "Default browser profile name selected when callers do not explicitly choose a profile. Use a stable low-privilege profile as the default to reduce accidental cross-context state use.",
+    "调用者未显式选择配置文件时选择的默认浏览器配置文件名称。使用稳定的低权限配置文件作为默认值，以减少意外的跨上下文状态使用。",
   "browser.relayBindHost":
-    "Bind IP address for the Chrome extension relay listener. Leave unset for loopback-only access, or set an explicit non-loopback IP such as 0.0.0.0 only when the relay must be reachable across network namespaces (for example WSL2) and the surrounding network is already trusted.",
+    "Chrome 扩展中继侦听器的绑定 IP 地址。保持未设置以仅回环访问，或仅在中继必须跨网络命名空间可达（例如 WSL2）且周围网络已可信时设置显式的非回环 IP（如 0.0.0.0）。",
   "browser.profiles":
-    "Named browser profile connection map used for explicit routing to CDP ports or URLs with optional metadata. Keep profile names consistent and avoid overlapping endpoint definitions.",
+    "命名的浏览器配置文件连接映射，用于显式路由到 CDP 端口或 URL，带可选元数据。保持配置文件名称一致，避免重叠的端点定义。",
   "browser.profiles.*.cdpPort":
-    "Per-profile local CDP port used when connecting to browser instances by port instead of URL. Use unique ports per profile to avoid connection collisions.",
+    "按配置文件的本地 CDP 端口，通过端口而非 URL 连接到浏览器实例时使用。每个配置文件使用唯一端口以避免连接冲突。",
   "browser.profiles.*.cdpUrl":
-    "Per-profile CDP websocket URL used for explicit remote browser routing by profile name. Use this when profile connections terminate on remote hosts or tunnels.",
+    "按配置文件的 CDP WebSocket URL，用于按配置文件名称显式远程浏览器路由。当配置文件连接终止在远程主机或隧道时使用。",
   "browser.profiles.*.driver":
-    'Per-profile browser driver mode: "openclaw" (or legacy "clawd") or "extension" depending on connection/runtime strategy. Use the driver that matches your browser control stack to avoid protocol mismatches.',
+    '按配置文件的浏览器驱动模式："openclaw"（或旧版 "clawd"）或 "extension"，取决于连接/运行时策略。使用与你的浏览器控制栈匹配的驱动以避免协议不匹配。',
   "browser.profiles.*.attachOnly":
-    "Per-profile attach-only override that skips local browser launch and only attaches to an existing CDP endpoint. Useful when one profile is externally managed but others are locally launched.",
+    "按配置文件的仅连接覆盖，跳过本地浏览器启动，仅连接到现有 CDP 端点。当一个配置文件由外部管理而其他配置文件在本地启动时很有用。",
   "browser.profiles.*.color":
-    "Per-profile accent color for visual differentiation in dashboards and browser-related UI hints. Use distinct colors for high-signal operator recognition of active profiles.",
+    "按配置文件的强调色，用于仪表盘和浏览器相关 UI 提示中的视觉区分。为高信号的操作者识别活动配置文件使用不同颜色。",
   "browser.evaluateEnabled":
-    "Enables browser-side evaluate helpers for runtime script evaluation capabilities where supported. Keep disabled unless your workflows require evaluate semantics beyond snapshots/navigation.",
+    "启用浏览器端求值辅助程序，用于支持的运行时脚本求值能力。除非你的工作流需要超出快照/导航的求值语义，否则保持禁用。",
   "browser.snapshotDefaults":
-    "Default snapshot capture configuration used when callers do not provide explicit snapshot options. Tune this for consistent capture behavior across channels and automation paths.",
+    "调用者未提供显式快照选项时使用的默认快照捕获配置。调整此项以在频道和自动化路径间获得一致的捕获行为。",
   "browser.snapshotDefaults.mode":
-    "Default snapshot extraction mode controlling how page content is transformed for agent consumption. Choose the mode that balances readability, fidelity, and token footprint for your workflows.",
+    "默认快照提取模式，控制页面内容如何转换以供代理消费。选择在可读性、保真度和令牌占用之间平衡的模式。",
   "browser.ssrfPolicy":
-    "Server-side request forgery guardrail settings for browser/network fetch paths that could reach internal hosts. Keep restrictive defaults in production and open only explicitly approved targets.",
+    "浏览器/网络获取路径的服务器端请求伪造防护设置，这些路径可能到达内部主机。在生产环境中保持限制性默认值，仅显式批准的目标除外。",
   "browser.ssrfPolicy.allowPrivateNetwork":
-    "Legacy alias for browser.ssrfPolicy.dangerouslyAllowPrivateNetwork. Prefer the dangerously-named key so risk intent is explicit.",
+    "browser.ssrfPolicy.dangerouslyAllowPrivateNetwork 的旧版别名。优先使用带 dangerously 前缀的键以明确风险意图。",
   "browser.ssrfPolicy.dangerouslyAllowPrivateNetwork":
-    "Allows access to private-network address ranges from browser tooling. Default is enabled for trusted-network operator setups; disable to enforce strict public-only resolution checks.",
+    "允许从浏览器工具访问私有网络地址范围。可信网络操作者设置默认启用；禁用以强制严格的仅公共解析检查。",
   "browser.ssrfPolicy.allowedHostnames":
-    "Explicit hostname allowlist exceptions for SSRF policy checks on browser/network requests. Keep this list minimal and review entries regularly to avoid stale broad access.",
+    "浏览器/网络请求 SSRF 策略检查的显式主机名允许列表例外。保持此列表最小化并定期审查以避免过时的广泛访问。",
   "browser.ssrfPolicy.hostnameAllowlist":
-    "Legacy/alternate hostname allowlist field used by SSRF policy consumers for explicit host exceptions. Use stable exact hostnames and avoid wildcard-like broad patterns.",
+    "SSRF 策略消费者使用的旧版/备选主机名允许列表字段，用于显式主机例外。使用稳定的精确主机名，避免类通配符的广泛模式。",
   "browser.remoteCdpTimeoutMs":
-    "Timeout in milliseconds for connecting to a remote CDP endpoint before failing the browser attach attempt. Increase for high-latency tunnels, or lower for faster failure detection.",
+    "连接到远程 CDP 端点的超时时间（毫秒），超时后浏览器连接尝试失败。高延迟隧道增加此值，或降低以更快检测失败。",
   "browser.remoteCdpHandshakeTimeoutMs":
-    "Timeout in milliseconds for post-connect CDP handshake readiness checks against remote browser targets. Raise this for slow-start remote browsers and lower to fail fast in automation loops.",
+    "针对远程浏览器目标的连接后 CDP 握手就绪检查超时时间（毫秒）。慢启动远程浏览器提高此值，自动化循环中降低以快速失败。",
   "discovery.mdns.mode":
     'mDNS broadcast mode ("minimal" default, "full" includes cliPath/sshPort, "off" disables mDNS).',
   discovery:
-    "Service discovery settings for local mDNS advertisement and optional wide-area presence signaling. Keep discovery scoped to expected networks to avoid leaking service metadata.",
+    "本地 mDNS 广播和可选广域存在信号的服务发现设置。保持发现范围限于预期网络，以避免泄漏服务元数据。",
   "discovery.wideArea":
-    "Wide-area discovery configuration group for exposing discovery signals beyond local-link scopes. Enable only in deployments that intentionally aggregate gateway presence across sites.",
+    "广域发现配置组，用于将发现信号暴露到本地链路范围之外。仅在有意跨站点聚合网关存在的部署中启用。",
   "discovery.wideArea.enabled":
-    "Enables wide-area discovery signaling when your environment needs non-local gateway discovery. Keep disabled unless cross-network discovery is operationally required.",
+    "当你的环境需要非本地网关发现时启用广域发现信号。除非跨网络发现在运维上必需，否则保持禁用。",
   "discovery.mdns":
-    "mDNS discovery configuration group for local network advertisement and discovery behavior tuning. Keep minimal mode for routine LAN discovery unless extra metadata is required.",
+    "mDNS 发现配置组，用于本地网络广播和发现行为调整。保持最小模式用于常规 LAN 发现，除非需要额外元数据。",
   tools:
-    "Global tool access policy and capability configuration across web, exec, media, messaging, and elevated surfaces. Use this section to constrain risky capabilities before broad rollout.",
+    "跨 Web、执行、媒体、消息和提升权限界面的全局工具访问策略和能力配置。使用此部分在广泛推出前约束高风险能力。",
   "tools.allow":
-    "Absolute tool allowlist that replaces profile-derived defaults for strict environments. Use this only when you intentionally run a tightly curated subset of tool capabilities.",
+    "替代配置文件派生默认值的绝对工具允许列表，用于严格环境。仅在你有意运行精心策划的工具能力子集时使用。",
   "tools.deny":
-    "Global tool denylist that blocks listed tools even when profile or provider rules would allow them. Use deny rules for emergency lockouts and long-term defense-in-depth.",
+    "即使配置文件或提供商规则允许也会阻止列出工具的全局工具拒绝列表。用于紧急锁定和长期纵深防御。",
   "tools.web":
-    "Web-tool policy grouping for search/fetch providers, limits, and fallback behavior tuning. Keep enabled settings aligned with API key availability and outbound networking policy.",
+    "Web 工具策略分组，用于搜索/获取提供商、限制和回退行为调整。保持启用设置与 API 密钥可用性和出站网络策略对齐。",
   "tools.exec":
-    "Exec-tool policy grouping for shell execution host, security mode, approval behavior, and runtime bindings. Keep conservative defaults in production and tighten elevated execution paths.",
+    "执行工具策略分组，用于 shell 执行主机、安全模式、审批行为和运行时绑定。在生产环境中保持保守默认值，收紧提升执行路径。",
   "tools.exec.host":
-    "Selects execution host strategy for shell commands, typically controlling local vs delegated execution environment. Use the safest host mode that still satisfies your automation requirements.",
+    "选择 shell 命令的执行主机策略，通常控制本地与委托执行环境。使用仍满足自动化要求的最安全主机模式。",
   "tools.exec.security":
-    "Execution security posture selector controlling sandbox/approval expectations for command execution. Keep strict security mode for untrusted prompts and relax only for trusted operator workflows.",
+    "执行安全态势选择器，控制命令执行的沙箱/审批预期。不可信提示保持严格安全模式，仅对可信操作者工作流放宽。",
   "tools.exec.ask":
-    "Approval strategy for when exec commands require human confirmation before running. Use stricter ask behavior in shared channels and lower-friction settings in private operator contexts.",
+    "执行命令运行前需要人工确认时的审批策略。在共享频道中使用更严格的 ask 行为，在私有操作者上下文中使用更低摩擦的设置。",
   "tools.exec.node":
-    "Node binding configuration for exec tooling when command execution is delegated through connected nodes. Use explicit node binding only when multi-node routing is required.",
+    "通过已连接节点委托命令执行时的执行工具节点绑定配置。仅在需要多节点路由时使用显式节点绑定。",
   "tools.agentToAgent":
-    "Policy for allowing agent-to-agent tool calls and constraining which target agents can be reached. Keep disabled or tightly scoped unless cross-agent orchestration is intentionally enabled.",
+    "允许代理间工具调用和约束可达目标代理的策略。除非有意启用跨代理编排，否则保持禁用或严格范围。",
   "tools.agentToAgent.enabled":
-    "Enables the agent_to_agent tool surface so one agent can invoke another agent at runtime. Keep off in simple deployments and enable only when orchestration value outweighs complexity.",
+    "启用 agent_to_agent 工具界面，使一个代理可以在运行时调用另一个代理。简单部署中保持关闭，仅在编排价值超过复杂性时启用。",
   "tools.agentToAgent.allow":
-    "Allowlist of target agent IDs permitted for agent_to_agent calls when orchestration is enabled. Use explicit allowlists to avoid uncontrolled cross-agent call graphs.",
+    "启用编排时允许 agent_to_agent 调用的目标代理 ID 允许列表。使用显式允许列表以避免不受控的跨代理调用图。",
   "tools.elevated":
-    "Elevated tool access controls for privileged command surfaces that should only be reachable from trusted senders. Keep disabled unless operator workflows explicitly require elevated actions.",
+    "特权命令界面的提升工具访问控制，仅应从可信发送者可达。除非操作者工作流明确要求提升操作，否则保持禁用。",
   "tools.elevated.enabled":
-    "Enables elevated tool execution path when sender and policy checks pass. Keep disabled in public/shared channels and enable only for trusted owner-operated contexts.",
+    "当发送者和策略检查通过时启用提升工具执行路径。在公共/共享频道中保持禁用，仅对可信的所有者操作上下文启用。",
   "tools.elevated.allowFrom":
-    "Sender allow rules for elevated tools, usually keyed by channel/provider identity formats. Use narrow, explicit identities so elevated commands cannot be triggered by unintended users.",
+    "提升工具的发送者允许规则，通常按频道/提供商身份格式键控。使用精确的显式身份，避免提升命令被意外用户触发。",
   "tools.subagents":
-    "Tool policy wrapper for spawned subagents to restrict or expand tool availability compared to parent defaults. Use this to keep delegated agent capabilities scoped to task intent.",
+    "生成子代理的工具策略包装器，用于相对于父默认值限制或扩展工具可用性。使用此项将委托代理的能力范围限制在任务意图内。",
   "tools.subagents.tools":
-    "Allow/deny tool policy applied to spawned subagent runtimes for per-subagent hardening. Keep this narrower than parent scope when subagents run semi-autonomous workflows.",
+    "应用于生成子代理运行时的允许/拒绝工具策略，用于逐子代理加固。当子代理运行半自主工作流时，保持比父范围更窄。",
   "tools.sandbox":
-    "Tool policy wrapper for sandboxed agent executions so sandbox runs can have distinct capability boundaries. Use this to enforce stronger safety in sandbox contexts.",
+    "沙箱代理执行的工具策略包装器，使沙箱运行可以有不同的能力边界。使用此项在沙箱上下文中强制更强的安全性。",
   "tools.sandbox.tools":
-    "Allow/deny tool policy applied when agents run in sandboxed execution environments. Keep policies minimal so sandbox tasks cannot escalate into unnecessary external actions.",
-  web: "Web channel runtime settings for heartbeat and reconnect behavior when operating web-based chat surfaces. Use reconnect values tuned to your network reliability profile and expected uptime needs.",
+    "代理在沙箱执行环境中运行时应用的允许/拒绝工具策略。保持策略最小化，避免沙箱任务升级到不必要的外部操作。",
+  web: "Web 频道运行时设置，用于基于 Web 聊天界面的心跳和重连行为。使用适合你的网络可靠性和正常运行时间需求的重连值。",
   "web.enabled":
-    "Enables the web channel runtime and related websocket lifecycle behavior. Keep disabled when web chat is unused to reduce active connection management overhead.",
+    "启用 Web 频道运行时和相关 WebSocket 生命周期行为。不使用 Web 聊天时禁用以减少活动连接管理开销。",
   "web.heartbeatSeconds":
-    "Heartbeat interval in seconds for web channel connectivity and liveness maintenance. Use shorter intervals for faster detection, or longer intervals to reduce keepalive chatter.",
+    "Web 频道连接和存活性维护的心跳间隔（秒）。使用更短间隔以更快检测，或更长间隔以减少保活噪音。",
   "web.reconnect":
-    "Reconnect backoff policy for web channel reconnect attempts after transport failure. Keep bounded retries and jitter tuned to avoid thundering-herd reconnect behavior.",
+    "传输失败后 Web 频道重连尝试的重连退避策略。保持有界重试和抖动调整，避免雷群重连行为。",
   "web.reconnect.initialMs":
-    "Initial reconnect delay in milliseconds before the first retry after disconnection. Use modest delays to recover quickly without immediate retry storms.",
+    "断开连接后首次重试前的初始重连延迟（毫秒）。使用适度延迟以快速恢复而不立即重试风暴。",
   "web.reconnect.maxMs":
-    "Maximum reconnect backoff cap in milliseconds to bound retry delay growth over repeated failures. Use a reasonable cap so recovery remains timely after prolonged outages.",
+    "重连退避上限（毫秒），限制重复失败时的重试延迟增长。使用合理上限以在长时间中断后保持及时恢复。",
   "web.reconnect.factor":
-    "Exponential backoff multiplier used between reconnect attempts in web channel retry loops. Keep factor above 1 and tune with jitter for stable large-fleet reconnect behavior.",
+    "Web 频道重试循环中重连尝试之间的指数退避乘数。保持乘数大于 1 并配合抖动以获得稳定的大规模重连行为。",
   "web.reconnect.jitter":
-    "Randomization factor (0-1) applied to reconnect delays to desynchronize clients after outage events. Keep non-zero jitter in multi-client deployments to reduce synchronized spikes.",
+    "应用于重连延迟的随机化因子（0-1），在中断事件后去同步客户端。在多客户端部署中保持非零抖动以减少同步峰值。",
   "web.reconnect.maxAttempts":
-    "Maximum reconnect attempts before giving up for the current failure sequence (0 means no retries). Use finite caps for controlled failure handling in automation-sensitive environments.",
+    "当前失败序列放弃前的最大重连尝试次数（0 表示不重试）。在自动化敏感环境中使用有限上限进行受控的故障处理。",
   canvasHost:
-    "Canvas host settings for serving canvas assets and local live-reload behavior used by canvas-enabled workflows. Keep disabled unless canvas-hosted assets are actively used.",
+    "Canvas 宿主设置，用于提供 canvas 资产和 canvas 工作流的本地实时重载行为。除非正在使用 canvas 资产，否则保持禁用。",
   "canvasHost.enabled":
-    "Enables the canvas host server process and routes for serving canvas files. Keep disabled when canvas workflows are inactive to reduce exposed local services.",
+    "启用 canvas 宿主服务器进程和提供 canvas 文件的路由。canvas 工作流不活动时保持禁用以减少暴露的本地服务。",
   "canvasHost.root":
-    "Filesystem root directory served by canvas host for canvas content and static assets. Use a dedicated directory and avoid broad repo roots for least-privilege file exposure.",
+    "canvas 宿主提供 canvas 内容和静态资产的文件系统根目录。使用专用目录，避免使用广泛的仓库根目录以最小权限文件暴露。",
   "canvasHost.port":
-    "TCP port used by the canvas host HTTP server when canvas hosting is enabled. Choose a non-conflicting port and align firewall/proxy policy accordingly.",
+    "启用 canvas 托管时 canvas 宿主 HTTP 服务器使用的 TCP 端口。选择不冲突的端口并相应对齐防火墙/代理策略。",
   "canvasHost.liveReload":
-    "Enables automatic live-reload behavior for canvas assets during development workflows. Keep disabled in production-like environments where deterministic output is preferred.",
-  talk: "Talk-mode voice synthesis settings for voice identity, model selection, output format, and interruption behavior. Use this section to tune human-facing voice UX while controlling latency and cost.",
+    "开发工作流期间启用 canvas 资产的自动实时重载行为。在类生产环境中保持禁用，优先确定性输出。",
+  talk: "语音模式合成设置，用于语音身份、模型选择、输出格式和中断行为。使用此部分调整面向人类的语音用户体验，同时控制延迟和成本。",
   "gateway.auth.token":
-    "Required by default for gateway access (unless using Tailscale Serve identity); required for non-loopback binds.",
-  "gateway.auth.password": "Required for Tailscale funnel.",
+    "默认情况下网关访问需要此令牌（除非使用 Tailscale Serve 身份）；非回环绑定时必需。",
+  "gateway.auth.password": "Tailscale Funnel 必需。",
   "agents.defaults.sandbox.browser.network":
-    "Docker network for sandbox browser containers (default: openclaw-sandbox-browser). Avoid bridge if you need stricter isolation.",
-  "agents.list[].sandbox.browser.network": "Per-agent override for sandbox browser Docker network.",
+    "沙箱浏览器容器的 Docker 网络（默认：openclaw-sandbox-browser）。如需更严格隔离则避免 bridge。",
+  "agents.list[].sandbox.browser.network": "逐代理沙箱浏览器 Docker 网络覆盖。",
   "agents.defaults.sandbox.docker.dangerouslyAllowContainerNamespaceJoin":
-    "DANGEROUS break-glass override that allows sandbox Docker network mode container:<id>. This joins another container namespace and weakens sandbox isolation.",
+    "【危险】break-glass 覆盖，允许沙箱 Docker 网络模式 container:<id>。这会加入另一个容器命名空间并削弱沙箱隔离。",
   "agents.list[].sandbox.docker.dangerouslyAllowContainerNamespaceJoin":
-    "Per-agent DANGEROUS override for container namespace joins in sandbox Docker network mode.",
+    "逐代理的容器命名空间加入【危险】覆盖，用于沙箱 Docker 网络模式。",
   "agents.defaults.sandbox.browser.cdpSourceRange":
-    "Optional CIDR allowlist for container-edge CDP ingress (for example 172.21.0.1/32).",
+    "容器边缘 CDP 入口的可选 CIDR 允许列表（例如 172.21.0.1/32）。",
   "agents.list[].sandbox.browser.cdpSourceRange":
-    "Per-agent override for CDP source CIDR allowlist.",
+    "逐代理 CDP 源 CIDR 允许列表覆盖。",
   "gateway.controlUi.basePath":
-    "Optional URL prefix where the Control UI is served (e.g. /openclaw).",
+    "控制面板 UI 提供服务的可选 URL 前缀（例如 /openclaw）。",
   "gateway.controlUi.root":
-    "Optional filesystem root for Control UI assets (defaults to dist/control-ui).",
+    "控制面板 UI 资产的可选文件系统根目录（默认为 dist/control-ui）。",
   "gateway.controlUi.allowedOrigins":
-    "Allowed browser origins for Control UI/WebChat websocket connections (full origins only, e.g. https://control.example.com). Required for non-loopback Control UI deployments unless dangerous Host-header fallback is explicitly enabled.",
+    "控制面板 UI/WebChat WebSocket 连接允许的浏览器来源（仅完整来源，例如 https://control.example.com）。非回环控制面板 UI 部署必需，除非显式启用了危险的 Host 头回退。",
   "gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback":
-    "DANGEROUS toggle that enables Host-header based origin fallback for Control UI/WebChat websocket checks. This mode is supported when your deployment intentionally relies on Host-header origin policy; explicit gateway.controlUi.allowedOrigins remains the recommended hardened default.",
+    "【危险】启用基于 Host 头的来源回退，用于控制面板 UI/WebChat WebSocket 检查。当你的部署有意依赖 Host 头来源策略时支持此模式；显式的 gateway.controlUi.allowedOrigins 仍然是推荐的加固默认值。",
   "gateway.controlUi.allowInsecureAuth":
-    "Loosens strict browser auth checks for Control UI when you must run a non-standard setup. Keep this off unless you trust your network and proxy path, because impersonation risk is higher.",
+    "当你必须运行非标准设置时，放宽控制面板 UI 的严格浏览器认证检查。除非你信任你的网络和代理路径，否则保持关闭，因为冒充风险更高。",
   "gateway.controlUi.dangerouslyDisableDeviceAuth":
-    "Disables Control UI device identity checks and relies on token/password only. Use only for short-lived debugging on trusted networks, then turn it off immediately.",
+    "禁用控制面板 UI 设备身份检查，仅依赖令牌/密码。仅用于可信网络上的短期调试，然后立即关闭。",
   "gateway.http.endpoints.chatCompletions.enabled":
-    "Enable the OpenAI-compatible `POST /v1/chat/completions` endpoint (default: false).",
+    "启用 OpenAI 兼容的 `POST /v1/chat/completions` 端点（默认：false）。",
   "gateway.http.endpoints.chatCompletions.maxBodyBytes":
-    "Max request body size in bytes for `/v1/chat/completions` (default: 20MB).",
+    "`/v1/chat/completions` 的最大请求体大小（字节，默认：20MB）。",
   "gateway.http.endpoints.chatCompletions.maxImageParts":
-    "Max number of `image_url` parts accepted from the latest user message (default: 8).",
+    "最新用户消息中接受的最大 `image_url` 部分数量（默认：8）。",
   "gateway.http.endpoints.chatCompletions.maxTotalImageBytes":
-    "Max cumulative decoded bytes across all `image_url` parts in one request (default: 20MB).",
+    "一个请求中所有 `image_url` 部分的最大累计解码字节数（默认：20MB）。",
   "gateway.http.endpoints.chatCompletions.images":
-    "Image fetch/validation controls for OpenAI-compatible `image_url` parts.",
+    "OpenAI 兼容 `image_url` 部分的图片获取/验证控制。",
   "gateway.http.endpoints.chatCompletions.images.allowUrl":
-    "Allow server-side URL fetches for `image_url` parts (default: false; data URIs remain supported).",
+    "允许服务器端 URL 获取 `image_url` 部分（默认：false；data URI 始终支持）。",
   "gateway.http.endpoints.chatCompletions.images.urlAllowlist":
-    "Optional hostname allowlist for `image_url` URL fetches; supports exact hosts and `*.example.com` wildcards.",
+    "`image_url` URL 获取的可选主机名允许列表；支持精确主机和 `*.example.com` 通配符。",
   "gateway.http.endpoints.chatCompletions.images.allowedMimes":
-    "Allowed MIME types for `image_url` parts (case-insensitive list).",
+    "`image_url` 部分允许的 MIME 类型（不区分大小写列表）。",
   "gateway.http.endpoints.chatCompletions.images.maxBytes":
-    "Max bytes per fetched/decoded `image_url` image (default: 10MB).",
+    "每个获取/解码的 `image_url` 图片的最大字节数（默认：10MB）。",
   "gateway.http.endpoints.chatCompletions.images.maxRedirects":
-    "Max HTTP redirects allowed when fetching `image_url` URLs (default: 3).",
+    "获取 `image_url` URL 时允许的最大 HTTP 重定向次数（默认：3）。",
   "gateway.http.endpoints.chatCompletions.images.timeoutMs":
-    "Timeout in milliseconds for `image_url` URL fetches (default: 10000).",
+    "`image_url` URL 获取的超时时间（毫秒，默认：10000）。",
   "gateway.reload.mode":
-    'Controls how config edits are applied: "off" ignores live edits, "restart" always restarts, "hot" applies in-process, and "hybrid" tries hot then restarts if required. Keep "hybrid" for safest routine updates.',
-  "gateway.reload.debounceMs": "Debounce window (ms) before applying config changes.",
+    '控制配置编辑的应用方式："off" 忽略实时编辑，"restart" 始终重启，"hot" 在进程内应用，"hybrid" 先尝试热加载然后在需要时重启。保持 "hybrid" 以获得最安全的常规更新。',
+  "gateway.reload.debounceMs": "应用配置更改前的防抖窗口（毫秒）。",
   "gateway.nodes.browser.mode":
-    'Node browser routing ("auto" = pick single connected browser node, "manual" = require node param, "off" = disable).',
-  "gateway.nodes.browser.node": "Pin browser routing to a specific node id or name (optional).",
+    '节点浏览器路由模式（"auto" = 选择单个已连接的浏览器节点，"manual" = 需要 node 参数，"off" = 禁用）。',
+  "gateway.nodes.browser.node": "将浏览器路由固定到特定的节点 ID 或名称（可选）。",
   "gateway.nodes.allowCommands":
-    "Extra node.invoke commands to allow beyond the gateway defaults (array of command strings). Enabling dangerous commands here is a security-sensitive override and is flagged by `openclaw security audit`.",
+    "在网关默认值之外额外允许的 node.invoke 命令（命令字符串数组）。在此启用危险命令是安全敏感的覆盖，会被 `openclaw security audit` 标记。",
   "gateway.nodes.denyCommands":
-    "Node command names to block even if present in node claims or default allowlist (exact command-name matching only, e.g. `system.run`; does not inspect shell text inside that command).",
+    "即使存在于节点声明或默认允许列表中也要阻止的节点命令名称（仅精确命令名匹配，例如 `system.run`；不检查该命令内的 shell 文本）。",
   nodeHost:
-    "Node host controls for features exposed from this gateway node to other nodes or clients. Keep defaults unless you intentionally proxy local capabilities across your node network.",
+    "节点主机控制，用于从此网关节点向其他节点或客户端暴露功能。保持默认值，除非你有意在节点网络中代理本地能力。",
   "nodeHost.browserProxy":
-    "Groups browser-proxy settings for exposing local browser control through node routing. Enable only when remote node workflows need your local browser profiles.",
+    "浏览器代理设置分组，用于通过节点路由暴露本地浏览器控制。仅在远程节点工作流需要你的本地浏览器配置文件时启用。",
   "nodeHost.browserProxy.enabled":
-    "Expose the local browser control server through node proxy routing so remote clients can use this host's browser capabilities. Keep disabled unless remote automation explicitly depends on it.",
+    "通过节点代理路由暴露本地浏览器控制服务器，使远程客户端可以使用此主机的浏览器能力。除非远程自动化明确依赖它，否则保持禁用。",
   "nodeHost.browserProxy.allowProfiles":
-    "Optional allowlist of browser profile names exposed through node proxy routing. Leave empty to expose all configured profiles, or use a tight list to enforce least-privilege profile access.",
+    "通过节点代理路由暴露的浏览器配置文件名称的可选允许列表。留空以暴露所有配置的配置文件，或使用精简列表以强制最小权限配置文件访问。",
   media:
-    "Top-level media behavior shared across providers and tools that handle inbound files. Keep defaults unless you need stable filenames for external processing pipelines or longer-lived inbound media retention.",
+    "跨处理入站文件的提供商和工具共享的顶级媒体行为。保持默认值，除非需要为外部处理管道提供稳定文件名或更长的入站媒体保留。",
   "media.preserveFilenames":
-    "When enabled, uploaded media keeps its original filename instead of a generated temp-safe name. Turn this on when downstream automations depend on stable names, and leave off to reduce accidental filename leakage.",
+    "启用时，上传的媒体保留原始文件名而非生成的临时安全名称。当下游自动化依赖稳定名称时开启，关闭以减少意外的文件名泄漏。",
   "media.ttlHours":
-    "Optional retention window in hours for persisted inbound media cleanup across the full media tree. Leave unset to preserve legacy behavior, or set values like 24 (1 day) or 168 (7 days) when you want automatic cleanup.",
+    "跨完整媒体树的持久化入站媒体清理的可选保留窗口（小时）。留空以保留旧版行为，或设置如 24（1 天）或 168（7 天）以启用自动清理。",
   audio:
-    "Global audio ingestion settings used before higher-level tools process speech or media content. Configure this when you need deterministic transcription behavior for voice notes and clips.",
+    "在高级工具处理语音或媒体内容之前使用的全局音频摄取设置。当需要对语音备忘录和片段进行确定性转录行为时配置。",
   "audio.transcription":
-    "Command-based transcription settings for converting audio files into text before agent handling. Keep a simple, deterministic command path here so failures are easy to diagnose in logs.",
+    "基于命令的转录设置，用于在代理处理前将音频文件转换为文本。保持简单确定性的命令路径，以便在日志中易于诊断失败。",
   "audio.transcription.command":
-    'Executable + args used to transcribe audio (first token must be a safe binary/path), for example `["whisper-cli", "--model", "small", "{input}"]`. Prefer a pinned command so runtime environments behave consistently.',
+    '用于转录音频的可执行文件 + 参数（第一个令牌必须是安全的二进制/路径），例如 `["whisper-cli", "--model", "small", "{input}"]`。优先使用固定命令以使运行时环境行为一致。',
   "audio.transcription.timeoutSeconds":
-    "Maximum time allowed for the transcription command to finish before it is aborted. Increase this for longer recordings, and keep it tight in latency-sensitive deployments.",
+    "转录命令完成前允许的最大时间。较长录音增加此值，延迟敏感部署中保持紧凑。",
   bindings:
-    "Top-level binding rules for routing and persistent ACP conversation ownership. Use type=route for normal routing and type=acp for persistent ACP harness bindings.",
+    "顶级绑定规则，用于路由和持久化 ACP 会话所有权。正常路由使用 type=route，持久化 ACP 挂载绑定使用 type=acp。",
   "bindings[].type":
-    'Binding kind. Use "route" (or omit for legacy route entries) for normal routing, and "acp" for persistent ACP conversation bindings.',
+    '绑定类型。正常路由使用 "route"（或省略用于旧版路由条目），持久化 ACP 会话绑定使用 "acp"。',
   "bindings[].agentId":
-    "Target agent ID that receives traffic when the corresponding binding match rule is satisfied. Use valid configured agent IDs only so routing does not fail at runtime.",
+    "当对应的绑定匹配规则满足时接收流量的目标代理 ID。仅使用有效的已配置代理 ID 以避免运行时路由失败。",
   "bindings[].match":
-    "Match rule object for deciding when a binding applies, including channel and optional account/peer constraints. Keep rules narrow to avoid accidental agent takeover across contexts.",
+    "用于决定绑定何时应用的匹配规则对象，包括频道和可选的账户/对等约束。保持规则精确以避免跨上下文的意外代理接管。",
   "bindings[].match.channel":
-    "Channel/provider identifier this binding applies to, such as `telegram`, `discord`, or a plugin channel ID. Use the configured channel key exactly so binding evaluation works reliably.",
+    "此绑定适用的频道/提供商标识符，如 `telegram`、`discord` 或插件频道 ID。精确使用已配置的频道键以使绑定求值可靠工作。",
   "bindings[].match.accountId":
-    "Optional account selector for multi-account channel setups so the binding applies only to one identity. Use this when account scoping is required for the route and leave unset otherwise.",
+    "多账户频道设置中的可选账户选择器，使绑定仅适用于一个身份。需要路由的账户范围时使用，否则留空。",
   "bindings[].match.peer":
-    "Optional peer matcher for specific conversations including peer kind and peer id. Use this when only one direct/group/channel target should be pinned to an agent.",
+    "特定对话的可选对等匹配器，包括对等类型和对等 ID。当只有一个直接/群组/频道目标应固定到某代理时使用。",
   "bindings[].match.peer.kind":
-    'Peer conversation type: "direct", "group", "channel", or legacy "dm" (deprecated alias for direct). Prefer "direct" for new configs and keep kind aligned with channel semantics.',
+    '对等会话类型："direct"、"group"、"channel" 或旧版 "dm"（direct 的弃用别名）。新配置优先使用 "direct" 并保持类型与频道语义对齐。',
   "bindings[].match.peer.id":
-    "Conversation identifier used with peer matching, such as a chat ID, channel ID, or group ID from the provider. Keep this exact to avoid silent non-matches.",
+    "与对等匹配一起使用的会话标识符，如提供商的聊天 ID、频道 ID 或群组 ID。保持精确以避免静默不匹配。",
   "bindings[].match.guildId":
-    "Optional Discord-style guild/server ID constraint for binding evaluation in multi-server deployments. Use this when the same peer identifiers can appear across different guilds.",
+    "多服务器部署中绑定求值的可选 Discord 风格公会/服务器 ID 约束。当相同对等标识符可能出现在不同公会时使用。",
   "bindings[].match.teamId":
-    "Optional team/workspace ID constraint used by providers that scope chats under teams. Add this when you need bindings isolated to one workspace context.",
+    "按提供商使用的可选团队/工作区 ID 约束，用于在团队下范围聊天。当需要将绑定隔离到一个工作区上下文时添加。",
   "bindings[].match.roles":
-    "Optional role-based filter list used by providers that attach roles to chat context. Use this to route privileged or operational role traffic to specialized agents.",
+    "按提供商使用的可选基于角色的过滤列表，用于将角色附加到聊天上下文。使用此项将特权或运维角色流量路由到专门的代理。",
   "bindings[].acp":
-    "Optional per-binding ACP overrides for bindings[].type=acp. This layer overrides agents.list[].runtime.acp defaults for the matched conversation.",
-  "bindings[].acp.mode": "ACP session mode override for this binding (persistent or oneshot).",
+    "type=acp 绑定的可选逐绑定 ACP 覆盖。此层覆盖匹配对话的 agents.list[].runtime.acp 默认值。",
+  "bindings[].acp.mode": "此绑定的 ACP 会话模式覆盖（persistent 或 oneshot）。",
   "bindings[].acp.label":
-    "Human-friendly label for ACP status/diagnostics in this bound conversation.",
-  "bindings[].acp.cwd": "Working directory override for ACP sessions created from this binding.",
+    "此绑定对话中 ACP 状态/诊断的人类友好标签。",
+  "bindings[].acp.cwd": "从此绑定创建的 ACP 会话的工作目录覆盖。",
   "bindings[].acp.backend":
-    "ACP backend override for this binding (falls back to agent runtime ACP backend, then global acp.backend).",
+    "此绑定的 ACP 后端覆盖（回退到代理运行时 ACP 后端，然后全局 acp.backend）。",
   broadcast:
-    "Broadcast routing map for sending the same outbound message to multiple peer IDs per source conversation. Keep this minimal and audited because one source can fan out to many destinations.",
+    "广播路由映射，用于将同一出站消息发送到每个源会话的多个对等 ID。保持最小化并审计，因为一个源可以扇出到多个目的地。",
   "broadcast.strategy":
-    'Delivery order for broadcast fan-out: "parallel" sends to all targets concurrently, while "sequential" sends one-by-one. Use "parallel" for speed and "sequential" for stricter ordering/backpressure control.',
+    '广播扇出的投递顺序："parallel" 并发发送到所有目标，"sequential" 逐个发送。速度优先使用 "parallel"，更严格排序/背压控制使用 "sequential"。',
   "broadcast.*":
-    "Per-source broadcast destination list where each key is a source peer ID and the value is an array of destination peer IDs. Keep lists intentional to avoid accidental message amplification.",
+    "每源广播目的地列表，每个键是源对等 ID，值是目的地对等 ID 数组。保持列表有意图以避免意外的消息放大。",
   "diagnostics.flags":
-    'Enable targeted diagnostics logs by flag (e.g. ["telegram.http"]). Supports wildcards like "telegram.*" or "*".',
+    '按标志启用目标诊断日志（例如 ["telegram.http"]）。支持通配符如 "telegram.*" 或 "*"。',
   "diagnostics.enabled":
-    "Master toggle for diagnostics instrumentation output in logs and telemetry wiring paths. Keep enabled for normal observability, and disable only in tightly constrained environments.",
+    "日志和遥测连接路径中诊断设备输出的主开关。正常可观测性保持启用，仅在严格约束的环境中禁用。",
   "diagnostics.stuckSessionWarnMs":
-    "Age threshold in milliseconds for emitting stuck-session warnings while a session remains in processing state. Increase for long multi-tool turns to reduce false positives; decrease for faster hang detection.",
+    "会话保持处理状态时发出卡住会话警告的年龄阈值（毫秒）。长时间多工具轮次增加以减少误报；降低以更快检测挂起。",
   "diagnostics.otel.enabled":
-    "Enables OpenTelemetry export pipeline for traces, metrics, and logs based on configured endpoint/protocol settings. Keep disabled unless your collector endpoint and auth are fully configured.",
+    "基于配置的端点/协议设置启用追踪、指标和日志的 OpenTelemetry 导出管道。除非你的收集器端点和认证已完全配置，否则保持禁用。",
   "diagnostics.otel.endpoint":
-    "Collector endpoint URL used for OpenTelemetry export transport, including scheme and port. Use a reachable, trusted collector endpoint and monitor ingestion errors after rollout.",
+    "用于 OpenTelemetry 导出传输的收集器端点 URL，包括协议和端口。使用可达的可信收集器端点并在推出后监控摄取错误。",
   "diagnostics.otel.protocol":
-    'OTel transport protocol for telemetry export: "http/protobuf" or "grpc" depending on collector support. Use the protocol your observability backend expects to avoid dropped telemetry payloads.',
+    'OTel 遥测导出传输协议："http/protobuf" 或 "grpc"，取决于收集器支持。使用你的可观测性后端期望的协议以避免丢弃遥测负载。',
   "diagnostics.otel.headers":
-    "Additional HTTP/gRPC metadata headers sent with OpenTelemetry export requests, often used for tenant auth or routing. Keep secrets in env-backed values and avoid unnecessary header sprawl.",
+    "随 OpenTelemetry 导出请求发送的额外 HTTP/gRPC 元数据头，通常用于租户认证或路由。保持密钥在环境变量支持的值中，避免不必要的头部蔓延。",
   "diagnostics.otel.serviceName":
-    "Service name reported in telemetry resource attributes to identify this gateway instance in observability backends. Use stable names so dashboards and alerts remain consistent over deployments.",
+    "遥测资源属性中报告的服务名称，用于在可观测性后端识别此网关实例。使用稳定名称以保持仪表盘和告警跨部署一致。",
   "diagnostics.otel.traces":
-    "Enable trace signal export to the configured OpenTelemetry collector endpoint. Keep enabled when latency/debug tracing is needed, and disable if you only want metrics/logs.",
+    "启用追踪信号导出到配置的 OpenTelemetry 收集器端点。需要延迟/调试追踪时保持启用，仅需要指标/日志时禁用。",
   "diagnostics.otel.metrics":
-    "Enable metrics signal export to the configured OpenTelemetry collector endpoint. Keep enabled for runtime health dashboards, and disable only if metric volume must be minimized.",
+    "启用指标信号导出到配置的 OpenTelemetry 收集器端点。运行时健康仪表盘保持启用，仅在必须最小化指标量时禁用。",
   "diagnostics.otel.logs":
-    "Enable log signal export through OpenTelemetry in addition to local logging sinks. Use this when centralized log correlation is required across services and agents.",
+    "除本地日志接收器外，通过 OpenTelemetry 启用日志信号导出。当需要跨服务和代理的集中式日志关联时使用。",
   "diagnostics.otel.sampleRate":
-    "Trace sampling rate (0-1) controlling how much trace traffic is exported to observability backends. Lower rates reduce overhead/cost, while higher rates improve debugging fidelity.",
+    "追踪采样率（0-1），控制导出到可观测性后端的追踪流量比例。较低速率减少开销/成本，较高速率改善调试保真度。",
   "diagnostics.otel.flushIntervalMs":
-    "Interval in milliseconds for periodic telemetry flush from buffers to the collector. Increase to reduce export chatter, or lower for faster visibility during active incident response.",
+    "从缓冲区到收集器的周期性遥测刷新间隔（毫秒）。增加以减少导出噪音，或降低以在活动事件响应期间更快获得可见性。",
   "diagnostics.cacheTrace.enabled":
-    "Log cache trace snapshots for embedded agent runs (default: false).",
+    "记录内嵌代理运行的缓存追踪快照（默认：false）。",
   "diagnostics.cacheTrace.filePath":
-    "JSONL output path for cache trace logs (default: $OPENCLAW_STATE_DIR/logs/cache-trace.jsonl).",
+    "缓存追踪日志的 JSONL 输出路径（默认：$OPENCLAW_STATE_DIR/logs/cache-trace.jsonl）。",
   "diagnostics.cacheTrace.includeMessages":
-    "Include full message payloads in trace output (default: true).",
-  "diagnostics.cacheTrace.includePrompt": "Include prompt text in trace output (default: true).",
-  "diagnostics.cacheTrace.includeSystem": "Include system prompt in trace output (default: true).",
+    "在追踪输出中包含完整消息负载（默认：true）。",
+  "diagnostics.cacheTrace.includePrompt": "在追踪输出中包含提示文本（默认：true）。",
+  "diagnostics.cacheTrace.includeSystem": "在追踪输出中包含系统提示（默认：true）。",
   "tools.exec.applyPatch.enabled":
-    "Experimental. Enables apply_patch for OpenAI models when allowed by tool policy.",
+    "实验性。当工具策略允许时为 OpenAI 模型启用 apply_patch。",
   "tools.exec.applyPatch.workspaceOnly":
-    "Restrict apply_patch paths to the workspace directory (default: true). Set false to allow writing outside the workspace (dangerous).",
+    "将 apply_patch 路径限制在工作区目录（默认：true）。设置 false 允许写入工作区外（危险）。",
   "tools.exec.applyPatch.allowModels":
-    'Optional allowlist of model ids (e.g. "gpt-5.2" or "openai/gpt-5.2").',
+    '可选的模型 ID 允许列表（例如 "gpt-5.2" 或 "openai/gpt-5.2"）。',
   "tools.loopDetection.enabled":
-    "Enable repetitive tool-call loop detection and backoff safety checks (default: false).",
-  "tools.loopDetection.historySize": "Tool history window size for loop detection (default: 30).",
+    "启用重复工具调用循环检测和退避安全检查（默认：false）。",
+  "tools.loopDetection.historySize": "循环检测的工具历史窗口大小（默认：30）。",
   "tools.loopDetection.warningThreshold":
-    "Warning threshold for repetitive patterns when detector is enabled (default: 10).",
+    "检测器启用时重复模式的警告阈值（默认：10）。",
   "tools.loopDetection.criticalThreshold":
-    "Critical threshold for repetitive patterns when detector is enabled (default: 20).",
+    "检测器启用时重复模式的严重阈值（默认：20）。",
   "tools.loopDetection.globalCircuitBreakerThreshold":
-    "Global no-progress breaker threshold (default: 30).",
+    "全局无进展断路器阈值（默认：30）。",
   "tools.loopDetection.detectors.genericRepeat":
-    "Enable generic repeated same-tool/same-params loop detection (default: true).",
+    "启用通用重复相同工具/相同参数循环检测（默认：true）。",
   "tools.loopDetection.detectors.knownPollNoProgress":
-    "Enable known poll tool no-progress loop detection (default: true).",
-  "tools.loopDetection.detectors.pingPong": "Enable ping-pong loop detection (default: true).",
+    "启用已知轮询工具无进展循环检测（默认：true）。",
+  "tools.loopDetection.detectors.pingPong": "启用乒乓循环检测（默认：true）。",
   "tools.exec.notifyOnExit":
-    "When true (default), backgrounded exec sessions on exit and node exec lifecycle events enqueue a system event and request a heartbeat.",
+    "当为 true（默认）时，后台执行会话退出和节点执行生命周期事件会排入系统事件并请求心跳。",
   "tools.exec.notifyOnExitEmptySuccess":
-    "When true, successful backgrounded exec exits with empty output still enqueue a completion system event (default: false).",
-  "tools.exec.pathPrepend": "Directories to prepend to PATH for exec runs (gateway/sandbox).",
+    "当为 true 时，空输出的成功后台执行退出仍排入完成系统事件（默认：false）。",
+  "tools.exec.pathPrepend": "执行运行（网关/沙箱）时预置到 PATH 的目录。",
   "tools.exec.safeBins":
-    "Allow stdin-only safe binaries to run without explicit allowlist entries.",
+    "允许仅标准输入的安全二进制文件在无显式允许列表条目的情况下运行。",
   "tools.exec.safeBinTrustedDirs":
-    "Additional explicit directories trusted for safe-bin path checks (PATH entries are never auto-trusted).",
+    "安全二进制路径检查信任的额外显式目录（PATH 条目永不自动信任）。",
   "tools.exec.safeBinProfiles":
-    "Optional per-binary safe-bin profiles (positional limits + allowed/denied flags).",
+    "可选的逐二进制安全二进制配置文件（位置限制 + 允许/拒绝标志）。",
   "tools.profile":
-    "Global tool profile name used to select a predefined tool policy baseline before applying allow/deny overrides. Use this for consistent environment posture across agents and keep profile names stable.",
+    "用于选择预定义工具策略基线的全局工具配置文件名称。用于跨代理一致的环境态势，保持配置文件名称稳定。",
   "tools.alsoAllow":
-    "Extra tool allowlist entries merged on top of the selected tool profile and default policy. Keep this list small and explicit so audits can quickly identify intentional policy exceptions.",
+    "合并到所选工具配置文件和默认策略之上的额外工具允许列表条目。保持此列表精简且显式以便审计快速识别有意的策略例外。",
   "tools.byProvider":
-    "Per-provider tool allow/deny overrides keyed by channel/provider ID to tailor capabilities by surface. Use this when one provider needs stricter controls than global tool policy.",
+    "按频道/提供商 ID 键控的逐提供商工具允许/拒绝覆盖，以按界面定制能力。当一个提供商需要比全局工具策略更严格的控制时使用。",
   "agents.list[].tools.profile":
-    "Per-agent override for tool profile selection when one agent needs a different capability baseline. Use this sparingly so policy differences across agents stay intentional and reviewable.",
+    "当一个代理需要不同能力基线时的逐代理工具配置文件选择覆盖。谨慎使用以保持跨代理的策略差异有意且可审查。",
   "agents.list[].tools.alsoAllow":
-    "Per-agent additive allowlist for tools on top of global and profile policy. Keep narrow to avoid accidental privilege expansion on specialized agents.",
+    "在全局和配置文件策略之上的逐代理工具附加允许列表。保持精确以避免专门代理的意外权限扩展。",
   "agents.list[].tools.byProvider":
-    "Per-agent provider-specific tool policy overrides for channel-scoped capability control. Use this when a single agent needs tighter restrictions on one provider than others.",
+    "逐代理的特定提供商工具策略覆盖，用于频道范围的能力控制。当单个代理对一个提供商需要比其他更严格的限制时使用。",
   "tools.exec.approvalRunningNoticeMs":
-    "Delay in milliseconds before showing an in-progress notice after an exec approval is granted. Increase to reduce flicker for fast commands, or lower for quicker operator feedback.",
+    "执行审批授予后显示进行中通知的延迟（毫秒）。增加以减少快速命令的闪烁，或降低以更快获得操作者反馈。",
   "tools.links.enabled":
-    "Enable automatic link understanding pre-processing so URLs can be summarized before agent reasoning. Keep enabled for richer context, and disable when strict minimal processing is required.",
+    "启用自动链接理解预处理，以便在代理推理前总结 URL。保持启用以获得更丰富的上下文，当需要严格最小处理时禁用。",
   "tools.links.maxLinks":
-    "Maximum number of links expanded per turn during link understanding. Use lower values to control latency/cost in chatty threads and higher values when multi-link context is critical.",
+    "链接理解期间每轮展开的最大链接数量。使用较低值控制多话题中的延迟/成本，当多链接上下文至关重要时使用较高值。",
   "tools.links.timeoutSeconds":
-    "Per-link understanding timeout budget in seconds before unresolved links are skipped. Keep this bounded to avoid long stalls when external sites are slow or unreachable.",
+    "每链接理解超时预算（秒），超时后跳过未解析的链接。保持有界以避免外部站点缓慢或不可达时的长时间停顿。",
   "tools.links.models":
-    "Preferred model list for link understanding tasks, evaluated in order as fallbacks when supported. Use lightweight models first for routine summarization and heavier models only when needed.",
+    "链接理解任务的首选模型列表，按顺序作为回退评估。常规总结优先使用轻量模型，仅在需要时使用更重模型。",
   "tools.links.scope":
-    "Controls when link understanding runs relative to conversation context and message type. Keep scope conservative to avoid unnecessary fetches on messages where links are not actionable.",
+    "控制链接理解相对于对话上下文和消息类型何时运行。保持范围保守以避免对链接不可操作的消息进行不必要的获取。",
   "tools.media.models":
-    "Shared fallback model list used by media understanding tools when modality-specific model lists are not set. Keep this aligned with available multimodal providers to avoid runtime fallback churn.",
+    "当特定模态模型列表未设置时，媒体理解工具使用的共享回退模型列表。保持与可用多模态提供商对齐以避免运行时回退抖动。",
   "tools.media.concurrency":
-    "Maximum number of concurrent media understanding operations per turn across image, audio, and video tasks. Lower this in resource-constrained deployments to prevent CPU/network saturation.",
+    "每轮跨图片、音频和视频任务的最大并发媒体理解操作数。资源受限部署降低以防止 CPU/网络饱和。",
   "tools.media.image.enabled":
-    "Enable image understanding so attached or referenced images can be interpreted into textual context. Disable if you need text-only operation or want to avoid image-processing cost.",
+    "启用图片理解以便附件或引用的图片可以被解释为文本上下文。如需纯文本操作或想避免图片处理成本则禁用。",
   "tools.media.image.maxBytes":
-    "Maximum accepted image payload size in bytes before the item is skipped or truncated by policy. Keep limits realistic for your provider caps and infrastructure bandwidth.",
+    "策略跳过或截断前接受的最大图片负载大小（字节）。保持限制对提供商上限和基础设施带宽合理。",
   "tools.media.image.maxChars":
-    "Maximum characters returned from image understanding output after model response normalization. Use tighter limits to reduce prompt bloat and larger limits for detail-heavy OCR tasks.",
+    "模型响应归一化后图片理解输出返回的最大字符数。使用更紧限制减少提示膨胀，细节密集的 OCR 任务使用更大限制。",
   "tools.media.image.prompt":
-    "Instruction template used for image understanding requests to shape extraction style and detail level. Keep prompts deterministic so outputs stay consistent across turns and channels.",
+    "用于图片理解请求的指令模板，塑造提取样式和详细级别。保持提示确定性以使输出在轮次和频道间保持一致。",
   "tools.media.image.timeoutSeconds":
-    "Timeout in seconds for each image understanding request before it is aborted. Increase for high-resolution analysis and lower it for latency-sensitive operator workflows.",
+    "每个图片理解请求中止前的超时时间（秒）。高分辨率分析增加，延迟敏感操作者工作流降低。",
   "tools.media.image.attachments":
-    "Attachment handling policy for image inputs, including which message attachments qualify for image analysis. Use restrictive settings in untrusted channels to reduce unexpected processing.",
+    "图片输入的附件处理策略，包括哪些消息附件符合图片分析条件。在不可信频道中使用限制性设置以减少意外处理。",
   "tools.media.image.models":
-    "Ordered model preferences specifically for image understanding when you want to override shared media models. Put the most reliable multimodal model first to reduce fallback attempts.",
+    "当你想覆盖共享媒体模型时，专门用于图片理解的有序模型首选项。将最可靠的多模态模型放在首位以减少回退尝试。",
   "tools.media.image.scope":
-    "Scope selector for when image understanding is attempted (for example only explicit requests versus broader auto-detection). Keep narrow scope in busy channels to control token and API spend.",
+    "图片理解尝试时机的范围选择器（例如仅显式请求与更广泛的自动检测）。繁忙频道保持窄范围以控制令牌和 API 支出。",
   ...MEDIA_AUDIO_FIELD_HELP,
   "tools.media.video.enabled":
-    "Enable video understanding so clips can be summarized into text for downstream reasoning and responses. Disable when processing video is out of policy or too expensive for your deployment.",
+    "启用视频理解以便片段可以被总结为文本供下游推理和响应使用。当处理视频不在策略内或对部署太昂贵时禁用。",
   "tools.media.video.maxBytes":
-    "Maximum accepted video payload size in bytes before policy rejection or trimming occurs. Tune this to provider and infrastructure limits to avoid repeated timeout/failure loops.",
+    "策略拒绝或修剪前接受的最大视频负载大小（字节）。根据提供商和基础设施限制调整以避免重复的超时/失败循环。",
   "tools.media.video.maxChars":
-    "Maximum characters retained from video understanding output to control prompt growth. Raise for dense scene descriptions and lower when concise summaries are preferred.",
+    "视频理解输出保留的最大字符数以控制提示增长。密集场景描述提高，偏好简洁摘要时降低。",
   "tools.media.video.prompt":
-    "Instruction template for video understanding describing desired summary granularity and focus areas. Keep this stable so output quality remains predictable across model/provider fallbacks.",
+    "视频理解的指令模板，描述期望的摘要粒度和关注区域。保持稳定以使输出质量在模型/提供商回退间保持可预测。",
   "tools.media.video.timeoutSeconds":
-    "Timeout in seconds for each video understanding request before cancellation. Use conservative values in interactive channels and longer values for offline or batch-heavy processing.",
+    "每个视频理解请求取消前的超时时间（秒）。交互式频道使用保守值，离线或批量处理使用更长值。",
   "tools.media.video.attachments":
-    "Attachment eligibility policy for video analysis, defining which message files can trigger video processing. Keep this explicit in shared channels to prevent accidental large media workloads.",
+    "视频分析的附件资格策略，定义哪些消息文件可以触发视频处理。在共享频道中保持显式以防止意外的大型媒体工作负载。",
   "tools.media.video.models":
-    "Ordered model preferences specifically for video understanding before shared media fallback applies. Prioritize models with strong multimodal video support to minimize degraded summaries.",
+    "共享媒体回退应用前专门用于视频理解的有序模型首选项。优先选择具有强大多模态视频支持的模型以最小化降级摘要。",
   "tools.media.video.scope":
-    "Scope selector controlling when video understanding is attempted across incoming events. Narrow scope in noisy channels, and broaden only where video interpretation is core to workflow.",
+    "控制跨传入事件何时尝试视频理解的范围选择器。嘈杂频道收窄范围，仅在视频解读是工作流核心时扩大。",
   "skills.load.watch":
-    "Enable filesystem watching for skill-definition changes so updates can be applied without full process restart. Keep enabled in development workflows and disable in immutable production images.",
+    "启用文件系统监视技能定义更改，以便无需完全重启进程即可应用更新。开发工作流保持启用，不可变生产镜像中禁用。",
   "skills.load.watchDebounceMs":
-    "Debounce window in milliseconds for coalescing rapid skill file changes before reload logic runs. Increase to reduce reload churn on frequent writes, or lower for faster edit feedback.",
+    "重载逻辑运行前合并快速技能文件更改的防抖窗口（毫秒）。增加以减少频繁写入的重载抖动，或降低以获得更快的编辑反馈。",
   approvals:
-    "Approval routing controls for forwarding exec approval requests to chat destinations outside the originating session. Keep this disabled unless operators need explicit out-of-band approval visibility.",
+    "审批路由控制，用于将执行审批请求转发到发起会话之外的聊天目的地。除非操作者需要带外审批可见性，否则保持禁用。",
   "approvals.exec":
-    "Groups exec-approval forwarding behavior including enablement, routing mode, filters, and explicit targets. Configure here when approval prompts must reach operational channels instead of only the origin thread.",
+    "执行审批转发行为分组，包括启用、路由模式、过滤器和显式目标。当审批提示必须到达运维频道而非仅限原始线程时在此配置。",
   "approvals.exec.enabled":
-    "Enables forwarding of exec approval requests to configured delivery destinations (default: false). Keep disabled in low-risk setups and enable only when human approval responders need channel-visible prompts.",
+    "启用将执行审批请求转发到已配置投递目的地（默认：false）。低风险环境保持禁用，仅在人工审批响应者需要频道可见提示时启用。",
   "approvals.exec.mode":
-    'Controls where approval prompts are sent: "session" uses origin chat, "targets" uses configured targets, and "both" sends to both paths. Use "session" as baseline and expand only when operational workflow requires redundancy.',
+    '控制审批提示发送位置："session" 使用原始聊天，"targets" 使用已配置目标，"both" 发送到两个路径。将 "session" 作为基线，仅在运维工作流需要冗余时扩展。',
   "approvals.exec.agentFilter":
-    'Optional allowlist of agent IDs eligible for forwarded approvals, for example `["primary", "ops-agent"]`. Use this to limit forwarding blast radius and avoid notifying channels for unrelated agents.',
+    '转发审批的可选代理 ID 允许列表，例如 `["primary", "ops-agent"]`。使用此项限制转发范围并避免通知与无关代理相关的频道。',
   "approvals.exec.sessionFilter":
-    'Optional session-key filters matched as substring or regex-style patterns, for example `["discord:", "^agent:ops:"]`. Use narrow patterns so only intended approval contexts are forwarded to shared destinations.',
+    '可选的会话密钥过滤器，匹配子字符串或正则样式模式，例如 `["discord:", "^agent:ops:"]`。使用窄模式以确保仅预期的审批上下文被转发到共享目的地。',
   "approvals.exec.targets":
-    "Explicit delivery targets used when forwarding mode includes targets, each with channel and destination details. Keep target lists least-privilege and validate each destination before enabling broad forwarding.",
+    "转发模式包含目标时使用的显式投递目标，每个包含频道和目的地详情。保持目标列表最小权限，在启用广泛转发前验证每个目的地。",
   "approvals.exec.targets[].channel":
-    "Channel/provider ID used for forwarded approval delivery, such as discord, slack, or a plugin channel id. Use valid channel IDs only so approvals do not silently fail due to unknown routes.",
+    "用于转发审批投递的频道/提供商 ID，如 discord、slack 或插件频道 ID。仅使用有效的频道 ID 以避免审批因未知路由而静默失败。",
   "approvals.exec.targets[].to":
-    "Destination identifier inside the target channel (channel ID, user ID, or thread root depending on provider). Verify semantics per provider because destination format differs across channel integrations.",
+    "目标频道内的目的地标识符（频道 ID、用户 ID 或线程根，取决于提供商）。请按提供商验证语义，因为目的地格式因频道集成而异。",
   "approvals.exec.targets[].accountId":
-    "Optional account selector for multi-account channel setups when approvals must route through a specific account context. Use this only when the target channel has multiple configured identities.",
+    "多账户频道设置中的可选账户选择器，当审批必须通过特定账户上下文路由时使用。仅在目标频道有多个已配置身份时使用。",
   "approvals.exec.targets[].threadId":
-    "Optional thread/topic target for channels that support threaded delivery of forwarded approvals. Use this to keep approval traffic contained in operational threads instead of main channels.",
+    "支持线程投递转发审批的频道的可选线程/主题目标。使用此项将审批流量限制在运维线程而非主频道中。",
   "tools.fs.workspaceOnly":
-    "Restrict filesystem tools (read/write/edit/apply_patch) to the workspace directory (default: false).",
+    "将文件系统工具（read/write/edit/apply_patch）限制在工作区目录（默认：false）。",
   "tools.sessions.visibility":
-    'Controls which sessions can be targeted by sessions_list/sessions_history/sessions_send. ("tree" default = current session + spawned subagent sessions; "self" = only current; "agent" = any session in the current agent id; "all" = any session; cross-agent still requires tools.agentToAgent).',
+    '控制 sessions_list/sessions_history/sessions_send 可以定位哪些会话。（"tree" 默认 = 当前会话 + 生成的子代理会话；"self" = 仅当前；"agent" = 当前代理 ID 中的任何会话；"all" = 任何会话；跨代理仍需要 tools.agentToAgent）。',
   "tools.message.allowCrossContextSend":
-    "Legacy override: allow cross-context sends across all providers.",
+    "旧版覆盖：允许跨所有提供商的跨上下文发送。",
   "tools.message.crossContext.allowWithinProvider":
-    "Allow sends to other channels within the same provider (default: true).",
+    "允许在同一提供商内向其他频道发送（默认：true）。",
   "tools.message.crossContext.allowAcrossProviders":
-    "Allow sends across different providers (default: false).",
+    "允许跨不同提供商发送（默认：false）。",
   "tools.message.crossContext.marker.enabled":
-    "Add a visible origin marker when sending cross-context (default: true).",
+    "跨上下文发送时添加可见来源标记（默认：true）。",
   "tools.message.crossContext.marker.prefix":
-    'Text prefix for cross-context markers (supports "{channel}").',
+    '跨上下文标记的文本前缀（支持 "{channel}"）。',
   "tools.message.crossContext.marker.suffix":
-    'Text suffix for cross-context markers (supports "{channel}").',
-  "tools.message.broadcast.enabled": "Enable broadcast action (default: true).",
-  "tools.web.search.enabled": "Enable the web_search tool (requires a provider API key).",
+    '跨上下文标记的文本后缀（支持 "{channel}"）。',
+  "tools.message.broadcast.enabled": "启用广播操作（默认：true）。",
+  "tools.web.search.enabled": "启用 web_search 工具（需要提供商 API 密钥）。",
   "tools.web.search.provider":
-    'Search provider ("brave", "gemini", "grok", "kimi", or "perplexity"). Auto-detected from available API keys if omitted.',
-  "tools.web.search.apiKey": "Brave Search API key (fallback: BRAVE_API_KEY env var).",
-  "tools.web.search.maxResults": "Number of results to return (1-10).",
-  "tools.web.search.timeoutSeconds": "Timeout in seconds for web_search requests.",
-  "tools.web.search.cacheTtlMinutes": "Cache TTL in minutes for web_search results.",
+    '搜索提供商（"brave"、"gemini"、"grok"、"kimi" 或 "perplexity"）。省略时从可用 API 密钥自动检测。',
+  "tools.web.search.apiKey": "Brave Search API 密钥（回退：BRAVE_API_KEY 环境变量）。",
+  "tools.web.search.maxResults": "返回的结果数量（1-10）。",
+  "tools.web.search.timeoutSeconds": "web_search 请求的超时时间（秒）。",
+  "tools.web.search.cacheTtlMinutes": "web_search 结果的缓存 TTL（分钟）。",
   "tools.web.search.brave.mode":
-    'Brave Search mode: "web" (URL results) or "llm-context" (pre-extracted page content for LLM grounding).',
+    'Brave Search 模式："web"（URL 结果）或 "llm-context"（预提取的页面内容用于 LLM 基础）。',
   "tools.web.search.gemini.apiKey":
-    "Gemini API key for Google Search grounding (fallback: GEMINI_API_KEY env var).",
-  "tools.web.search.gemini.model": 'Gemini model override (default: "gemini-2.5-flash").',
-  "tools.web.search.grok.apiKey": "Grok (xAI) API key (fallback: XAI_API_KEY env var).", // pragma: allowlist secret
-  "tools.web.search.grok.model": 'Grok model override (default: "grok-4-1-fast").',
+    "用于 Google Search 基础的 Gemini API 密钥（回退：GEMINI_API_KEY 环境变量）。",
+  "tools.web.search.gemini.model": 'Gemini 模型覆盖（默认："gemini-2.5-flash"）。',
+  "tools.web.search.grok.apiKey": "Grok (xAI) API 密钥（回退：XAI_API_KEY 环境变量）。", // pragma: allowlist secret
+  "tools.web.search.grok.model": 'Grok 模型覆盖（默认："grok-4-1-fast"）。',
   "tools.web.search.kimi.apiKey":
-    "Moonshot/Kimi API key (fallback: KIMI_API_KEY or MOONSHOT_API_KEY env var).",
+    "Moonshot/Kimi API 密钥（回退：KIMI_API_KEY 或 MOONSHOT_API_KEY 环境变量）。",
   "tools.web.search.kimi.baseUrl":
-    'Kimi base URL override (default: "https://api.moonshot.ai/v1").',
-  "tools.web.search.kimi.model": 'Kimi model override (default: "moonshot-v1-128k").',
+    'Kimi 基础 URL 覆盖（默认："https://api.moonshot.ai/v1"）。',
+  "tools.web.search.kimi.model": 'Kimi 模型覆盖（默认："moonshot-v1-128k"）。',
   "tools.web.search.perplexity.apiKey":
-    "Perplexity or OpenRouter API key (fallback: PERPLEXITY_API_KEY or OPENROUTER_API_KEY env var). Direct Perplexity keys default to the Search API; OpenRouter keys use Sonar chat completions.",
+    "Perplexity 或 OpenRouter API 密钥（回退：PERPLEXITY_API_KEY 或 OPENROUTER_API_KEY 环境变量）。直接 Perplexity 密钥默认使用 Search API；OpenRouter 密钥使用 Sonar 聊天完成。",
   "tools.web.search.perplexity.baseUrl":
-    "Optional Perplexity/OpenRouter chat-completions base URL override. Setting this opts Perplexity into the legacy Sonar/OpenRouter compatibility path.",
+    "可选的 Perplexity/OpenRouter 聊天完成基础 URL 覆盖。设置此项将 Perplexity 切换到旧版 Sonar/OpenRouter 兼容路径。",
   "tools.web.search.perplexity.model":
-    'Optional Sonar/OpenRouter model override (default: "perplexity/sonar-pro"). Setting this opts Perplexity into the legacy chat-completions compatibility path.',
-  "tools.web.fetch.enabled": "Enable the web_fetch tool (lightweight HTTP fetch).",
-  "tools.web.fetch.maxChars": "Max characters returned by web_fetch (truncated).",
+    '可选的 Sonar/OpenRouter 模型覆盖（默认："perplexity/sonar-pro"）。设置此项将 Perplexity 切换到旧版聊天完成兼容路径。',
+  "tools.web.fetch.enabled": "启用 web_fetch 工具（轻量 HTTP 获取）。",
+  "tools.web.fetch.maxChars": "web_fetch 返回的最大字符数（截断）。",
   "tools.web.fetch.maxCharsCap":
-    "Hard cap for web_fetch maxChars (applies to config and tool calls).",
-  "tools.web.fetch.timeoutSeconds": "Timeout in seconds for web_fetch requests.",
-  "tools.web.fetch.cacheTtlMinutes": "Cache TTL in minutes for web_fetch results.",
-  "tools.web.fetch.maxRedirects": "Maximum redirects allowed for web_fetch (default: 3).",
-  "tools.web.fetch.userAgent": "Override User-Agent header for web_fetch requests.",
+    "web_fetch maxChars 的硬上限（适用于配置和工具调用）。",
+  "tools.web.fetch.timeoutSeconds": "web_fetch 请求的超时时间（秒）。",
+  "tools.web.fetch.cacheTtlMinutes": "web_fetch 结果的缓存 TTL（分钟）。",
+  "tools.web.fetch.maxRedirects": "web_fetch 允许的最大重定向次数（默认：3）。",
+  "tools.web.fetch.userAgent": "覆盖 web_fetch 请求的 User-Agent 头。",
   "tools.web.fetch.readability":
-    "Use Readability to extract main content from HTML (fallbacks to basic HTML cleanup).",
-  "tools.web.fetch.firecrawl.enabled": "Enable Firecrawl fallback for web_fetch (if configured).",
-  "tools.web.fetch.firecrawl.apiKey": "Firecrawl API key (fallback: FIRECRAWL_API_KEY env var).",
+    "使用 Readability 从 HTML 提取主要内容（回退到基本 HTML 清理）。",
+  "tools.web.fetch.firecrawl.enabled": "启用 web_fetch 的 Firecrawl 回退（如已配置）。",
+  "tools.web.fetch.firecrawl.apiKey": "Firecrawl API 密钥（回退：FIRECRAWL_API_KEY 环境变量）。",
   "tools.web.fetch.firecrawl.baseUrl":
-    "Firecrawl base URL (e.g. https://api.firecrawl.dev or custom endpoint).",
+    "Firecrawl 基础 URL（例如 https://api.firecrawl.dev 或自定义端点）。",
   "tools.web.fetch.firecrawl.onlyMainContent":
-    "When true, Firecrawl returns only the main content (default: true).",
+    "当为 true 时，Firecrawl 仅返回主要内容（默认：true）。",
   "tools.web.fetch.firecrawl.maxAgeMs":
-    "Firecrawl maxAge (ms) for cached results when supported by the API.",
-  "tools.web.fetch.firecrawl.timeoutSeconds": "Timeout in seconds for Firecrawl requests.",
+    "Firecrawl maxAge（毫秒），API 支持时用于缓存结果。",
+  "tools.web.fetch.firecrawl.timeoutSeconds": "Firecrawl 请求的超时时间（秒）。",
   models:
-    "Model catalog root for provider definitions, merge/replace behavior, and optional Bedrock discovery integration. Keep provider definitions explicit and validated before relying on production failover paths.",
+    "模型目录根节点，用于提供商定义、合并/替换行为和可选 Bedrock 发现集成。在依赖生产故障切换路径前，保持提供商定义显式且已验证。",
   "models.mode":
-    'Controls provider catalog behavior: "merge" keeps built-ins and overlays your custom providers, while "replace" uses only your configured providers. In "merge", matching provider IDs preserve non-empty agent models.json baseUrl values, while apiKey values are preserved only when the provider is not SecretRef-managed in current config/auth-profile context; SecretRef-managed providers refresh apiKey from current source markers, and matching model contextWindow/maxTokens use the higher value between explicit and implicit entries.',
+    '控制提供商目录行为："merge" 保留内置并叠加自定义提供商，"replace" 仅使用已配置的提供商。"merge" 模式下，匹配的提供商 ID 保留非空 agent models.json baseUrl 值，apiKey 值仅在提供商非当前配置/认证配置上下文中 SecretRef 管理时保留；SecretRef 管理的提供商从当前源标记刷新 apiKey，匹配模型 contextWindow/maxTokens 使用显式和隐式条目之间的较高值。',
   "models.providers":
-    "Provider map keyed by provider ID containing connection/auth settings and concrete model definitions. Use stable provider keys so references from agents and tooling remain portable across environments.",
+    "按提供商 ID 键控的提供商映射，包含该提供商条目的连接/认证设置和具体模型定义。使用稳定的提供商键以保持代理和工具引用跨环境可移植。",
   "models.providers.*.baseUrl":
-    "Base URL for the provider endpoint used to serve model requests for that provider entry. Use HTTPS endpoints and keep URLs environment-specific through config templating where needed.",
+    "用于为该提供商条目服务模型请求的提供商端点基础 URL。使用 HTTPS 端点，在需要时通过配置模板保持 URL 环境特定。",
   "models.providers.*.apiKey":
-    "Provider credential used for API-key based authentication when the provider requires direct key auth. Use secret/env substitution and avoid storing real keys in committed config files.",
+    "提供商需要直接密钥认证时使用的 API 密钥型认证提供商凭据。使用密钥/环境替换，避免在提交的配置文件中存储真实密钥。",
   "models.providers.*.auth":
-    'Selects provider auth style: "api-key" for API key auth, "token" for bearer token auth, "oauth" for OAuth credentials, and "aws-sdk" for AWS credential resolution. Match this to your provider requirements.',
+    '选择提供商认证样式："api-key" 用于 API 密钥认证，"token" 用于 Bearer 令牌认证，"oauth" 用于 OAuth 凭据，"aws-sdk" 用于 AWS 凭据解析。根据提供商要求匹配。',
   "models.providers.*.api":
-    "Provider API adapter selection controlling request/response compatibility handling for model calls. Use the adapter that matches your upstream provider protocol to avoid feature mismatch.",
+    "提供商 API 适配器选择，控制模型调用的请求/响应兼容性处理。使用与上游提供商协议匹配的适配器以避免功能不匹配。",
   "models.providers.*.injectNumCtxForOpenAICompat":
-    "Controls whether OpenClaw injects `options.num_ctx` for Ollama providers configured with the OpenAI-compatible adapter (`openai-completions`). Default is true. Set false only if your proxy/upstream rejects unknown `options` payload fields.",
+    "控制 OpenClaw 是否为使用 OpenAI 兼容适配器（`openai-completions`）配置的 Ollama 提供商注入 `options.num_ctx`。默认为 true。仅在你的代理/上游拒绝未知 `options` 负载字段时设置 false。",
   "models.providers.*.headers":
-    "Static HTTP headers merged into provider requests for tenant routing, proxy auth, or custom gateway requirements. Use this sparingly and keep sensitive header values in secrets.",
+    "合并到提供商请求中的静态 HTTP 头，用于租户路由、代理认证或自定义网关要求。谨慎使用并将敏感头值保存在密钥中。",
   "models.providers.*.authHeader":
-    "When true, credentials are sent via the HTTP Authorization header even if alternate auth is possible. Use this only when your provider or proxy explicitly requires Authorization forwarding.",
+    "当为 true 时，凭据通过 HTTP Authorization 头发送，即使可以使用替代认证。仅在你的提供商或代理明确要求 Authorization 转发时使用。",
   "models.providers.*.models":
-    "Declared model list for a provider including identifiers, metadata, and optional compatibility/cost hints. Keep IDs exact to provider catalog values so selection and fallback resolve correctly.",
+    "提供商的已声明模型列表，包括标识符、元数据和可选的兼容性/成本提示。保持 ID 与提供商目录值精确匹配以使选择和回退正确解析。",
   "models.bedrockDiscovery":
-    "Automatic AWS Bedrock model discovery settings used to synthesize provider model entries from account visibility. Keep discovery scoped and refresh intervals conservative to reduce API churn.",
+    "自动 AWS Bedrock 模型发现设置，用于从账户可见性合成提供商模型条目。保持发现范围有限，刷新间隔保守以减少 API 抖动。",
   "models.bedrockDiscovery.enabled":
-    "Enables periodic Bedrock model discovery and catalog refresh for Bedrock-backed providers. Keep disabled unless Bedrock is actively used and IAM permissions are correctly configured.",
+    "为 Bedrock 支持的提供商启用定期 Bedrock 模型发现和目录刷新。除非 Bedrock 正在使用且 IAM 权限已正确配置，否则保持禁用。",
   "models.bedrockDiscovery.region":
-    "AWS region used for Bedrock discovery calls when discovery is enabled for your deployment. Use the region where your Bedrock models are provisioned to avoid empty discovery results.",
+    "发现启用时用于 Bedrock 发现调用的 AWS 区域。使用你的 Bedrock 模型已配置的区域以避免空发现结果。",
   "models.bedrockDiscovery.providerFilter":
-    "Optional provider allowlist filter for Bedrock discovery so only selected providers are refreshed. Use this to limit discovery scope in multi-provider environments.",
+    "Bedrock 发现的可选提供商允许列表过滤器，仅刷新所选提供商。在多提供商环境中使用以限制发现范围。",
   "models.bedrockDiscovery.refreshInterval":
-    "Refresh cadence for Bedrock discovery polling in seconds to detect newly available models over time. Use longer intervals in production to reduce API cost and control-plane noise.",
+    "Bedrock 发现轮询的刷新频率（秒），用于随时间检测新可用模型。生产环境使用更长间隔以减少 API 成本和控制平面噪音。",
   "models.bedrockDiscovery.defaultContextWindow":
-    "Fallback context-window value applied to discovered models when provider metadata lacks explicit limits. Use realistic defaults to avoid oversized prompts that exceed true provider constraints.",
+    "当提供商元数据缺少显式限制时应用于发现模型的回退上下文窗口值。使用现实默认值以避免超出真实提供商约束的过大提示。",
   "models.bedrockDiscovery.defaultMaxTokens":
-    "Fallback max-token value applied to discovered models without explicit output token limits. Use conservative defaults to reduce truncation surprises and unexpected token spend.",
-  auth: "Authentication profile root used for multi-profile provider credentials and cooldown-based failover ordering. Keep profiles minimal and explicit so automatic failover behavior stays auditable.",
+    "没有显式输出令牌限制的发现模型的回退最大令牌值。使用保守默认值以减少截断意外和意外的令牌支出。",
+  auth: "认证配置文件根节点，用于多配置文件提供商凭据和基于冷却的故障切换排序。保持配置文件最小且显式，以便自动故障切换行为可审计。",
   "channels.slack.allowBots":
-    "Allow bot-authored messages to trigger Slack replies (default: false).",
+    "允许机器人消息触发 Slack 回复（默认：false）。",
   "channels.slack.thread.historyScope":
-    'Scope for Slack thread history context ("thread" isolates per thread; "channel" reuses channel history).',
+    'Slack 线程历史上下文范围（"thread" 按线程隔离；"channel" 复用频道历史）。',
   "channels.slack.thread.inheritParent":
-    "If true, Slack thread sessions inherit the parent channel transcript (default: false).",
+    "如果为 true，Slack 线程会话继承父频道转录（默认：false）。",
   "channels.slack.thread.initialHistoryLimit":
-    "Maximum number of existing Slack thread messages to fetch when starting a new thread session (default: 20, set to 0 to disable).",
+    "启动新线程会话时获取的现有 Slack 线程消息最大数量（默认：20，设为 0 禁用）。",
   "channels.mattermost.botToken":
-    "Bot token from Mattermost System Console -> Integrations -> Bot Accounts.",
+    "来自 Mattermost 系统控制台 -> 集成 -> 机器人账户的机器人令牌。",
   "channels.mattermost.baseUrl":
-    "Base URL for your Mattermost server (e.g., https://chat.example.com).",
+    "Mattermost 服务器的基础 URL（例如 https://chat.example.com）。",
   "channels.mattermost.chatmode":
-    'Reply to channel messages on mention ("oncall"), on trigger chars (">" or "!") ("onchar"), or on every message ("onmessage").',
-  "channels.mattermost.oncharPrefixes": 'Trigger prefixes for onchar mode (default: [">", "!"]).',
+    '在被提及时回复频道消息（"oncall"），在触发字符（">" 或 "!"）时回复（"onchar"），或在每条消息时回复（"onmessage"）。',
+  "channels.mattermost.oncharPrefixes": 'onchar 模式的触发前缀（默认：[">", "!"]）。',
   "channels.mattermost.requireMention":
-    "Require @mention in channels before responding (default: true).",
-  "auth.profiles": "Named auth profiles (provider + mode + optional email).",
-  "auth.order": "Ordered auth profile IDs per provider (used for automatic failover).",
+    "在频道中回复前需要 @提及（默认：true）。",
+  "auth.profiles": "命名的认证配置文件（提供商 + 模式 + 可选邮箱）。",
+  "auth.order": "每提供商的有序认证配置文件 ID（用于自动故障切换）。",
   "auth.cooldowns":
-    "Cooldown/backoff controls for temporary profile suppression after billing-related failures and retry windows. Use these to prevent rapid re-selection of profiles that are still blocked.",
+    "临时配置文件抑制后的冷却/退避控制，用于计费相关失败和重试窗口。使用这些以防止快速重新选择仍被阻止的配置文件。",
   "auth.cooldowns.billingBackoffHours":
-    "Base backoff (hours) when a profile fails due to billing/insufficient credits (default: 5).",
+    "配置文件因计费/余额不足失败时的基础退避（小时，默认：5）。",
   "auth.cooldowns.billingBackoffHoursByProvider":
-    "Optional per-provider overrides for billing backoff (hours).",
-  "auth.cooldowns.billingMaxHours": "Cap (hours) for billing backoff (default: 24).",
-  "auth.cooldowns.failureWindowHours": "Failure window (hours) for backoff counters (default: 24).",
+    "可选的逐提供商计费退避覆盖（小时）。",
+  "auth.cooldowns.billingMaxHours": "计费退避上限（小时，默认：24）。",
+  "auth.cooldowns.failureWindowHours": "退避计数器的失败窗口（小时，默认：24）。",
   "agents.defaults.workspace":
-    "Default workspace path exposed to agent runtime tools for filesystem context and repo-aware behavior. Set this explicitly when running from wrappers so path resolution stays deterministic.",
+    "暴露给代理运行时工具的默认工作区路径，用于文件系统上下文和仓库感知行为。从包装器运行时显式设置以保持路径解析确定性。",
   "agents.defaults.bootstrapMaxChars":
-    "Max characters of each workspace bootstrap file injected into the system prompt before truncation (default: 20000).",
+    "截断前注入系统提示的每个工作区引导文件的最大字符数（默认：20000）。",
   "agents.defaults.bootstrapTotalMaxChars":
-    "Max total characters across all injected workspace bootstrap files (default: 150000).",
+    "所有注入的工作区引导文件的最大总字符数（默认：150000）。",
   "agents.defaults.bootstrapPromptTruncationWarning":
-    'Inject agent-visible warning text when bootstrap files are truncated: "off", "once" (default), or "always".',
+    '引导文件被截断时注入代理可见的警告文本："off"、"once"（默认）或 "always"。',
   "agents.defaults.repoRoot":
-    "Optional repository root shown in the system prompt runtime line (overrides auto-detect).",
+    "系统提示运行时行中显示的可选仓库根目录（覆盖自动检测）。",
   "agents.defaults.envelopeTimezone":
-    'Timezone for message envelopes ("utc", "local", "user", or an IANA timezone string).',
+    '消息信封的时区（"utc"、"local"、"user" 或 IANA 时区字符串）。',
   "agents.defaults.envelopeTimestamp":
-    'Include absolute timestamps in message envelopes ("on" or "off").',
-  "agents.defaults.envelopeElapsed": 'Include elapsed time in message envelopes ("on" or "off").',
-  "agents.defaults.models": "Configured model catalog (keys are full provider/model IDs).",
+    '消息信封中包含绝对时间戳（"on" 或 "off"）。',
+  "agents.defaults.envelopeElapsed": '消息信封中包含已用时间（"on" 或 "off"）。',
+  "agents.defaults.models": "已配置的模型目录（键为完整的 provider/model ID）。",
   "agents.defaults.memorySearch":
-    "Vector search over MEMORY.md and memory/*.md (per-agent overrides supported).",
+    "对 MEMORY.md 和 memory/*.md 的向量搜索（支持逐代理覆盖）。",
   "agents.defaults.memorySearch.enabled":
-    "Master toggle for memory search indexing and retrieval behavior on this agent profile. Keep enabled for semantic recall, and disable when you want fully stateless responses.",
+    "此代理配置文件上内存搜索索引和检索行为的主开关。语义回忆保持启用，需要完全无状态响应时禁用。",
   "agents.defaults.memorySearch.sources":
-    'Chooses which sources are indexed: "memory" reads MEMORY.md + memory files, and "sessions" includes transcript history. Keep ["memory"] unless you need recall from prior chat transcripts.',
+    '选择索引的来源："memory" 读取 MEMORY.md + 内存文件，"sessions" 包含转录历史。除非需要从先前聊天转录中召回，否则保持 ["memory"]。',
   "agents.defaults.memorySearch.extraPaths":
-    "Adds extra directories or .md files to the memory index beyond default memory files. Use this when key reference docs live elsewhere in your repo; keep paths small and intentional to avoid noisy recall.",
+    "在默认内存文件之外向内存索引添加额外目录或 .md 文件。当关键参考文档在仓库其他位置时使用；保持路径精简和有意图以避免嘈杂的召回。",
   "agents.defaults.memorySearch.experimental.sessionMemory":
-    "Indexes session transcripts into memory search so responses can reference prior chat turns. Keep this off unless transcript recall is needed, because indexing cost and storage usage both increase.",
+    "将会话转录索引到内存搜索中，使响应可以引用先前聊天轮次。除非需要转录召回，否则保持关闭，因为索引成本和存储使用都会增加。",
   "agents.defaults.memorySearch.provider":
-    'Selects the embedding backend used to build/query memory vectors: "openai", "gemini", "voyage", "mistral", "ollama", or "local". Keep your most reliable provider here and configure fallback for resilience.',
+    '选择用于构建/查询内存向量的嵌入后端："openai"、"gemini"、"voyage"、"mistral"、"ollama" 或 "local"。在此保持最可靠的提供商并配置回退以增强弹性。',
   "agents.defaults.memorySearch.model":
-    "Embedding model override used by the selected memory provider when a non-default model is required. Set this only when you need explicit recall quality/cost tuning beyond provider defaults.",
+    "当需要非默认模型时，所选内存提供商使用的嵌入模型覆盖。仅在需要超出提供商默认值的显式召回质量/成本调优时设置。",
   "agents.defaults.memorySearch.remote.baseUrl":
-    "Overrides the embedding API endpoint, such as an OpenAI-compatible proxy or custom Gemini base URL. Use this only when routing through your own gateway or vendor endpoint; keep provider defaults otherwise.",
+    "覆盖嵌入 API 端点，如 OpenAI 兼容代理或自定义 Gemini 基础 URL。仅在通过自有网关或供应商端点路由时使用；否则保持提供商默认值。",
   "agents.defaults.memorySearch.remote.apiKey":
-    "Supplies a dedicated API key for remote embedding calls used by memory indexing and query-time embeddings. Use this when memory embeddings should use different credentials than global defaults or environment variables.",
+    "为内存索引和查询时嵌入使用的远程嵌入调用提供专用 API 密钥。当内存嵌入应使用与全局默认值或环境变量不同的凭据时使用。",
   "agents.defaults.memorySearch.remote.headers":
-    "Adds custom HTTP headers to remote embedding requests, merged with provider defaults. Use this for proxy auth and tenant routing headers, and keep values minimal to avoid leaking sensitive metadata.",
+    "向远程嵌入请求添加自定义 HTTP 头，与提供商默认值合并。用于代理认证和租户路由头，保持值最小化以避免泄漏敏感元数据。",
   "agents.defaults.memorySearch.remote.batch.enabled":
-    "Enables provider batch APIs for embedding jobs when supported (OpenAI/Gemini), improving throughput on larger index runs. Keep this enabled unless debugging provider batch failures or running very small workloads.",
+    "在支持时启用嵌入作业的提供商批量 API（OpenAI/Gemini），提高较大索引运行的吞吐量。除非调试提供商批量失败或运行非常小的工作负载，否则保持启用。",
   "agents.defaults.memorySearch.remote.batch.wait":
-    "Waits for batch embedding jobs to fully finish before the indexing operation completes. Keep this enabled for deterministic indexing state; disable only if you accept delayed consistency.",
+    "等待批量嵌入作业完全完成后索引操作才完成。保持启用以获得确定性索引状态；仅在接受延迟一致性时禁用。",
   "agents.defaults.memorySearch.remote.batch.concurrency":
-    "Limits how many embedding batch jobs run at the same time during indexing (default: 2). Increase carefully for faster bulk indexing, but watch provider rate limits and queue errors.",
+    "限制索引期间同时运行的嵌入批量作业数量（默认：2）。谨慎增加以加快批量索引，但注意提供商速率限制和队列错误。",
   "agents.defaults.memorySearch.remote.batch.pollIntervalMs":
-    "Controls how often the system polls provider APIs for batch job status in milliseconds (default: 2000). Use longer intervals to reduce API chatter, or shorter intervals for faster completion detection.",
+    "控制系统轮询提供商 API 批量作业状态的频率（毫秒，默认：2000）。使用更长间隔减少 API 通信，或更短间隔以更快检测完成。",
   "agents.defaults.memorySearch.remote.batch.timeoutMinutes":
-    "Sets the maximum wait time for a full embedding batch operation in minutes (default: 60). Increase for very large corpora or slower providers, and lower it to fail fast in automation-heavy flows.",
+    "设置完整嵌入批量操作的最大等待时间（分钟，默认：60）。对非常大的语料库或较慢的提供商增加，在自动化密集流程中降低以快速失败。",
   "agents.defaults.memorySearch.local.modelPath":
-    "Specifies the local embedding model source for local memory search, such as a GGUF file path or `hf:` URI. Use this only when provider is `local`, and verify model compatibility before large index rebuilds.",
+    "指定本地内存搜索的本地嵌入模型源，如 GGUF 文件路径或 `hf:` URI。仅在提供商为 `local` 时使用，在大型索引重建前验证模型兼容性。",
   "agents.defaults.memorySearch.fallback":
-    'Backup provider used when primary embeddings fail: "openai", "gemini", "voyage", "mistral", "ollama", "local", or "none". Set a real fallback for production reliability; use "none" only if you prefer explicit failures.',
+    '主嵌入失败时使用的备份提供商："openai"、"gemini"、"voyage"、"mistral"、"ollama"、"local" 或 "none"。为生产可靠性设置真实回退；仅在优先显式失败时使用 "none"。',
   "agents.defaults.memorySearch.store.path":
-    "Sets where the SQLite memory index is stored on disk for each agent. Keep the default `~/.openclaw/memory/{agentId}.sqlite` unless you need custom storage placement or backup policy alignment.",
+    "设置每个代理的 SQLite 内存索引在磁盘上的存储位置。除非需要自定义存储位置或备份策略对齐，否则保持默认 `~/.openclaw/memory/{agentId}.sqlite`。",
   "agents.defaults.memorySearch.store.vector.enabled":
-    "Enables the sqlite-vec extension used for vector similarity queries in memory search (default: true). Keep this enabled for normal semantic recall; disable only for debugging or fallback-only operation.",
+    "启用内存搜索中用于向量相似性查询的 sqlite-vec 扩展（默认：true）。正常语义召回保持启用；仅用于调试或仅回退操作时禁用。",
   "agents.defaults.memorySearch.store.vector.extensionPath":
-    "Overrides the auto-discovered sqlite-vec extension library path (`.dylib`, `.so`, or `.dll`). Use this when your runtime cannot find sqlite-vec automatically or you pin a known-good build.",
+    "覆盖自动发现的 sqlite-vec 扩展库路径（`.dylib`、`.so` 或 `.dll`）。当运行时无法自动找到 sqlite-vec 或你固定已知可用版本时使用。",
   "agents.defaults.memorySearch.chunking.tokens":
-    "Chunk size in tokens used when splitting memory sources before embedding/indexing. Increase for broader context per chunk, or lower to improve precision on pinpoint lookups.",
+    "在嵌入/索引前分割内存源时使用的令牌块大小。增加以获得每块更广的上下文，或降低以提高精确查找的精度。",
   "agents.defaults.memorySearch.chunking.overlap":
-    "Token overlap between adjacent memory chunks to preserve context continuity near split boundaries. Use modest overlap to reduce boundary misses without inflating index size too aggressively.",
+    "相邻内存块之间的令牌重叠，以保持分割边界附近的上下文连续性。使用适度重叠减少边界遗漏而不过度膨胀索引大小。",
   "agents.defaults.memorySearch.query.maxResults":
-    "Maximum number of memory hits returned from search before downstream reranking and prompt injection. Raise for broader recall, or lower for tighter prompts and faster responses.",
+    "下游重排序和提示注入前搜索返回的最大内存命中数。提高以获得更广的召回，或降低以获得更紧凑的提示和更快的响应。",
   "agents.defaults.memorySearch.query.minScore":
-    "Minimum relevance score threshold for including memory results in final recall output. Increase to reduce weak/noisy matches, or lower when you need more permissive retrieval.",
+    "将内存结果纳入最终召回输出的最小相关性分数阈值。增加以减少弱/嘈杂匹配，或在需要更宽松检索时降低。",
   "agents.defaults.memorySearch.query.hybrid.enabled":
-    "Combines BM25 keyword matching with vector similarity for better recall on mixed exact + semantic queries. Keep enabled unless you are isolating ranking behavior for troubleshooting.",
+    "结合 BM25 关键词匹配和向量相似性，以在混合精确 + 语义查询上获得更好的召回。除非为排查问题隔离排名行为，否则保持启用。",
   "agents.defaults.memorySearch.query.hybrid.vectorWeight":
-    "Controls how strongly semantic similarity influences hybrid ranking (0-1). Increase when paraphrase matching matters more than exact terms; decrease for stricter keyword emphasis.",
+    "控制语义相似性对混合排名的影响强度（0-1）。当释义匹配比精确术语更重要时增加；需要更严格的关键词强调时降低。",
   "agents.defaults.memorySearch.query.hybrid.textWeight":
-    "Controls how strongly BM25 keyword relevance influences hybrid ranking (0-1). Increase for exact-term matching; decrease when semantic matches should rank higher.",
+    "控制 BM25 关键词相关性对混合排名的影响强度（0-1）。增加以获得精确术语匹配；当语义匹配应排名更高时降低。",
   "agents.defaults.memorySearch.query.hybrid.candidateMultiplier":
-    "Expands the candidate pool before reranking (default: 4). Raise this for better recall on noisy corpora, but expect more compute and slightly slower searches.",
+    "重排序前扩展候选池（默认：4）。在嘈杂语料库上提高以获得更好的召回，但预期更多计算和略慢的搜索。",
   "agents.defaults.memorySearch.query.hybrid.mmr.enabled":
-    "Adds MMR reranking to diversify results and reduce near-duplicate snippets in a single answer window. Enable when recall looks repetitive; keep off for strict score ordering.",
+    "添加 MMR 重排序以多样化结果并减少单个回答窗口中的近重复片段。当召回看起来重复时启用；保持关闭以进行严格分数排序。",
   "agents.defaults.memorySearch.query.hybrid.mmr.lambda":
-    "Sets MMR relevance-vs-diversity balance (0 = most diverse, 1 = most relevant, default: 0.7). Lower values reduce repetition; higher values keep tightly relevant but may duplicate.",
+    "设置 MMR 相关性与多样性的平衡（0 = 最多样，1 = 最相关，默认：0.7）。较低值减少重复；较高值保持紧密相关但可能重复。",
   "agents.defaults.memorySearch.query.hybrid.temporalDecay.enabled":
-    "Applies recency decay so newer memory can outrank older memory when scores are close. Enable when timeliness matters; keep off for timeless reference knowledge.",
+    "应用时效衰减以便评分接近时较新内存可以超过较旧内存。当时效性重要时启用；对永恒参考知识保持关闭。",
   "agents.defaults.memorySearch.query.hybrid.temporalDecay.halfLifeDays":
-    "Controls how fast older memory loses rank when temporal decay is enabled (half-life in days, default: 30). Lower values prioritize recent context more aggressively.",
+    "控制时效衰减启用时较旧内存失去排名的速度（半衰期天数，默认：30）。较低值更积极地优先考虑最近的上下文。",
   "agents.defaults.memorySearch.cache.enabled":
-    "Caches computed chunk embeddings in SQLite so reindexing and incremental updates run faster (default: true). Keep this enabled unless investigating cache correctness or minimizing disk usage.",
-  memory: "Memory backend configuration (global).",
+    "在 SQLite 中缓存计算的块嵌入，以便重新索引和增量更新运行更快（默认：true）。除非调查缓存正确性或最小化磁盘使用，否则保持启用。",
+  memory: "内存后端配置（全局）。",
   "memory.backend":
-    'Selects the global memory engine: "builtin" uses OpenClaw memory internals, while "qmd" uses the QMD sidecar pipeline. Keep "builtin" unless you intentionally operate QMD.',
+    '选择全局内存引擎："builtin" 使用 OpenClaw 内存内部机制，"qmd" 使用 QMD 辅助管道。除非有意运行 QMD，否则保持 "builtin"。',
   "memory.citations":
-    'Controls citation visibility in replies: "auto" shows citations when useful, "on" always shows them, and "off" hides them. Keep "auto" for a balanced signal-to-noise default.',
+    '控制回复中引用的可见性："auto" 在有用时显示引用，"on" 始终显示，"off" 隐藏。保持 "auto" 以获得平衡的信噪比默认值。',
   "memory.qmd.command":
-    "Sets the executable path for the `qmd` binary used by the QMD backend (default: resolved from PATH). Use an explicit absolute path when multiple qmd installs exist or PATH differs across environments.",
+    "设置 QMD 后端使用的 `qmd` 二进制文件的可执行路径（默认：从 PATH 解析）。当存在多个 qmd 安装或 PATH 在不同环境间不同时使用显式绝对路径。",
   "memory.qmd.mcporter":
-    "Routes QMD work through mcporter (MCP runtime) instead of spawning `qmd` for each call. Use this when cold starts are expensive on large models; keep direct process mode for simpler local setups.",
+    "通过 mcporter（MCP 运行时）路由 QMD 工作而非每次调用都生成 `qmd`。当大型模型的冷启动开销很大时使用；更简单的本地设置保持直接进程模式。",
   "memory.qmd.mcporter.enabled":
-    "Routes QMD through an mcporter daemon instead of spawning qmd per request, reducing cold-start overhead for larger models. Keep disabled unless mcporter is installed and configured.",
+    "通过 mcporter 守护进程路由 QMD 而非每个请求生成 qmd，减少大型模型的冷启动开销。除非 mcporter 已安装和配置，否则保持禁用。",
   "memory.qmd.mcporter.serverName":
-    "Names the mcporter server target used for QMD calls (default: qmd). Change only when your mcporter setup uses a custom server name for qmd mcp keep-alive.",
+    "命名用于 QMD 调用的 mcporter 服务器目标（默认：qmd）。仅在 mcporter 设置使用自定义服务器名称进行 qmd mcp 保活时更改。",
   "memory.qmd.mcporter.startDaemon":
-    "Automatically starts the mcporter daemon when mcporter-backed QMD mode is enabled (default: true). Keep enabled unless process lifecycle is managed externally by your service supervisor.",
+    "在启用 mcporter 支持的 QMD 模式时自动启动 mcporter 守护进程（默认：true）。除非进程生命周期由服务管理器外部管理，否则保持启用。",
   "memory.qmd.searchMode":
-    'Selects the QMD retrieval path: "query" uses standard query flow, "search" uses search-oriented retrieval, and "vsearch" emphasizes vector retrieval. Keep default unless tuning relevance quality.',
+    '选择 QMD 检索路径："query" 使用标准查询流程，"search" 使用面向搜索的检索，"vsearch" 强调向量检索。除非调整相关性质量，否则保持默认。',
   "memory.qmd.includeDefaultMemory":
-    "Automatically indexes default memory files (MEMORY.md and memory/**/*.md) into QMD collections. Keep enabled unless you want indexing controlled only through explicit custom paths.",
+    "自动将默认内存文件（MEMORY.md 和 memory/**/*.md）索引到 QMD 集合中。除非你希望仅通过显式自定义路径控制索引，否则保持启用。",
   "memory.qmd.paths":
-    "Adds custom directories or files to include in QMD indexing, each with an optional name and glob pattern. Use this for project-specific knowledge locations that are outside default memory paths.",
+    "添加自定义目录或文件以包含在 QMD 索引中，每个带有可选名称和 glob 模式。用于默认内存路径之外的项目特定知识位置。",
   "memory.qmd.paths.path":
-    "Defines the root location QMD should scan, using an absolute path or `~`-relative path. Use stable directories so collection identity does not drift across environments.",
+    "定义 QMD 应扫描的根位置，使用绝对路径或 `~` 相对路径。使用稳定目录以便集合身份不会在不同环境间漂移。",
   "memory.qmd.paths.pattern":
-    "Filters files under each indexed root using a glob pattern, with default `**/*.md`. Use narrower patterns to reduce noise and indexing cost when directories contain mixed file types.",
+    "使用 glob 模式过滤每个索引根下的文件，默认 `**/*.md`。当目录包含混合文件类型时使用更窄的模式以减少噪音和索引成本。",
   "memory.qmd.paths.name":
-    "Sets a stable collection name for an indexed path instead of deriving it from filesystem location. Use this when paths vary across machines but you want consistent collection identity.",
+    "为索引路径设置稳定的集合名称，而非从文件系统位置派生。当路径在不同机器间变化但你希望一致的集合身份时使用。",
   "memory.qmd.sessions.enabled":
-    "Indexes session transcripts into QMD so recall can include prior conversation content (experimental, default: false). Enable only when transcript memory is required and you accept larger index churn.",
+    "将会话转录索引到 QMD 中以便召回可以包含先前对话内容（实验性，默认：false）。仅在需要转录记忆且接受更大索引更替时启用。",
   "memory.qmd.sessions.exportDir":
-    "Overrides where sanitized session exports are written before QMD indexing. Use this when default state storage is constrained or when exports must land on a managed volume.",
+    "覆盖 QMD 索引前清理会话导出的写入位置。当默认状态存储受限或导出必须落在受管卷上时使用。",
   "memory.qmd.sessions.retentionDays":
-    "Defines how long exported session files are kept before automatic pruning, in days (default: unlimited). Set a finite value for storage hygiene or compliance retention policies.",
+    "定义导出会话文件在自动清理前保留的时间（天，默认：无限）。为存储卫生或合规保留策略设置有限值。",
   "memory.qmd.update.interval":
-    "Sets how often QMD refreshes indexes from source content (duration string, default: 5m). Shorter intervals improve freshness but increase background CPU and I/O.",
+    "设置 QMD 从源内容刷新索引的频率（时长字符串，默认：5m）。更短间隔提高新鲜度但增加后台 CPU 和 I/O。",
   "memory.qmd.update.debounceMs":
-    "Sets the minimum delay between consecutive QMD refresh attempts in milliseconds (default: 15000). Increase this if frequent file changes cause update thrash or unnecessary background load.",
+    "设置连续 QMD 刷新尝试之间的最小延迟（毫秒，默认：15000）。如果频繁文件更改导致更新抖动或不必要的后台负载则增加。",
   "memory.qmd.update.onBoot":
-    "Runs an initial QMD update once during gateway startup (default: true). Keep enabled so recall starts from a fresh baseline; disable only when startup speed is more important than immediate freshness.",
+    "在网关启动期间运行一次初始 QMD 更新（默认：true）。保持启用以便召回从新鲜基线开始；仅在启动速度比即时新鲜度更重要时禁用。",
   "memory.qmd.update.waitForBootSync":
-    "Blocks startup completion until the initial boot-time QMD sync finishes (default: false). Enable when you need fully up-to-date recall before serving traffic, and keep off for faster boot.",
+    "阻止启动完成直到初始引导时 QMD 同步完成（默认：false）。当需要在提供流量前完全更新的召回时启用，保持关闭以获得更快启动。",
   "memory.qmd.update.embedInterval":
-    "Sets how often QMD recomputes embeddings (duration string, default: 60m; set 0 to disable periodic embeds). Lower intervals improve freshness but increase embedding workload and cost.",
+    "设置 QMD 重新计算嵌入的频率（时长字符串，默认：60m；设为 0 禁用定期嵌入）。更低间隔提高新鲜度但增加嵌入工作负载和成本。",
   "memory.qmd.update.commandTimeoutMs":
-    "Sets timeout for QMD maintenance commands such as collection list/add in milliseconds (default: 30000). Increase when running on slower disks or remote filesystems that delay command completion.",
+    "设置 QMD 维护命令的超时时间，如集合列表/添加（毫秒，默认：30000）。在较慢磁盘或延迟命令完成的远程文件系统上运行时增加。",
   "memory.qmd.update.updateTimeoutMs":
-    "Sets maximum runtime for each `qmd update` cycle in milliseconds (default: 120000). Raise this for larger collections; lower it when you want quicker failure detection in automation.",
+    "设置每个 `qmd update` 周期的最大运行时间（毫秒，默认：120000）。对较大集合增加；在自动化中需要更快失败检测时降低。",
   "memory.qmd.update.embedTimeoutMs":
-    "Sets maximum runtime for each `qmd embed` cycle in milliseconds (default: 120000). Increase for heavier embedding workloads or slower hardware, and lower to fail fast under tight SLAs.",
+    "设置每个 `qmd embed` 周期的最大运行时间（毫秒，默认：120000）。对更重的嵌入工作负载或更慢硬件增加，在严格 SLA 下降低以快速失败。",
   "memory.qmd.limits.maxResults":
-    "Limits how many QMD hits are returned into the agent loop for each recall request (default: 6). Increase for broader recall context, or lower to keep prompts tighter and faster.",
+    "限制每个召回请求返回到代理循环的 QMD 命中数（默认：6）。增加以获得更广的召回上下文，或降低以保持提示更紧凑和更快。",
   "memory.qmd.limits.maxSnippetChars":
-    "Caps per-result snippet length extracted from QMD hits in characters (default: 700). Lower this when prompts bloat quickly, and raise only if answers consistently miss key details.",
+    "限制从 QMD 命中中提取的每个结果片段长度（字符，默认：700）。当提示快速膨胀时降低，仅在答案一直遗漏关键细节时提高。",
   "memory.qmd.limits.maxInjectedChars":
-    "Caps how much QMD text can be injected into one turn across all hits. Use lower values to control prompt bloat and latency; raise only when context is consistently truncated.",
+    "限制所有命中中可以注入一个轮次的 QMD 文本量。使用较低值控制提示膨胀和延迟；仅在上下文一直被截断时提高。",
   "memory.qmd.limits.timeoutMs":
-    "Sets per-query QMD search timeout in milliseconds (default: 4000). Increase for larger indexes or slower environments, and lower to keep request latency bounded.",
+    "设置每个查询的 QMD 搜索超时（毫秒，默认：4000）。对较大索引或较慢环境增加，降低以保持请求延迟有界。",
   "memory.qmd.scope":
-    "Defines which sessions/channels are eligible for QMD recall using session.sendPolicy-style rules. Keep default direct-only scope unless you intentionally want cross-chat memory sharing.",
+    "使用 session.sendPolicy 样式规则定义哪些会话/频道有资格进行 QMD 召回。除非有意需要跨聊天内存共享，否则保持默认的仅直接范围。",
   "agents.defaults.memorySearch.cache.maxEntries":
-    "Sets a best-effort upper bound on cached embeddings kept in SQLite for memory search. Use this when controlling disk growth matters more than peak reindex speed.",
+    "设置 SQLite 中内存搜索缓存嵌入的尽力而为上限。当控制磁盘增长比峰值重新索引速度更重要时使用。",
   "agents.defaults.memorySearch.sync.onSessionStart":
-    "Triggers a memory index sync when a session starts so early turns see fresh memory content. Keep enabled when startup freshness matters more than initial turn latency.",
+    "在会话开始时触发内存索引同步，以便早期轮次看到新鲜的内存内容。当启动新鲜度比初始轮次延迟更重要时保持启用。",
   "agents.defaults.memorySearch.sync.onSearch":
-    "Uses lazy sync by scheduling reindex on search after content changes are detected. Keep enabled for lower idle overhead, or disable if you require pre-synced indexes before any query.",
+    "通过在检测到内容更改后在搜索时调度重新索引来使用延迟同步。保持启用以降低空闲开销，或在需要任何查询前预同步索引时禁用。",
   "agents.defaults.memorySearch.sync.watch":
-    "Watches memory files and schedules index updates from file-change events (chokidar). Enable for near-real-time freshness; disable on very large workspaces if watch churn is too noisy.",
+    "监视内存文件并从文件更改事件（chokidar）调度索引更新。启用以获得近实时新鲜度；如果监视更替过于嘈杂则在非常大的工作区上禁用。",
   "agents.defaults.memorySearch.sync.watchDebounceMs":
-    "Debounce window in milliseconds for coalescing rapid file-watch events before reindex runs. Increase to reduce churn on frequently-written files, or lower for faster freshness.",
+    "在重新索引运行前合并快速文件监视事件的防抖窗口（毫秒）。增加以减少频繁写入文件的更替，或降低以获得更快的新鲜度。",
   "agents.defaults.memorySearch.sync.sessions.deltaBytes":
-    "Requires at least this many newly appended bytes before session transcript changes trigger reindex (default: 100000). Increase to reduce frequent small reindexes, or lower for faster transcript freshness.",
+    "要求至少这么多新追加字节后会话转录更改才触发重新索引（默认：100000）。增加以减少频繁的小型重新索引，或降低以获得更快的转录新鲜度。",
   "agents.defaults.memorySearch.sync.sessions.deltaMessages":
-    "Requires at least this many appended transcript messages before reindex is triggered (default: 50). Lower this for near-real-time transcript recall, or raise it to reduce indexing churn.",
-  ui: "UI presentation settings for accenting and assistant identity shown in control surfaces. Use this for branding and readability customization without changing runtime behavior.",
+    "要求至少这么多追加转录消息后才触发重新索引（默认：50）。降低以获得近实时转录召回，或提高以减少索引更替。",
+  ui: "UI 呈现设置，用于控制界面中显示的强调色和助手身份。用于品牌和可读性自定义而不更改运行时行为。",
   "ui.seamColor":
-    "Primary accent/seam color used by UI surfaces for emphasis, badges, and visual identity cues. Use high-contrast values that remain readable across light/dark themes.",
+    "UI 界面用于强调、徽章和视觉身份提示的主要强调/接缝颜色。使用在浅色/深色主题中保持可读的高对比度值。",
   "ui.assistant":
-    "Assistant display identity settings for name and avatar shown in UI surfaces. Keep these values aligned with your operator-facing persona and support expectations.",
+    "UI 界面中显示的助手名称和头像的显示身份设置。保持这些值与面向操作者的角色和支持期望一致。",
   "ui.assistant.name":
-    "Display name shown for the assistant in UI views, chat chrome, and status contexts. Keep this stable so operators can reliably identify which assistant persona is active.",
+    "在 UI 视图、聊天框架和状态上下文中为助手显示的名称。保持稳定以便操作者可以可靠地识别哪个助手角色处于活动状态。",
   "ui.assistant.avatar":
-    "Assistant avatar image source used in UI surfaces (URL, path, or data URI depending on runtime support). Use trusted assets and consistent branding dimensions for clean rendering.",
+    "UI 界面中使用的助手头像图片源（URL、路径或 data URI，取决于运行时支持）。使用可信资产和一致的品牌尺寸以获得干净的渲染。",
   plugins:
-    "Plugin system controls for enabling extensions, constraining load scope, configuring entries, and tracking installs. Keep plugin policy explicit and least-privilege in production environments.",
+    "插件系统控制，用于启用扩展、约束加载范围、配置条目和跟踪安装。在生产环境中保持插件策略显式且最小权限。",
   "plugins.enabled":
-    "Enable or disable plugin/extension loading globally during startup and config reload (default: true). Keep enabled only when extension capabilities are required by your deployment.",
+    "在启动和配置重载期间全局启用或禁用插件/扩展加载（默认：true）。仅在部署需要扩展功能时保持启用。",
   "plugins.allow":
-    "Optional allowlist of plugin IDs; when set, only listed plugins are eligible to load. Use this to enforce approved extension inventories in controlled environments.",
+    "可选的插件 ID 允许列表；设置后仅列出的插件有资格加载。用于在受控环境中强制执行批准的扩展清单。",
   "plugins.deny":
-    "Optional denylist of plugin IDs that are blocked even if allowlists or paths include them. Use deny rules for emergency rollback and hard blocks on risky plugins.",
+    "可选的插件 ID 拒绝列表，即使允许列表或路径包含也会被阻止。使用拒绝规则进行紧急回滚和对风险插件的硬阻止。",
   "plugins.load":
-    "Plugin loader configuration group for specifying filesystem paths where plugins are discovered. Keep load paths explicit and reviewed to avoid accidental untrusted extension loading.",
+    "插件加载器配置组，用于指定发现插件的文件系统路径。保持加载路径显式且经过审查以避免意外的不可信扩展加载。",
   "plugins.load.paths":
-    "Additional plugin files or directories scanned by the loader beyond built-in defaults. Use dedicated extension directories and avoid broad paths with unrelated executable content.",
+    "加载器在内置默认值之外扫描的额外插件文件或目录。使用专用扩展目录，避免包含不相关可执行内容的宽泛路径。",
   "plugins.slots":
-    "Selects which plugins own exclusive runtime slots such as memory so only one plugin provides that capability. Use explicit slot ownership to avoid overlapping providers with conflicting behavior.",
+    "选择哪些插件拥有排他性运行时插槽（如内存），以便只有一个插件提供该功能。使用显式插槽所有权以避免行为冲突的重叠提供商。",
   "plugins.slots.memory":
-    'Select the active memory plugin by id, or "none" to disable memory plugins.',
+    '按 ID 选择活动内存插件，或使用 "none" 禁用内存插件。',
   "plugins.slots.contextEngine":
-    "Selects the active context engine plugin by id so one plugin provides context orchestration behavior.",
+    "按 ID 选择活动上下文引擎插件，以便一个插件提供上下文编排行为。",
   "plugins.entries":
-    "Per-plugin settings keyed by plugin ID including enablement and plugin-specific runtime configuration payloads. Use this for scoped plugin tuning without changing global loader policy.",
+    "按插件 ID 键控的逐插件设置，包括启用和插件特定的运行时配置负载。用于范围插件调优而不更改全局加载器策略。",
   "plugins.entries.*.enabled":
-    "Per-plugin enablement override for a specific entry, applied on top of global plugin policy (restart required). Use this to stage plugin rollout gradually across environments.",
+    "特定条目的逐插件启用覆盖，应用于全局插件策略之上（需要重启）。用于跨环境逐步推出插件。",
   "plugins.entries.*.hooks":
-    "Per-plugin typed hook policy controls for core-enforced safety gates. Use this to constrain high-impact hook categories without disabling the entire plugin.",
+    "逐插件类型化钩子策略控制，用于核心强制的安全门控。使用此项约束高影响钩子类别而不禁用整个插件。",
   "plugins.entries.*.hooks.allowPromptInjection":
-    "Controls whether this plugin may mutate prompts through typed hooks. Set false to block `before_prompt_build` and ignore prompt-mutating fields from legacy `before_agent_start`, while preserving legacy `modelOverride` and `providerOverride` behavior.",
+    "控制此插件是否可以通过类型化钩子修改提示。设为 false 以阻止 `before_prompt_build` 并忽略旧版 `before_agent_start` 的提示修改字段，同时保留旧版 `modelOverride` 和 `providerOverride` 行为。",
   "plugins.entries.*.apiKey":
-    "Optional API key field consumed by plugins that accept direct key configuration in entry settings. Use secret/env substitution and avoid committing real credentials into config files.",
+    "接受条目设置中直接密钥配置的插件使用的可选 API 密钥字段。使用密钥/环境替换，避免将真实凭据提交到配置文件中。",
   "plugins.entries.*.env":
-    "Per-plugin environment variable map injected for that plugin runtime context only. Use this to scope provider credentials to one plugin instead of sharing global process environment.",
+    "仅为该插件运行时上下文注入的逐插件环境变量映射。使用此项将提供商凭据范围限定到一个插件而非共享全局进程环境。",
   "plugins.entries.*.config":
-    "Plugin-defined configuration payload interpreted by that plugin's own schema and validation rules. Use only documented fields from the plugin to prevent ignored or invalid settings.",
+    "由该插件自己的架构和验证规则解释的插件定义配置负载。仅使用插件文档中记录的字段以防止被忽略或无效的设置。"'s own schema and validation rules. Use only documented fields from the plugin to prevent ignored or invalid settings.",
   "plugins.installs":
-    "CLI-managed install metadata (used by `openclaw plugins update` to locate install sources).",
-  "plugins.installs.*.source": 'Install source ("npm", "archive", or "path").',
-  "plugins.installs.*.spec": "Original npm spec used for install (if source is npm).",
-  "plugins.installs.*.sourcePath": "Original archive/path used for install (if any).",
+    "CLI 管理的安装元数据（由 `openclaw plugins update` 用于定位安装源）。",
+  "plugins.installs.*.source": '安装源（"npm"、"archive" 或 "path"）。',
+  "plugins.installs.*.spec": "安装使用的原始 npm 规格（如果源是 npm）。",
+  "plugins.installs.*.sourcePath": "安装使用的原始存档/路径（如有）。",
   "plugins.installs.*.installPath":
-    "Resolved install directory (usually ~/.openclaw/extensions/<id>).",
-  "plugins.installs.*.version": "Version recorded at install time (if available).",
-  "plugins.installs.*.resolvedName": "Resolved npm package name from the fetched artifact.",
+    "解析的安装目录（通常为 ~/.openclaw/extensions/<id>）。",
+  "plugins.installs.*.version": "安装时记录的版本（如有）。",
+  "plugins.installs.*.resolvedName": "从获取的工件中解析的 npm 包名称。",
   "plugins.installs.*.resolvedVersion":
-    "Resolved npm package version from the fetched artifact (useful for non-pinned specs).",
+    "从获取的工件中解析的 npm 包版本（对非固定规格有用）。",
   "plugins.installs.*.resolvedSpec":
-    "Resolved exact npm spec (<name>@<version>) from the fetched artifact.",
+    "从获取的工件中解析的精确 npm 规格（<name>@<version>）。",
   "plugins.installs.*.integrity":
-    "Resolved npm dist integrity hash for the fetched artifact (if reported by npm).",
+    "获取工件的已解析 npm dist 完整性哈希（如 npm 报告）。",
   "plugins.installs.*.shasum":
-    "Resolved npm dist shasum for the fetched artifact (if reported by npm).",
+    "获取工件的已解析 npm dist shasum（如 npm 报告）。",
   "plugins.installs.*.resolvedAt":
-    "ISO timestamp when npm package metadata was last resolved for this install record.",
-  "plugins.installs.*.installedAt": "ISO timestamp of last install/update.",
+    "此安装记录的 npm 包元数据最后解析的 ISO 时间戳。",
+  "plugins.installs.*.installedAt": "最后安装/更新的 ISO 时间戳。",
   "agents.list.*.identity.avatar":
-    "Agent avatar (workspace-relative path, http(s) URL, or data URI).",
-  "agents.defaults.model.primary": "Primary model (provider/model).",
+    "代理头像（工作区相对路径、http(s) URL 或 data URI）。",
+  "agents.defaults.model.primary": "主模型（provider/model）。",
   "agents.defaults.model.fallbacks":
-    "Ordered fallback models (provider/model). Used when the primary model fails.",
+    "有序回退模型（provider/model）。主模型失败时使用。",
   "agents.defaults.imageModel.primary":
-    "Optional image model (provider/model) used when the primary model lacks image input.",
-  "agents.defaults.imageModel.fallbacks": "Ordered fallback image models (provider/model).",
+    "当主模型缺少图片输入时使用的可选图片模型（provider/model）。",
+  "agents.defaults.imageModel.fallbacks": "有序回退图片模型（provider/model）。",
   "agents.defaults.pdfModel.primary":
-    "Optional PDF model (provider/model) for the PDF analysis tool. Defaults to imageModel, then session model.",
-  "agents.defaults.pdfModel.fallbacks": "Ordered fallback PDF models (provider/model).",
+    "PDF 分析工具的可选 PDF 模型（provider/model）。默认回退到 imageModel，然后是会话模型。",
+  "agents.defaults.pdfModel.fallbacks": "有序回退 PDF 模型（provider/model）。",
   "agents.defaults.pdfMaxBytesMb":
-    "Maximum PDF file size in megabytes for the PDF tool (default: 10).",
+    "PDF 工具的最大 PDF 文件大小（MB，默认：10）。",
   "agents.defaults.pdfMaxPages":
-    "Maximum number of PDF pages to process for the PDF tool (default: 20).",
+    "PDF 工具处理的最大 PDF 页数（默认：20）。",
   "agents.defaults.imageMaxDimensionPx":
-    "Max image side length in pixels when sanitizing transcript/tool-result image payloads (default: 1200).",
-  "agents.defaults.cliBackends": "Optional CLI backends for text-only fallback (claude-cli, etc.).",
+    "清理转录/工具结果图片负载时的最大图片边长（像素，默认：1200）。",
+  "agents.defaults.cliBackends": "可选的 CLI 后端，用于纯文本回退（claude-cli 等）。",
   "agents.defaults.compaction":
-    "Compaction tuning for when context nears token limits, including history share, reserve headroom, and pre-compaction memory flush behavior. Use this when long-running sessions need stable continuity under tight context windows.",
+    "上下文接近令牌限制时的压缩调整，包括历史份额、储备空间和压缩前内存刷新行为。当长时间运行的会话需要在紧凑上下文窗口下保持稳定连续性时使用。",
   "agents.defaults.compaction.mode":
-    'Compaction strategy mode: "default" uses baseline behavior, while "safeguard" applies stricter guardrails to preserve recent context. Keep "default" unless you observe aggressive history loss near limit boundaries.',
+    '压缩策略模式："default" 使用基线行为，"safeguard" 应用更严格的防护以保留最近上下文。除非你观察到限制边界附近的激进历史丢失，否则保持 "default"。',
   "agents.defaults.compaction.reserveTokens":
-    "Token headroom reserved for reply generation and tool output after compaction runs. Use higher reserves for verbose/tool-heavy sessions, and lower reserves when maximizing retained history matters more.",
+    "压缩运行后为回复生成和工具输出保留的令牌空间。详细/工具密集型会话使用更高储备，最大化保留历史时使用更低储备。",
   "agents.defaults.compaction.keepRecentTokens":
-    "Minimum token budget preserved from the most recent conversation window during compaction. Use higher values to protect immediate context continuity and lower values to keep more long-tail history.",
+    "压缩期间从最近对话窗口保留的最小令牌预算。使用更高值保护即时上下文连续性，更低值保留更多长尾历史。",
   "agents.defaults.compaction.reserveTokensFloor":
-    "Minimum floor enforced for reserveTokens in Pi compaction paths (0 disables the floor guard). Use a non-zero floor to avoid over-aggressive compression under fluctuating token estimates.",
+    "Pi 压缩路径中 reserveTokens 强制的最小下限（0 禁用下限保护）。使用非零下限以避免在波动的令牌估计下过度激进压缩。",
   "agents.defaults.compaction.maxHistoryShare":
-    "Maximum fraction of total context budget allowed for retained history after compaction (range 0.1-0.9). Use lower shares for more generation headroom or higher shares for deeper historical continuity.",
+    "压缩后允许保留历史占总上下文预算的最大比例（范围 0.1-0.9）。使用较低份额获得更多生成空间，或较高份额获得更深的历史连续性。",
   "agents.defaults.compaction.identifierPolicy":
-    'Identifier-preservation policy for compaction summaries: "strict" prepends built-in opaque-identifier retention guidance (default), "off" disables this prefix, and "custom" uses identifierInstructions. Keep "strict" unless you have a specific compatibility need.',
+    '压缩摘要的标识符保留策略："strict" 前置内置不透明标识符保留指导（默认），"off" 禁用此前缀，"custom" 使用 identifierInstructions。除非有特定兼容性需求，否则保持 "strict"。',
   "agents.defaults.compaction.identifierInstructions":
-    'Custom identifier-preservation instruction text used when identifierPolicy="custom". Keep this explicit and safety-focused so compaction summaries do not rewrite opaque IDs, URLs, hosts, or ports.',
+    'identifierPolicy="custom" 时使用的自定义标识符保留指令文本。保持显式且以安全为重，避免压缩摘要重写不透明 ID、URL、主机或端口。',
   "agents.defaults.compaction.recentTurnsPreserve":
-    "Number of most recent user/assistant turns kept verbatim outside safeguard summarization (default: 3). Raise this to preserve exact recent dialogue context, or lower it to maximize compaction savings.",
+    "保护性摘要化之外保留的最近用户/助手对话轮次数量（默认：3）。增加以保留精确的最近对话上下文，或降低以最大化压缩节省。",
   "agents.defaults.compaction.qualityGuard":
-    "Optional quality-audit retry settings for safeguard compaction summaries. Leave this disabled unless you explicitly want summary audits and one-shot regeneration on failed checks.",
+    "保护性压缩摘要的可选质量审计重试设置。除非你明确需要摘要审计和失败检查时的一次性重新生成，否则保持禁用。",
   "agents.defaults.compaction.qualityGuard.enabled":
-    "Enables summary quality audits and regeneration retries for safeguard compaction. Default: false, so safeguard mode alone does not turn on retry behavior.",
+    "启用保护性压缩的摘要质量审计和重新生成重试。默认：false，因此保护模式本身不会启用重试行为。",
   "agents.defaults.compaction.qualityGuard.maxRetries":
-    "Maximum number of regeneration retries after a failed safeguard summary quality audit. Use small values to bound extra latency and token cost.",
+    "保护性摘要质量审计失败后的最大重新生成重试次数。使用小值以限制额外延迟和令牌成本。",
   "agents.defaults.compaction.postCompactionSections":
-    'AGENTS.md H2/H3 section names re-injected after compaction so the agent reruns critical startup guidance. Leave unset to use "Session Startup"/"Red Lines" with legacy fallback to "Every Session"/"Safety"; set to [] to disable reinjection entirely.',
+    '压缩后重新注入的 AGENTS.md H2/H3 章节名称，使代理重新运行关键启动指导。留空使用 "Session Startup"/"Red Lines"（旧版回退到 "Every Session"/"Safety"）；设为 [] 完全禁用重新注入。',
   "agents.defaults.compaction.model":
-    "Optional provider/model override used only for compaction summarization. Set this when you want compaction to run on a different model than the session default, and leave it unset to keep using the primary agent model.",
+    "仅用于压缩摘要化的可选 provider/model 覆盖。当你希望压缩在与会话默认不同的模型上运行时设置，留空以继续使用主代理模型。",
   "agents.defaults.compaction.memoryFlush":
-    "Pre-compaction memory flush settings that run an agentic memory write before heavy compaction. Keep enabled for long sessions so salient context is persisted before aggressive trimming.",
+    "在运行时执行更强历史缩减前运行代理式内存写入的压缩前内存刷新设置。长会话保持启用以在激进修剪前持久化重要上下文。",
   "agents.defaults.compaction.memoryFlush.enabled":
-    "Enables pre-compaction memory flush before the runtime performs stronger history reduction near token limits. Keep enabled unless you intentionally disable memory side effects in constrained environments.",
+    "在运行时执行更强历史缩减前启用压缩前内存刷新。除非你有意在受限环境中禁用内存副作用，否则保持启用。",
   "agents.defaults.compaction.memoryFlush.softThresholdTokens":
-    "Threshold distance to compaction (in tokens) that triggers pre-compaction memory flush execution. Use earlier thresholds for safer persistence, or tighter thresholds for lower flush frequency.",
+    "触发压缩前内存刷新执行的到压缩距离阈值（令牌）。使用更早阈值以更安全的持久化，或更紧阈值以更低的刷新频率。",
   "agents.defaults.compaction.memoryFlush.forceFlushTranscriptBytes":
-    'Forces pre-compaction memory flush when transcript file size reaches this threshold (bytes or strings like "2mb"). Use this to prevent long-session hangs even when token counters are stale; set to 0 to disable.',
+    '当转录文件大小达到此阈值时强制压缩前内存刷新（字节或如 "2mb" 的字符串）。使用此项防止即使令牌计数器过时时长会话也挂起；设为 0 禁用。',
   "agents.defaults.compaction.memoryFlush.prompt":
-    "User-prompt template used for the pre-compaction memory flush turn when generating memory candidates. Use this only when you need custom extraction instructions beyond the default memory flush behavior.",
+    "生成内存候选时用于压缩前内存刷新轮次的用户提示模板。仅在你需要超出默认内存刷新行为的自定义提取指令时使用。",
   "agents.defaults.compaction.memoryFlush.systemPrompt":
-    "System-prompt override for the pre-compaction memory flush turn to control extraction style and safety constraints. Use carefully so custom instructions do not reduce memory quality or leak sensitive context.",
+    "压缩前内存刷新轮次的系统提示覆盖，用于控制提取样式和安全约束。小心使用以避免自定义指令降低内存质量或泄漏敏感上下文。",
   "agents.defaults.embeddedPi":
-    "Embedded Pi runner hardening controls for how workspace-local Pi settings are trusted and applied in OpenClaw sessions.",
+    "内嵌 Pi 运行器加固控制，用于在 OpenClaw 会话中如何信任和应用工作区本地 Pi 设置。",
   "agents.defaults.embeddedPi.projectSettingsPolicy":
-    'How embedded Pi handles workspace-local `.pi/config/settings.json`: "sanitize" (default) strips shellPath/shellCommandPrefix, "ignore" disables project settings entirely, and "trusted" applies project settings as-is.',
-  "agents.defaults.humanDelay.mode": 'Delay style for block replies ("off", "natural", "custom").',
-  "agents.defaults.humanDelay.minMs": "Minimum delay in ms for custom humanDelay (default: 800).",
-  "agents.defaults.humanDelay.maxMs": "Maximum delay in ms for custom humanDelay (default: 2500).",
+    '内嵌 Pi 处理工作区本地 `.pi/config/settings.json` 的方式："sanitize"（默认）剥离 shellPath/shellCommandPrefix，"ignore" 完全禁用项目设置，"trusted" 按原样应用项目设置。',
+  "agents.defaults.humanDelay.mode": '块回复的延迟样式（"off"、"natural"、"custom"）。',
+  "agents.defaults.humanDelay.minMs": "自定义 humanDelay 的最小延迟（毫秒，默认：800）。",
+  "agents.defaults.humanDelay.maxMs": "自定义 humanDelay 的最大延迟（毫秒，默认：2500）。",
   commands:
-    "Controls chat command surfaces, owner gating, and elevated command access behavior across providers. Keep defaults unless you need stricter operator controls or broader command availability.",
+    "控制聊天命令界面、所有者门控和跨提供商的提升命令访问行为。保持默认值，除非需要更严格的操作者控制或更广泛的命令可用性。",
   "commands.native":
     "Registers native slash/menu commands with channels that support command registration (Discord, Slack, Telegram). Keep enabled for discoverability unless you intentionally run text-only command workflows.",
   "commands.nativeSkills":
@@ -1061,7 +1061,7 @@ export const FIELD_HELP: Record<string, string> = {
   "commands.allowFrom":
     "Defines elevated command allow rules by channel and sender for owner-level command surfaces. Use narrow provider-specific identities so privileged commands are not exposed to broad chat audiences.",
   session:
-    "Global session routing, reset, delivery policy, and maintenance controls for conversation history behavior. Keep defaults unless you need stricter isolation, retention, or delivery constraints.",
+    "全局会话路由、重置、投递策略和会话历史行为的维护控制。保持默认值，除非需要更严格的隔离、保留或投递约束。",
   "session.scope":
     'Sets base session grouping strategy: "per-sender" isolates by sender and "global" shares one session per channel context. Keep "per-sender" for safer multi-user behavior unless deliberate shared context is required.',
   "session.dmScope":
@@ -1178,7 +1178,7 @@ export const FIELD_HELP: Record<string, string> = {
   "cron.runLog.keepLines":
     "How many trailing run-log lines to retain when a file exceeds maxBytes (default `2000`). Increase for longer forensic history or lower for smaller disks.",
   hooks:
-    "Inbound webhook automation surface for mapping external events into wake or agent actions in OpenClaw. Keep this locked down with explicit token/session/agent controls before exposing it beyond trusted networks.",
+    "入站 Webhook 自动化界面，用于将外部事件映射到 OpenClaw 中的唤醒或代理操作。在暴露到可信网络之外前，使用显式的令牌/会话/代理控制锁定它。",
   "hooks.enabled":
     "Enables the hooks endpoint and mapping execution pipeline for inbound webhook requests. Keep disabled unless you are actively routing external events into the gateway.",
   "hooks.path":
@@ -1306,7 +1306,7 @@ export const FIELD_HELP: Record<string, string> = {
   "hooks.internal.installs":
     "Install metadata for internal hook modules, including source and resolved artifacts for repeatable deployments. Use this as operational provenance and avoid manual drift edits.",
   messages:
-    "Message formatting, acknowledgment, queueing, debounce, and status reaction behavior for inbound/outbound chat flows. Use this section when channel responsiveness or message UX needs adjustment.",
+    "入站/出站聊天流的消息格式化、确认、排队、防抖和状态反应行为。当频道响应性或消息体验需要调整时使用此部分。",
   "messages.messagePrefix":
     "Prefix text prepended to inbound user messages before they are handed to the agent runtime. Use this sparingly for channel context markers and keep it stable across sessions.",
   "messages.responsePrefix":
@@ -1340,7 +1340,7 @@ export const FIELD_HELP: Record<string, string> = {
   "messages.tts":
     "Text-to-speech policy for reading agent replies aloud on supported voice or audio surfaces. Keep disabled unless voice playback is part of your operator/user workflow.",
   channels:
-    "Channel provider configurations plus shared defaults that control access policies, heartbeat visibility, and per-surface behavior. Keep defaults centralized and override per provider only where required.",
+    "频道提供商配置加上控制访问策略、心跳可见性和每界面行为的共享默认值。保持默认值集中化，仅在需要时按提供商覆盖。",
   "channels.telegram":
     "Telegram channel provider configuration including auth tokens, retry behavior, and message rendering controls. Use this section to tune bot behavior for Telegram-specific API semantics.",
   "channels.slack":
