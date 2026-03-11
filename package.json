@@ -1,17 +1,17 @@
 {
-  "name": "openclaw",
-  "version": "2026.3.9",
-  "description": "Multi-channel AI gateway with extensible messaging integrations",
-  "keywords": [],
-  "homepage": "https://github.com/openclaw/openclaw#readme",
+  "name": "chinese-openclaw",
+  "version": "2026.3.11",
+  "description": "Multi-channel AI gateway with extensible messaging integrations (Chinese localization)",
+  "keywords": ["openclaw", "chinese", "localization"],
+  "homepage": "https://github.com/tuwawa-liu/ChineseOpenClaw#readme",
   "bugs": {
-    "url": "https://github.com/openclaw/openclaw/issues"
+    "url": "https://github.com/tuwawa-liu/ChineseOpenClaw/issues"
   },
   "license": "MIT",
-  "author": "",
+  "author": "tuwawa-liu",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/openclaw/openclaw.git"
+    "url": "git+https://github.com/tuwawa-liu/ChineseOpenClaw.git"
   },
   "bin": {
     "openclaw": "openclaw.mjs"
