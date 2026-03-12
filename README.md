@@ -8,27 +8,31 @@
 </p>
 
 <p align="center">
-  <strong>OpenClaw 完整中文汉化版本</strong>
+  <strong>EXFOLIATE! EXFOLIATE! — 完整中文汉化版</strong>
 </p>
 
 <p align="center">
+  <a href="https://github.com/tuwawa-liu/ChineseOpenClaw/actions/workflows/ci.yml?branch=main"><img src="https://img.shields.io/github/actions/workflow/status/tuwawa-liu/ChineseOpenClaw/ci.yml?branch=main&style=for-the-badge&label=CI" alt="CI 状态"></a>
   <a href="https://github.com/tuwawa-liu/ChineseOpenClaw"><img src="https://img.shields.io/github/stars/tuwawa-liu/ChineseOpenClaw?style=for-the-badge" alt="GitHub Stars"></a>
   <a href="https://github.com/openclaw/openclaw/releases"><img src="https://img.shields.io/github/v/release/openclaw/openclaw?include_prereleases&style=for-the-badge&label=上游版本" alt="上游版本"></a>
+  <a href="https://www.npmjs.com/package/chinese-openclaw"><img src="https://img.shields.io/npm/v/chinese-openclaw?style=for-the-badge&label=npm&color=CB3837" alt="npm 版本"></a>
+  <a href="https://discord.gg/clawd"><img src="https://img.shields.io/discord/1456350064065904867?label=Discord&logo=discord&logoColor=white&color=5865F2&style=for-the-badge" alt="Discord"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="MIT 许可证"></a>
 </p>
 
-> 本项目是 [OpenClaw](https://github.com/openclaw/openclaw) 的完整中文汉化版本，包含界面、文档、CLI 输出的全面中文本地化。
+> 本项目是 [OpenClaw](https://github.com/openclaw/openclaw) 的完整中文汉化版本，包含界面、文档、CLI 输出的全面中文本地化。可通过 npm 一键安装。
 
 **OpenClaw** 是一个运行在你自己设备上的 _个人 AI 助手_。
 它可以在你日常使用的各种渠道（WhatsApp、Telegram、Slack、Discord、Google Chat、Signal、iMessage、BlueBubbles、IRC、Microsoft Teams、Matrix、飞书、LINE、Mattermost、Nextcloud Talk、Nostr、Synology Chat、Tlon、Twitch、Zalo、Zalo Personal、WebChat）上回复你。它可以在 macOS/iOS/Android 上进行语音对话，还可以渲染你控制的实时 Canvas。Gateway 只是控制平面——产品本身是助手。
 
 如果你想要一个本地优先、快速且始终在线的个人单用户助手，这就是你需要的。
 
-[上游项目](https://github.com/openclaw/openclaw) · [上游官网](https://openclaw.ai) · [上游文档](https://docs.openclaw.ai) · [愿景](VISION.md) · [快速入门](https://docs.openclaw.ai/start/getting-started)
+[上游项目](https://github.com/openclaw/openclaw) · [上游官网](https://openclaw.ai) · [上游文档](https://docs.openclaw.ai) · [愿景](VISION.md) · [DeepWiki](https://deepwiki.com/openclaw/openclaw) · [快速入门](https://docs.openclaw.ai/start/getting-started) · [更新指南](https://docs.openclaw.ai/install/updating) · [案例展示](https://docs.openclaw.ai/start/showcase) · [常见问题](https://docs.openclaw.ai/help/faq) · [入门向导](https://docs.openclaw.ai/start/wizard) · [Nix](https://github.com/openclaw/nix-openclaw) · [Docker](https://docs.openclaw.ai/install/docker) · [Discord](https://discord.gg/clawd)
 
-推荐方式：从源码构建并运行入门向导（`openclaw onboard`）。
+推荐方式：运行入门向导（`openclaw onboard`）。
 向导会逐步引导你完成 Gateway、工作区、频道和技能的配置。CLI 向导是推荐路径，适用于 **macOS、Linux 和 Windows（通过 WSL2；强烈推荐）**。
-新用户？请参见下方"从源码构建"部分开始。
+支持 npm、pnpm 或 bun。
+新用户？请从下方"安装"部分开始。
 
 ## 赞助商
 
@@ -51,9 +55,56 @@
 
 ## 安装（推荐方式）
 
-运行环境：**Node ≥22**。
+### 前提条件：安装 Node.js
 
-本项目是 OpenClaw 的中文汉化 fork，请从源码安装：
+运行环境：**Node.js ≥ 22.12.0**。
+
+**检查是否已安装**：
+
+```bash
+node -v    # 应显示 v22.x.x 或更高
+npm -v     # 应显示 10.x.x
+```
+
+**如果没有安装或版本过低**：
+
+| 系统                | 推荐安装方式                                                                                           |
+| ------------------- | ------------------------------------------------------------------------------------------------------ |
+| **macOS**           | `brew install node@22` 或访问 [nodejs.org](https://nodejs.org/)                                        |
+| **Windows**         | 访问 [nodejs.org](https://nodejs.org/) 下载 LTS 版本安装包                                             |
+| **Ubuntu / Debian** | `curl -fsSL https://deb.nodesource.com/setup_22.x \| sudo -E bash - && sudo apt-get install -y nodejs` |
+| **CentOS / RHEL**   | `curl -fsSL https://rpm.nodesource.com/setup_22.x \| sudo bash - && sudo yum install -y nodejs`        |
+
+**使用 nvm 安装（适用于所有系统）**：
+
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+nvm install 22
+nvm use 22
+```
+
+### npm 一键安装（推荐）
+
+```bash
+npm install -g chinese-openclaw@latest
+# 或: pnpm add -g chinese-openclaw@latest
+
+openclaw onboard --install-daemon
+```
+
+> 如果提示 `openclaw: command not found`，需要将 npm 全局路径加入 PATH：
+>
+> ```bash
+> export PATH="$(npm prefix -g)/bin:$PATH"
+> ```
+>
+> 将上面这行添加到你的 `~/.bashrc` 或 `~/.zshrc` 中。
+
+向导会安装 Gateway 守护进程（launchd/systemd 用户服务），使其持续运行。
+
+### 从源码安装
+
+如果你更喜欢从源码构建，或需要自定义修改：
 
 ```bash
 git clone https://github.com/tuwawa-liu/ChineseOpenClaw.git
@@ -66,8 +117,6 @@ pnpm build
 
 pnpm openclaw onboard --install-daemon
 ```
-
-向导会安装 Gateway 守护进程（launchd/systemd 用户服务），使其持续运行。
 
 ## 卸载
 
@@ -94,19 +143,197 @@ bash uninstall-openclaw.sh
 完整新手指南（认证、配对、频道）：[快速入门](https://docs.openclaw.ai/start/getting-started)
 
 ```bash
-# 从源码构建后
-pnpm openclaw onboard --install-daemon
+# npm 安装后
+openclaw onboard --install-daemon
 
-pnpm openclaw gateway --port 18789 --verbose
+openclaw gateway --port 18789 --verbose
 
 # 发送消息
-pnpm openclaw message send --to +1234567890 --message "你好，来自 OpenClaw 中文版"
+openclaw message send --to +1234567890 --message "你好，来自 OpenClaw 中文版"
 
 # 与助手对话
-pnpm openclaw agent --message "帮我整理一下今天的待办事项" --thinking high
+openclaw agent --message "帮我整理一下今天的待办事项" --thinking high
 ```
 
-升级？从上游同步最新代码并重新构建。
+升级？运行 `npm update -g chinese-openclaw` 或从上游同步最新代码并重新构建。
+
+> **Dashboard 语言设置**：首次打开网页控制台后，前往 **Overview** 页面底部，将 **Language** 切换为 **简体中文 (Simplified Chinese)**，刷新页面即可显示中文界面。
+
+## 入门向导流程
+
+运行 `openclaw onboard` 后，向导会引导你完成以下步骤：
+
+```
+步骤1  ─→  安全风险确认（输入 y 确认）
+步骤2  ─→  选择 AI 模型提供商
+            ├─ Anthropic Claude（推荐）
+            ├─ OpenAI GPT
+            ├─ 本地模型（Ollama 等）
+            └─ 其他（Moonshot、智谱等）
+步骤3  ─→  输入 API Key
+步骤4  ─→  选择默认模型
+步骤5  ─→  配置网关（端口、认证方式）
+步骤6  ─→  配置聊天通道（可跳过）
+步骤7  ─→  安装技能（可跳过）
+步骤8  ─→  完成！
+```
+
+> 向导中大部分选项直接按回车用默认值即可。
+
+### 快速非交互式配置
+
+如果你已经有 API Key，想跳过向导直接配置：
+
+```bash
+openclaw setup
+openclaw config set gateway.mode local
+openclaw config set agents.defaults.model anthropic/claude-sonnet-4-20250514
+openclaw config set auth.anthropic.apiKey sk-ant-你的API密钥
+openclaw config set gateway.auth.token 你设定的密码
+```
+
+## 模型配置指南
+
+OpenClaw 支持几乎所有主流 AI 模型。模型名使用 `提供商/模型ID` 格式，例如：`openai/gpt-4o`、`anthropic/claude-sonnet-4-20250514`。
+
+### 国际主流模型
+
+#### Anthropic Claude（推荐）
+
+```bash
+openclaw config set agents.defaults.model anthropic/claude-sonnet-4-20250514
+openclaw config set auth.anthropic.apiKey sk-ant-你的API密钥
+```
+
+获取 API Key：[console.anthropic.com](https://console.anthropic.com/)
+
+#### OpenAI GPT
+
+```bash
+openclaw config set agents.defaults.model openai/gpt-4o
+openclaw config set auth.openai.apiKey sk-你的API密钥
+```
+
+获取 API Key：[platform.openai.com](https://platform.openai.com/)
+
+#### Google Gemini
+
+```bash
+openclaw config set agents.defaults.model google/gemini-3-pro-preview
+openclaw config set auth.google.apiKey 你的API密钥
+```
+
+获取 API Key：[aistudio.google.com](https://aistudio.google.com/)
+
+### 国产模型
+
+#### 月之暗面 Moonshot（Kimi）
+
+```bash
+openclaw config set agents.defaults.model moonshot/kimi-k2.5
+openclaw config set auth.moonshot.apiKey 你的API密钥
+```
+
+获取 API Key：[platform.moonshot.cn](https://platform.moonshot.cn/)
+
+#### 智谱 Z.AI（GLM）
+
+```bash
+openclaw config set agents.defaults.model zai/glm-4.7
+openclaw config set auth.zai.apiKey 你的API密钥
+```
+
+获取 API Key：[open.bigmodel.cn](https://open.bigmodel.cn/)
+
+#### MiniMax
+
+```bash
+openclaw config set agents.defaults.model minimax/MiniMax-M2.1
+openclaw config set auth.minimax.apiKey 你的API密钥
+```
+
+获取 API Key：[platform.minimaxi.com](https://platform.minimaxi.com/)
+
+#### 小米 MiMo
+
+```bash
+openclaw config set agents.defaults.model xiaomi/mimo-v2-flash
+openclaw config set auth.xiaomi.apiKey 你的API密钥
+```
+
+### 本地模型
+
+#### Ollama（推荐）
+
+先安装 Ollama 并下载模型：[ollama.com](https://ollama.com/)
+
+```bash
+ollama serve
+ollama pull llama3.2
+
+openclaw config set agents.defaults.model ollama/llama3.2
+openclaw config set auth.openai.apiKey ollama
+openclaw config set auth.openai.baseURL http://localhost:11434/v1
+```
+
+> Docker 用户注意：容器中 `localhost` 指容器自身。如果 Ollama 在宿主机运行，使用 `http://host.docker.internal:11434/v1`。
+
+#### LM Studio
+
+```bash
+openclaw config set agents.defaults.model openai/你加载的模型名
+openclaw config set auth.openai.apiKey lm-studio
+openclaw config set auth.openai.baseURL http://localhost:1234/v1
+```
+
+### 自定义 OpenAI 兼容接口
+
+适用于：OneAPI、New API、各种中转站、企业私有部署等。只要接口兼容 OpenAI 格式就能用。
+
+```bash
+openclaw config set auth.openai.baseURL https://你的接口地址/v1
+openclaw config set auth.openai.apiKey sk-你的密钥
+openclaw config set agents.defaults.model openai/gpt-4o
+```
+
+### 配置后备模型
+
+编辑 `~/.openclaw/openclaw.json`，设置多个模型作为后备：
+
+```json5
+{
+  agents: {
+    defaults: {
+      model: {
+        primary: "anthropic/claude-sonnet-4-20250514",
+        fallbacks: ["openai/gpt-4o", "google/gemini-3-pro-preview"],
+      },
+    },
+  },
+}
+```
+
+### 环境变量方式
+
+也可以通过环境变量设置 API Key：
+
+| 环境变量            | 对应提供商       |
+| ------------------- | ---------------- |
+| `ANTHROPIC_API_KEY` | Anthropic Claude |
+| `OPENAI_API_KEY`    | OpenAI           |
+| `GEMINI_API_KEY`    | Google Gemini    |
+| `MOONSHOT_API_KEY`  | Moonshot Kimi    |
+| `ZAI_API_KEY`       | 智谱 GLM         |
+| `MINIMAX_API_KEY`   | MiniMax          |
+| `XIAOMI_API_KEY`    | 小米 MiMo        |
+
+### 模型配置排查
+
+```bash
+openclaw config get agents.defaults.model   # 检查当前模型
+openclaw config get auth                     # 检查 API Key
+openclaw doctor                              # 运行诊断
+```
 
 ## 开发频道
 
@@ -116,7 +343,9 @@ pnpm openclaw agent --message "帮我整理一下今天的待办事项" --thinki
 - **beta**：预发布标签（`vYYYY.M.D-beta.N`）。
 - **dev**：跟随 `main` 分支头部。
 
-本中文版跟随上游 `main` 分支同步更新。
+切换频道（上游 npm 包）：`openclaw update --channel stable|beta|dev`
+
+本中文版跟随上游 `main` 分支同步更新，通过 npm 包 `chinese-openclaw` 发布。
 
 ## 从源码构建（开发）
 
@@ -128,7 +357,7 @@ cd ChineseOpenClaw
 
 npm install -g pnpm      # 安装 pnpm
 pnpm install
-pnpm ui:build # 首次运行时自动安装 UI 依赖
+pnpm ui:build            # 首次运行时自动安装 UI 依赖
 pnpm build
 
 pnpm openclaw onboard --install-daemon
@@ -369,7 +598,7 @@ Gateway 本身就能提供出色的体验。所有应用都是可选的，提供
 
 ### [WhatsApp](https://docs.openclaw.ai/channels/whatsapp)
 
-- 链接设备：`pnpm openclaw channels login`（凭证存储在 `~/.openclaw/credentials`）。
+- 链接设备：`openclaw channels login`（凭证存储在 `~/.openclaw/credentials`）。
 - 通过 `channels.whatsapp.allowFrom` 设置谁可以与助手对话的白名单。
 - 如果设置了 `channels.whatsapp.groups`，它将成为群组白名单；包含 `"*"` 以允许所有群组。
 
@@ -510,20 +739,159 @@ Gateway 本身就能提供出色的体验。所有应用都是可选的，提供
 
 - [docs.openclaw.ai/gmail-pubsub](https://docs.openclaw.ai/automation/gmail-pubsub)
 
+## 配置文件说明
+
+所有配置存储在 `~/.openclaw/` 目录下：
+
+```
+~/.openclaw/
+├── openclaw.json          # 主配置文件
+├── workspace/             # 工作区（AI 的文件空间）
+├── sessions/              # 会话历史记录
+├── credentials/           # OAuth 凭证
+└── logs/                  # 日志文件
+```
+
+**Windows 路径**：`%USERPROFILE%\.openclaw\`
+
+查看和修改配置：
+
+```bash
+openclaw config get                        # 查看所有配置
+openclaw config get agents.defaults.model  # 查看某个配置项
+openclaw config set gateway.port 18789     # 修改配置
+```
+
+## 守护进程管理
+
+安装守护进程后，OpenClaw 会在后台自动运行，开机自启。
+
+```bash
+openclaw onboard --install-daemon  # 安装守护进程
+openclaw gateway status            # 查看状态
+```
+
+| 操作         | macOS                                                                           | Linux                                       |
+| ------------ | ------------------------------------------------------------------------------- | ------------------------------------------- |
+| **查看状态** | `launchctl list \| grep openclaw`                                               | `systemctl --user status openclaw-gateway`  |
+| **停止**     | `launchctl bootout gui/$UID/ai.openclaw.gateway`                                | `systemctl --user stop openclaw-gateway`    |
+| **启动**     | `launchctl bootstrap gui/$UID ~/Library/LaunchAgents/ai.openclaw.gateway.plist` | `systemctl --user start openclaw-gateway`   |
+| **重启**     | 先停止再启动                                                                    | `systemctl --user restart openclaw-gateway` |
+| **查看日志** | `cat /tmp/openclaw/*.log`                                                       | `journalctl --user -u openclaw-gateway`     |
+
+> **Linux 保持后台运行**（SSH 退出后不停止）：`sudo loginctl enable-linger $USER`
+
+> **Windows 用户注意**：如果 `gateway install` 失败（提示 schtasks 不可用），可使用 `gateway start` 启动后台进程，或使用 Docker 部署方案。
+
+## 常见问题排查
+
+<details>
+<summary><b>❶ Dashboard 报 pairing required 或 token mismatch</b></summary>
+
+**原因**：OpenClaw 的安全机制要求设备配对或 Token 验证。
+
+```bash
+# token mismatch — 用 dashboard 命令自动带 Token 打开
+openclaw dashboard
+
+# pairing required — 批准设备
+openclaw devices list           # 查看待批准设备 ID
+openclaw devices approve <ID>   # 批准该设备
+```
+
+</details>
+
+<details>
+<summary><b>❷ Ollama 无响应</b></summary>
+
+检查 `baseURL` 是否正确：
+
+```bash
+openclaw config get auth.openai.baseURL
+# 应为 http://localhost:11434/v1
+
+# Docker 用户应使用
+openclaw config set auth.openai.baseURL http://host.docker.internal:11434/v1
+```
+
+</details>
+
+<details>
+<summary><b>❸ 安装后还是英文界面</b></summary>
+
+可能系统上残留了英文原版 `openclaw`，其优先级高于汉化版。
+
+```bash
+npm uninstall -g openclaw
+npm install -g chinese-openclaw@latest
+
+# 验证
+openclaw status
+```
+
+</details>
+
+<details>
+<summary><b>❹ 远程 / 内网访问不了 Dashboard</b></summary>
+
+默认只监听本机，需要改为局域网监听：
+
+```bash
+openclaw config set gateway.bind lan
+openclaw gateway restart
+```
+
+然后通过 `http://你的电脑IP:18789` 访问。
+
+</details>
+
+更多问题请运行 `openclaw doctor` 进行诊断，或查看 [故障排除指南](https://docs.openclaw.ai/channels/troubleshooting)。
+
+## 常用命令速查
+
+| 命令                                | 说明                      |
+| ----------------------------------- | ------------------------- |
+| `openclaw`                          | 启动 OpenClaw（前台模式） |
+| `openclaw onboard`                  | 运行初始化向导            |
+| `openclaw onboard --install-daemon` | 初始化 + 安装守护进程     |
+| `openclaw dashboard`                | 打开网页控制台            |
+| `openclaw status`                   | 查看运行状态              |
+| `openclaw doctor`                   | 诊断检查                  |
+| `openclaw config get`               | 查看配置                  |
+| `openclaw config set KEY VALUE`     | 修改配置                  |
+| `openclaw gateway start`            | 启动网关                  |
+| `openclaw gateway stop`             | 停止网关                  |
+| `openclaw gateway restart`          | 重启网关                  |
+| `openclaw channels list`            | 查看通道列表              |
+| `openclaw skills list`              | 查看技能列表              |
+| `openclaw --help`                   | 查看帮助                  |
+| `openclaw --version`                | 查看版本                  |
+
+## Molty
+
+OpenClaw 是为 **Molty** 打造的，一个太空龙虾 AI 助手。🦞
+由 Peter Steinberger 和社区共同构建。
+
+- [openclaw.ai](https://openclaw.ai)
+- [soul.md](https://soul.md)
+- [steipete.me](https://steipete.me)
+- [@openclaw](https://x.com/openclaw)
+
 ## 关于本项目
 
 本项目是 OpenClaw 的完整中文汉化版本，由 [@tuwawa-liu](https://github.com/tuwawa-liu) 维护。
+
+- **npm 包名**：[chinese-openclaw](https://www.npmjs.com/package/chinese-openclaw)
+- **GitHub 仓库**：[tuwawa-liu/ChineseOpenClaw](https://github.com/tuwawa-liu/ChineseOpenClaw)
 
 汉化内容包括：
 
 - 用户界面（Web UI、CLI 输出）
 - 全部文档（350+ 文档文件）
 - README、CONTRIBUTING、SECURITY、VISION 等项目文件
+- 所有运行时错误消息和提示文本
 
-上游项目由 Peter Steinberger 和社区共同打造：
-
-- [上游仓库](https://github.com/openclaw/openclaw)
-- [openclaw.ai](https://openclaw.ai)
+上游项目：[openclaw/openclaw](https://github.com/openclaw/openclaw)
 
 ## 社区
 
