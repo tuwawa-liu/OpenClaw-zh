@@ -1,6 +1,6 @@
 {
   "name": "chinese-openclaw",
-  "version": "2026.3.12",
+  "version": "2026.3.13",
   "description": "Multi-channel AI gateway with extensible messaging integrations (Chinese localization)",
   "keywords": ["openclaw", "chinese", "localization"],
   "homepage": "https://github.com/tuwawa-liu/ChineseOpenClaw#readme",

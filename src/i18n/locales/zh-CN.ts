@@ -715,6 +715,7 @@ export const zh_CN: TranslationMap = {
   },
   gtwStatus: {
     title: "网关状态",
+    version: "版本",
     linkUnknown: "链接频道：未知",
     linked: "已链接",
     notLinked: "未链接",

@@ -64,9 +64,9 @@ pnpm ios:open
 - Beta 发布使用规范的 `ai.openclaw.client*` Bundle ID，通过在 `apps/ios/build/BetaRelease.xcconfig` 中生成临时 xcconfig 实现。
 - Beta 流程不会修改 `apps/ios/.local-signing.xcconfig` 或 `apps/ios/LocalSigning.xcconfig`。
 - 根目录 `package.json.version` 是 iOS 的唯一版本来源。
-- 根版本如 `2026.3.10-beta.1` 会变为：
-  - `CFBundleShortVersionString = 2026.3.10`
-  - `CFBundleVersion = 2026.3.10 的下一个 TestFlight 构建号`
+- 根版本如 `2026.3.11-beta.1` 会变为：
+  - `CFBundleShortVersionString = 2026.3.11`
+  - `CFBundleVersion = 2026.3.11 的下一个 TestFlight 构建号`
 
 仅归档（不上传）：
 
