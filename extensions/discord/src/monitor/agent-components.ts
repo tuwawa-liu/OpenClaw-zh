@@ -13,6 +13,7 @@ import {
   type ModalInteraction,
   type RoleSelectMenuInteraction,
   type StringSelectMenuInteraction,
+  type TopLevelComponents,
   type UserSelectMenuInteraction,
 } from "@buape/carbon";
 import type { APIStringSelectComponent } from "discord-api-types/v10";
@@ -40,6 +41,12 @@ import { logDebug, logError } from "../../../../src/logger.js";
 import { getAgentScopedMediaLocalRoots } from "../../../../src/media/local-roots.js";
 import { issuePairingChallenge } from "../../../../src/pairing/pairing-challenge.js";
 import { upsertChannelPairingRequest } from "../../../../src/pairing/pairing-store.js";
+import {
+  buildPluginBindingResolvedText,
+  parsePluginBindingApprovalCustomId,
+  resolvePluginConversationBindingApproval,
+} from "../../../../src/plugins/conversation-binding.js";
+import { dispatchPluginInteractiveHandler } from "../../../../src/plugins/interactive.js";
 import { resolveAgentRoute } from "../../../../src/routing/resolve-route.js";
 import { createNonExitingRuntime, type RuntimeEnv } from "../../../../src/runtime.js";
 import {
@@ -492,7 +499,7 @@ async function ensureDmComponentAuthorized(params: {
     logVerbose(`agent ${componentLabel}: blocked (DM policy disabled)`);
     try {
       await interaction.reply({
-        content: "私信交互已禁用。",
+        content: "DM interactions are disabled.",
         ...replyOpts,
       });
     } catch {
@@ -552,7 +559,7 @@ async function ensureDmComponentAuthorized(params: {
     if (!pairingResult.created) {
       try {
         await interaction.reply({
-          content: "已请求配对。请向机器人所有者询问批准你的代码。",
+          content: "Pairing already requested. Ask the bot owner to approve your code.",
           ...replyOpts,
         });
       } catch {
@@ -565,7 +572,7 @@ async function ensureDmComponentAuthorized(params: {
   logVerbose(`agent ${componentLabel}: blocked DM user ${user.id} (not in allowFrom)`);
   try {
     await interaction.reply({
-      content: `你无权使用此${componentLabel}。`,
+      content: `You are not authorized to use this ${componentLabel}.`,
       ...replyOpts,
     });
   } catch {
@@ -769,6 +776,159 @@ function formatModalSubmissionText(
     lines.push("- (no values)");
   }
   return lines.join("\n");
+}
+
+function resolveDiscordInteractionId(interaction: AgentComponentInteraction): string {
+  const rawId =
+    interaction.rawData && typeof interaction.rawData === "object" && "id" in interaction.rawData
+      ? (interaction.rawData as { id?: unknown }).id
+      : undefined;
+  if (typeof rawId === "string" && rawId.trim()) {
+    return rawId.trim();
+  }
+  if (typeof rawId === "number" && Number.isFinite(rawId)) {
+    return String(rawId);
+  }
+  return `discord-interaction:${Date.now()}`;
+}
+
+async function dispatchPluginDiscordInteractiveEvent(params: {
+  ctx: AgentComponentContext;
+  interaction: AgentComponentInteraction;
+  interactionCtx: ComponentInteractionContext;
+  channelCtx: DiscordChannelContext;
+  isAuthorizedSender: boolean;
+  data: string;
+  kind: "button" | "select" | "modal";
+  values?: string[];
+  fields?: Array<{ id: string; name: string; values: string[] }>;
+  messageId?: string;
+}): Promise<"handled" | "unmatched"> {
+  const normalizedConversationId =
+    params.interactionCtx.rawGuildId || params.channelCtx.channelType === ChannelType.GroupDM
+      ? `channel:${params.interactionCtx.channelId}`
+      : `user:${params.interactionCtx.userId}`;
+  let responded = false;
+  const respond = {
+    acknowledge: async () => {
+      responded = true;
+      await params.interaction.acknowledge();
+    },
+    reply: async ({ text, ephemeral = true }: { text: string; ephemeral?: boolean }) => {
+      responded = true;
+      await params.interaction.reply({
+        content: text,
+        ephemeral,
+      });
+    },
+    followUp: async ({ text, ephemeral = true }: { text: string; ephemeral?: boolean }) => {
+      responded = true;
+      await params.interaction.followUp({
+        content: text,
+        ephemeral,
+      });
+    },
+    editMessage: async ({
+      text,
+      components,
+    }: {
+      text?: string;
+      components?: TopLevelComponents[];
+    }) => {
+      if (!("update" in params.interaction) || typeof params.interaction.update !== "function") {
+        throw new Error("Discord interaction cannot update the source message");
+      }
+      responded = true;
+      await params.interaction.update({
+        ...(text !== undefined ? { content: text } : {}),
+        ...(components !== undefined ? { components } : {}),
+      });
+    },
+    clearComponents: async (input?: { text?: string }) => {
+      if (!("update" in params.interaction) || typeof params.interaction.update !== "function") {
+        throw new Error("Discord interaction cannot clear components on the source message");
+      }
+      responded = true;
+      await params.interaction.update({
+        ...(input?.text !== undefined ? { content: input.text } : {}),
+        components: [],
+      });
+    },
+  };
+  const pluginBindingApproval = parsePluginBindingApprovalCustomId(params.data);
+  if (pluginBindingApproval) {
+    const resolved = await resolvePluginConversationBindingApproval({
+      approvalId: pluginBindingApproval.approvalId,
+      decision: pluginBindingApproval.decision,
+      senderId: params.interactionCtx.userId,
+    });
+    let cleared = false;
+    try {
+      await respond.clearComponents();
+      cleared = true;
+    } catch {
+      try {
+        await respond.acknowledge();
+      } catch {
+        // Interaction may already be acknowledged; continue with best-effort follow-up.
+      }
+    }
+    try {
+      await respond.followUp({
+        text: buildPluginBindingResolvedText(resolved),
+        ephemeral: true,
+      });
+    } catch (err) {
+      logError(`discord plugin binding approval: failed to follow up: ${String(err)}`);
+      if (!cleared) {
+        try {
+          await respond.reply({
+            text: buildPluginBindingResolvedText(resolved),
+            ephemeral: true,
+          });
+        } catch {
+          // Interaction may no longer accept a direct reply.
+        }
+      }
+    }
+    return "handled";
+  }
+  const dispatched = await dispatchPluginInteractiveHandler({
+    channel: "discord",
+    data: params.data,
+    interactionId: resolveDiscordInteractionId(params.interaction),
+    ctx: {
+      accountId: params.ctx.accountId,
+      interactionId: resolveDiscordInteractionId(params.interaction),
+      conversationId: normalizedConversationId,
+      parentConversationId: params.channelCtx.parentId,
+      guildId: params.interactionCtx.rawGuildId,
+      senderId: params.interactionCtx.userId,
+      senderUsername: params.interactionCtx.username,
+      auth: { isAuthorizedSender: params.isAuthorizedSender },
+      interaction: {
+        kind: params.kind,
+        messageId: params.messageId,
+        values: params.values,
+        fields: params.fields,
+      },
+    },
+    respond,
+  });
+  if (!dispatched.matched) {
+    return "unmatched";
+  }
+  if (dispatched.handled) {
+    if (!responded) {
+      try {
+        await respond.acknowledge();
+      } catch {
+        // Interaction may have expired after the handler finished.
+      }
+    }
+    return "handled";
+  }
+  return "unmatched";
 }
 
 function resolveComponentCommandAuthorized(params: {
@@ -1064,7 +1224,7 @@ async function handleDiscordComponentEvent(params: {
     logError(`${params.label}: failed to parse component data`);
     try {
       await params.interaction.reply({
-        content: "此组件已失效。",
+        content: "This component is no longer valid.",
         ephemeral: true,
       });
     } catch {
@@ -1077,7 +1237,7 @@ async function handleDiscordComponentEvent(params: {
   if (!entry) {
     try {
       await params.interaction.reply({
-        content: "此组件已过期。",
+        content: "This component has expired.",
         ephemeral: true,
       });
     } catch {
@@ -1102,7 +1262,18 @@ async function handleDiscordComponentEvent(params: {
     guildEntries: params.ctx.guildEntries,
   });
   const channelCtx = resolveDiscordChannelContext(params.interaction);
-  const unauthorizedReply = `你无权使用此${params.componentLabel}。`;
+  const allowNameMatching = isDangerousNameMatchingEnabled(params.ctx.discordConfig);
+  const channelConfig = resolveDiscordChannelConfigWithFallback({
+    guildInfo,
+    channelId,
+    channelName: channelCtx.channelName,
+    channelSlug: channelCtx.channelSlug,
+    parentId: channelCtx.parentId,
+    parentName: channelCtx.parentName,
+    parentSlug: channelCtx.parentSlug,
+    scope: channelCtx.isThread ? "thread" : "channel",
+  });
+  const unauthorizedReply = `You are not authorized to use this ${params.componentLabel}.`;
   const memberAllowed = await ensureGuildComponentMemberAllowed({
     interaction: params.interaction,
     guildInfo,
@@ -1114,7 +1285,7 @@ async function handleDiscordComponentEvent(params: {
     replyOpts,
     componentLabel: params.componentLabel,
     unauthorizedReply,
-    allowNameMatching: isDangerousNameMatchingEnabled(params.ctx.discordConfig),
+    allowNameMatching,
   });
   if (!memberAllowed) {
     return;
@@ -1127,11 +1298,18 @@ async function handleDiscordComponentEvent(params: {
     replyOpts,
     componentLabel: params.componentLabel,
     unauthorizedReply,
-    allowNameMatching: isDangerousNameMatchingEnabled(params.ctx.discordConfig),
+    allowNameMatching,
   });
   if (!componentAllowed) {
     return;
   }
+  const commandAuthorized = resolveComponentCommandAuthorized({
+    ctx: params.ctx,
+    interactionCtx,
+    channelConfig,
+    guildInfo,
+    allowNameMatching,
+  });
 
   const consumed = resolveDiscordComponentEntry({
     id: parsed.componentId,
@@ -1140,7 +1318,7 @@ async function handleDiscordComponentEvent(params: {
   if (!consumed) {
     try {
       await params.interaction.reply({
-        content: "此组件已过期。",
+        content: "This component has expired.",
         ephemeral: true,
       });
     } catch {
@@ -1152,7 +1330,7 @@ async function handleDiscordComponentEvent(params: {
   if (consumed.kind === "modal-trigger") {
     try {
       await params.interaction.reply({
-        content: "此表单已不可用。",
+        content: "This form is no longer available.",
         ephemeral: true,
       });
     } catch {
@@ -1162,6 +1340,22 @@ async function handleDiscordComponentEvent(params: {
   }
 
   const values = params.values ? mapSelectValues(consumed, params.values) : undefined;
+  if (consumed.callbackData) {
+    const pluginDispatch = await dispatchPluginDiscordInteractiveEvent({
+      ctx: params.ctx,
+      interaction: params.interaction,
+      interactionCtx,
+      channelCtx,
+      isAuthorizedSender: commandAuthorized,
+      data: consumed.callbackData,
+      kind: consumed.kind === "select" ? "select" : "button",
+      values,
+      messageId: consumed.messageId ?? params.interaction.message?.id,
+    });
+    if (pluginDispatch === "handled") {
+      return;
+    }
+  }
   const eventText = formatDiscordComponentEventText({
     kind: consumed.kind === "select" ? "select" : "button",
     label: consumed.label,
@@ -1204,7 +1398,7 @@ async function handleDiscordModalTrigger(params: {
     logError(`${params.label}: failed to parse modal trigger data`);
     try {
       await params.interaction.reply({
-        content: "此按钮已失效。",
+        content: "This button is no longer valid.",
         ephemeral: true,
       });
     } catch {
@@ -1216,7 +1410,7 @@ async function handleDiscordModalTrigger(params: {
   if (!entry || entry.kind !== "modal-trigger") {
     try {
       await params.interaction.reply({
-        content: "此按钮已过期。",
+        content: "This button has expired.",
         ephemeral: true,
       });
     } catch {
@@ -1229,7 +1423,7 @@ async function handleDiscordModalTrigger(params: {
   if (!modalId) {
     try {
       await params.interaction.reply({
-        content: "此表单已不可用。",
+        content: "This form is no longer available.",
         ephemeral: true,
       });
     } catch {
@@ -1255,7 +1449,7 @@ async function handleDiscordModalTrigger(params: {
     guildEntries: params.ctx.guildEntries,
   });
   const channelCtx = resolveDiscordChannelContext(params.interaction);
-  const unauthorizedReply = "你无权使用此表单。";
+  const unauthorizedReply = "You are not authorized to use this form.";
   const memberAllowed = await ensureGuildComponentMemberAllowed({
     interaction: params.interaction,
     guildInfo,
@@ -1293,7 +1487,7 @@ async function handleDiscordModalTrigger(params: {
   if (!consumed) {
     try {
       await params.interaction.reply({
-        content: "此表单已过期。",
+        content: "This form has expired.",
         ephemeral: true,
       });
     } catch {
@@ -1307,7 +1501,7 @@ async function handleDiscordModalTrigger(params: {
   if (!modalEntry) {
     try {
       await params.interaction.reply({
-        content: "此表单已过期。",
+        content: "This form has expired.",
         ephemeral: true,
       });
     } catch {
@@ -1341,7 +1535,7 @@ export class AgentComponentButton extends Button {
       logError("agent button: failed to parse component data");
       try {
         await interaction.reply({
-          content: "此按钮已失效。",
+          content: "This button is no longer valid.",
           ephemeral: true,
         });
       } catch {
@@ -1383,7 +1577,7 @@ export class AgentComponentButton extends Button {
       user,
       replyOpts,
       componentLabel: "button",
-      unauthorizedReply: "你无权使用此按钮。",
+      unauthorizedReply: "You are not authorized to use this button.",
     });
     if (!allowed) {
       return;
@@ -1430,7 +1624,7 @@ export class AgentSelectMenu extends StringSelectMenu {
       logError("agent select: failed to parse component data");
       try {
         await interaction.reply({
-          content: "此选择菜单已失效。",
+          content: "This select menu is no longer valid.",
           ephemeral: true,
         });
       } catch {
@@ -1471,7 +1665,7 @@ export class AgentSelectMenu extends StringSelectMenu {
       user,
       replyOpts,
       componentLabel: "select",
-      unauthorizedReply: "你无权使用此选择菜单。",
+      unauthorizedReply: "You are not authorized to use this select menu.",
     });
     if (!allowed) {
       return;
@@ -1650,7 +1844,7 @@ class DiscordComponentChannelSelect extends ChannelSelectMenu {
 }
 
 class DiscordComponentModal extends Modal {
-  title = "OpenClaw 表单";
+  title = "OpenClaw form";
   customId = "__openclaw_discord_component_modal_wildcard__";
   components = [];
   customIdParser = parseDiscordModalCustomIdForCarbon;
@@ -1667,7 +1861,7 @@ class DiscordComponentModal extends Modal {
       logError("discord component modal: missing modal id");
       try {
         await interaction.reply({
-          content: "此表单已失效。",
+          content: "This form is no longer valid.",
           ephemeral: true,
         });
       } catch {
@@ -1680,7 +1874,7 @@ class DiscordComponentModal extends Modal {
     if (!modalEntry) {
       try {
         await interaction.reply({
-          content: "此表单已过期。",
+          content: "This form has expired.",
           ephemeral: true,
         });
       } catch {
@@ -1706,6 +1900,17 @@ class DiscordComponentModal extends Modal {
       guildEntries: this.ctx.guildEntries,
     });
     const channelCtx = resolveDiscordChannelContext(interaction);
+    const allowNameMatching = isDangerousNameMatchingEnabled(this.ctx.discordConfig);
+    const channelConfig = resolveDiscordChannelConfigWithFallback({
+      guildInfo,
+      channelId,
+      channelName: channelCtx.channelName,
+      channelSlug: channelCtx.channelSlug,
+      parentId: channelCtx.parentId,
+      parentName: channelCtx.parentName,
+      parentSlug: channelCtx.parentSlug,
+      scope: channelCtx.isThread ? "thread" : "channel",
+    });
     const memberAllowed = await ensureGuildComponentMemberAllowed({
       interaction,
       guildInfo,
@@ -1716,12 +1921,37 @@ class DiscordComponentModal extends Modal {
       user,
       replyOpts,
       componentLabel: "form",
-      unauthorizedReply: "您无权使用此表单。",
-      allowNameMatching: isDangerousNameMatchingEnabled(this.ctx.discordConfig),
+      unauthorizedReply: "You are not authorized to use this form.",
+      allowNameMatching,
     });
     if (!memberAllowed) {
       return;
     }
+
+    const modalAllowed = await ensureComponentUserAllowed({
+      entry: {
+        id: modalEntry.id,
+        kind: "button",
+        label: modalEntry.title,
+        allowedUsers: modalEntry.allowedUsers,
+      },
+      interaction,
+      user,
+      replyOpts,
+      componentLabel: "form",
+      unauthorizedReply: "You are not authorized to use this form.",
+      allowNameMatching,
+    });
+    if (!modalAllowed) {
+      return;
+    }
+    const commandAuthorized = resolveComponentCommandAuthorized({
+      ctx: this.ctx,
+      interactionCtx,
+      channelConfig,
+      guildInfo,
+      allowNameMatching,
+    });
 
     const consumed = resolveDiscordModalEntry({
       id: modalId,
@@ -1730,13 +1960,35 @@ class DiscordComponentModal extends Modal {
     if (!consumed) {
       try {
         await interaction.reply({
-          content: "此表单已过期。",
+          content: "This form has expired.",
           ephemeral: true,
         });
       } catch {
         // Interaction may have expired
       }
       return;
+    }
+
+    if (consumed.callbackData) {
+      const fields = consumed.fields.map((field) => ({
+        id: field.id,
+        name: field.name,
+        values: resolveModalFieldValues(field, interaction),
+      }));
+      const pluginDispatch = await dispatchPluginDiscordInteractiveEvent({
+        ctx: this.ctx,
+        interaction,
+        interactionCtx,
+        channelCtx,
+        isAuthorizedSender: commandAuthorized,
+        data: consumed.callbackData,
+        kind: "modal",
+        fields,
+        messageId: consumed.messageId,
+      });
+      if (pluginDispatch === "handled") {
+        return;
+      }
     }
 
     try {

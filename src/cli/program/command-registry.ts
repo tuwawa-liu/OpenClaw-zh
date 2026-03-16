@@ -236,6 +236,10 @@ function collectCoreCliCommandNames(predicate?: (command: CoreCliCommandDescript
   return names;
 }
 
+export function getCoreCliCommandDescriptors(): ReadonlyArray<CoreCliCommandDescriptor> {
+  return coreEntries.flatMap((entry) => entry.commands);
+}
+
 export function getCoreCliCommandNames(): string[] {
   return collectCoreCliCommandNames();
 }

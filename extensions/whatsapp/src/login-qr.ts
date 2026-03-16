@@ -12,6 +12,7 @@ import {
   getStatusCode,
   logoutWeb,
   readWebSelfId,
+  waitForCredsSaveQueueWithTimeout,
   waitForWaConnection,
   webAuthExists,
 } from "./session.js";
@@ -88,6 +89,7 @@ async function restartLoginSocket(login: ActiveLogin, runtime: RuntimeEnv) {
     info("WhatsApp 配对后要求重启（代码 515）；正在重试连接…"),
   );
   closeSocket(login.sock);
+  await waitForCredsSaveQueueWithTimeout(login.authDir);
   try {
     const sock = await createWaSocket(false, login.verbose, {
       authDir: login.authDir,

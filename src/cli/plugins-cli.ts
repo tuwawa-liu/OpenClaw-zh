@@ -98,16 +98,21 @@ function formatPluginLine(plugin: PluginRecord, verbose = false): string {
           : plugin.description,
       )
     : theme.muted("(no description)");
+  const format = plugin.format ?? "openclaw";
 
   if (!verbose) {
-    return `${name}${idSuffix} ${status} - ${desc}`;
+    return `${name}${idSuffix} ${status} ${theme.muted(`[${format}]`)} - ${desc}`;
   }
 
   const parts = [
     `${name}${idSuffix} ${status}`,
+    `  format: ${format}`,
     `  source: ${theme.muted(shortenHomeInString(plugin.source))}`,
     `  origin: ${plugin.origin}`,
   ];
+  if (plugin.bundleFormat) {
+    parts.push(`  bundle format: ${plugin.bundleFormat}`);
+  }
   if (plugin.version) {
     parts.push(`  version: ${plugin.version}`);
   }
@@ -420,6 +425,7 @@ export function registerPluginsCli(program: Command) {
           return {
             Name: plugin.name || plugin.id,
             ID: plugin.name && plugin.name !== plugin.id ? plugin.id : "",
+            Format: plugin.format ?? "openclaw",
             Status:
               plugin.status === "loaded"
                 ? theme.success("loaded")
@@ -516,6 +522,11 @@ export function registerPluginsCli(program: Command) {
       }
       if (plugin.providerIds.length > 0) {
         lines.push(`${theme.muted("提供者：")} ${plugin.providerIds.join(", ")}`);
+      }
+      if ((plugin.bundleCapabilities?.length ?? 0) > 0) {
+        lines.push(
+          `${theme.muted("Bundle capabilities:")} ${plugin.bundleCapabilities?.join(", ")}`,
+        );
       }
       if (plugin.cliCommands.length > 0) {
         lines.push(`${theme.muted("CLI 命令：")} ${plugin.cliCommands.join(", ")}`);

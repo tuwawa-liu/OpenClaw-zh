@@ -360,13 +360,6 @@ export function formatAuthChoiceChoicesForCli(params?: {
   const includeLegacyAliases = params?.includeLegacyAliases ?? false;
   const values = getBaseAuthChoiceOptions().map((opt) => opt.value);
 
-  if (includeSkip) {
-    values.push("skip");
-  }
-  if (includeLegacyAliases) {
-    values.push(...AUTH_CHOICE_LEGACY_ALIASES_FOR_CLI);
-  }
-
   return values.join("|");
 }
 

@@ -2,6 +2,7 @@ import { isIP } from "node:net";
 import path from "node:path";
 import { resolveSandboxConfigForAgent } from "../agents/sandbox.js";
 import { execDockerRaw } from "../agents/sandbox/docker.js";
+import { redactCdpUrl } from "../browser/cdp.helpers.js";
 import { resolveBrowserConfig, resolveProfile } from "../browser/config.js";
 import { resolveBrowserControlAuth } from "../browser/control-auth.js";
 import { listChannelPlugins } from "../channels/plugins/index.js";
@@ -18,6 +19,7 @@ import {
   resolveMergedSafeBinProfileFixtures,
 } from "../infra/exec-safe-bin-runtime-policy.js";
 import { normalizeTrustedSafeBinDirs } from "../infra/exec-safe-bin-trust.js";
+import { isBlockedHostnameOrIp, isPrivateNetworkAllowedByPolicy } from "../infra/net/ssrf.js";
 import { collectChannelSecurityFindings } from "./audit-channel.js";
 import {
   collectAttackSurfaceSummaryFindings,
@@ -782,6 +784,7 @@ function collectBrowserControlFindings(
     } catch {
       continue;
     }
+    const redactedCdpUrl = redactCdpUrl(profile.cdpUrl) ?? profile.cdpUrl;
     if (url.protocol === "http:") {
       findings.push({
         checkId: "browser.remote_cdp_http",
@@ -789,6 +792,21 @@ function collectBrowserControlFindings(
         title: "远程 CDP 使用 HTTP",
         detail: `浏览器配置文件 "${name}" 使用 http CDP（${profile.cdpUrl}）；仅在 tailnet 内或加密隧道后才可接受。`,
         remediation: `优先使用 HTTPS/TLS 或仅 tailnet 端点作为远程 CDP。`,
+      });
+    }
+    if (
+      isPrivateNetworkAllowedByPolicy(resolved.ssrfPolicy) &&
+      isBlockedHostnameOrIp(url.hostname)
+    ) {
+      findings.push({
+        checkId: "browser.remote_cdp_private_host",
+        severity: "warn",
+        title: "Remote CDP targets a private/internal host",
+        detail:
+          `browser profile "${name}" points at a private/internal CDP host (${redactedCdpUrl}). ` +
+          "This is expected for LAN/tailnet/WSL-style setups, but treat it as a trusted-network endpoint.",
+        remediation:
+          "Prefer a tailnet or tunnel for remote CDP. If you want strict blocking, set browser.ssrfPolicy.dangerouslyAllowPrivateNetwork=false and allow only explicit hosts.",
       });
     }
   }

@@ -11,7 +11,7 @@ import type { RuntimeEnv } from "../runtime.js";
 import type { WizardPrompter } from "../wizard/prompts.js";
 import type { SecretInputMode } from "./onboard-types.js";
 
-export type SearchProvider = "brave" | "gemini" | "grok" | "kimi" | "perplexity";
+export type SearchProvider = string;
 
 type SearchProviderEntry = {
   value: SearchProvider;
@@ -71,18 +71,11 @@ export function hasKeyInEnv(entry: SearchProviderEntry): boolean {
 
 function rawKeyValue(config: OpenClawConfig, provider: SearchProvider): unknown {
   const search = config.tools?.web?.search;
-  switch (provider) {
-    case "brave":
-      return search?.apiKey;
-    case "gemini":
-      return search?.gemini?.apiKey;
-    case "grok":
-      return search?.grok?.apiKey;
-    case "kimi":
-      return search?.kimi?.apiKey;
-    case "perplexity":
-      return search?.perplexity?.apiKey;
-  }
+  const entry = resolvePluginWebSearchProviders({
+    config,
+    bundledAllowlistCompat: true,
+  }).find((candidate) => candidate.id === provider);
+  return entry?.getCredentialValue(search as Record<string, unknown> | undefined);
 }
 
 /** Returns the plaintext key string, or undefined for SecretRefs/missing. */
@@ -129,22 +122,12 @@ export function applySearchKey(
   key: SecretInput,
 ): OpenClawConfig {
   const search = { ...config.tools?.web?.search, provider, enabled: true };
-  switch (provider) {
-    case "brave":
-      search.apiKey = key;
-      break;
-    case "gemini":
-      search.gemini = { ...search.gemini, apiKey: key };
-      break;
-    case "grok":
-      search.grok = { ...search.grok, apiKey: key };
-      break;
-    case "kimi":
-      search.kimi = { ...search.kimi, apiKey: key };
-      break;
-    case "perplexity":
-      search.perplexity = { ...search.perplexity, apiKey: key };
-      break;
+  const entry = resolvePluginWebSearchProviders({
+    config,
+    bundledAllowlistCompat: true,
+  }).find((candidate) => candidate.id === provider);
+  if (entry) {
+    entry.setCredentialValue(search as Record<string, unknown>, key);
   }
   return {
     ...config,
@@ -226,7 +209,7 @@ export async function setupSearch(
     return SEARCH_PROVIDER_OPTIONS[0].value;
   })();
 
-  type PickerValue = SearchProvider | "__skip__";
+  type PickerValue = string;
   const choice = await prompter.select<PickerValue>({
     message: t("onboardSearch.searchProvider"),
     options: [
@@ -237,7 +220,7 @@ export async function setupSearch(
         hint: t("onboardSearch.skipHint"),
       },
     ],
-    initialValue: defaultProvider as PickerValue,
+    initialValue: defaultProvider,
   });
 
   if (choice === "__skip__") {

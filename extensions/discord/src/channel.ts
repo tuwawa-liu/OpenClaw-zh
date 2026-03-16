@@ -7,14 +7,12 @@ import {
   formatAllowFromLowercase,
 } from "openclaw/plugin-sdk/compat";
 import {
-  applyAccountNameToChannelSection,
   buildComputedAccountStatusSnapshot,
   buildChannelConfigSchema,
   buildTokenChannelStatusSummary,
   collectDiscordAuditChannelIds,
   collectDiscordStatusIssues,
   DEFAULT_ACCOUNT_ID,
-  discordOnboardingAdapter,
   DiscordConfigSchema,
   getChatChannelMeta,
   inspectDiscordAccount,
@@ -22,8 +20,6 @@ import {
   listDiscordDirectoryGroupsFromConfig,
   listDiscordDirectoryPeersFromConfig,
   looksLikeDiscordTargetId,
-  migrateBaseNameToDefaultAccount,
-  normalizeAccountId,
   normalizeDiscordMessagingTarget,
   normalizeDiscordOutboundTarget,
   PAIRING_APPROVED_MESSAGE,
@@ -39,6 +35,7 @@ import {
 } from "openclaw/plugin-sdk/discord";
 import { resolveOutboundSendDep } from "../../../src/infra/outbound/send-deps.js";
 import { getDiscordRuntime } from "./runtime.js";
+import { discordSetupAdapter, discordSetupWizard } from "./setup-surface.js";
 
 type DiscordSendFn = ReturnType<
   typeof getDiscordRuntime
@@ -81,7 +78,7 @@ export const discordPlugin: ChannelPlugin<ResolvedDiscordAccount> = {
   meta: {
     ...meta,
   },
-  onboarding: discordOnboardingAdapter,
+  setupWizard: discordSetupWizard,
   pairing: {
     idLabel: "discordUserId",
     normalizeAllowEntry: (entry) => entry.replace(/^(discord|user):/i, ""),
