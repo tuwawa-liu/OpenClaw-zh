@@ -145,7 +145,7 @@ async function serveAsset(
     return true;
   } catch (error) {
     logger?.warn(`Failed to serve diffs asset ${pathname}: ${String(error)}`);
-    respondText(res, 500, "Failed to load asset");
+    respondText(res, 500, "加载资源失败");
     return true;
   }
 }

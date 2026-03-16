@@ -104,10 +104,7 @@ export const ttsHandlers: GatewayRequestHandlers = {
       respond(
         false,
         undefined,
-        errorShape(
-          ErrorCodes.INVALID_REQUEST,
-          "Invalid provider. Use openai, elevenlabs, or edge.",
-        ),
+        errorShape(ErrorCodes.INVALID_REQUEST, "无效的提供商。请使用 openai、elevenlabs 或 edge。"),
       );
       return;
     }

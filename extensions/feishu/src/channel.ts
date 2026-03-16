@@ -267,7 +267,7 @@ export const feishuPlugin: ChannelPlugin<ResolvedFeishuAccount> = {
         (ctx.action === "react" || ctx.action === "reactions") &&
         !isFeishuReactionsActionEnabled({ cfg: ctx.cfg, account })
       ) {
-        throw new Error("Feishu reactions are disabled via actions.reactions.");
+        throw new Error("飞书反应已通过 actions.reactions 禁用。");
       }
       if (ctx.action === "send" && ctx.params.card) {
         const card = ctx.params.card as Record<string, unknown>;
@@ -280,8 +280,8 @@ export const feishuPlugin: ChannelPlugin<ResolvedFeishuAccount> = {
         if (!to) {
           return {
             isError: true,
-            content: [{ type: "text" as const, text: "Feishu card send requires a target (to)." }],
-            details: { error: "Feishu card send requires a target (to)." },
+            content: [{ type: "text" as const, text: "飞书卡片发送需要目标 (to)。" }],
+            details: { error: "飞书卡片发送需要目标 (to)。" },
           };
         }
         const replyToMessageId =
@@ -313,14 +313,14 @@ export const feishuPlugin: ChannelPlugin<ResolvedFeishuAccount> = {
           (typeof ctx.params.message_id === "string" && ctx.params.message_id.trim()) ||
           undefined;
         if (!messageId) {
-          throw new Error("Feishu reaction requires messageId.");
+          throw new Error("飞书反应需要 messageId。");
         }
         const emoji = typeof ctx.params.emoji === "string" ? ctx.params.emoji.trim() : "";
         const remove = ctx.params.remove === true;
         const clearAll = ctx.params.clearAll === true;
         if (remove) {
           if (!emoji) {
-            throw new Error("Emoji is required to remove a Feishu reaction.");
+            throw new Error("移除飞书反应需要指定表情。");
           }
           const { listReactionsFeishu, removeReactionFeishu } = await loadFeishuChannelRuntime();
           const matches = await listReactionsFeishu({
@@ -353,9 +353,7 @@ export const feishuPlugin: ChannelPlugin<ResolvedFeishuAccount> = {
         }
         if (!emoji) {
           if (!clearAll) {
-            throw new Error(
-              "Emoji is required to add a Feishu reaction. Set clearAll=true to remove all bot reactions.",
-            );
+            throw new Error("添加飞书反应需要指定表情。设置 clearAll=true 可移除所有机器人反应。");
           }
           const { listReactionsFeishu, removeReactionFeishu } = await loadFeishuChannelRuntime();
           const reactions = await listReactionsFeishu({

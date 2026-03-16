@@ -895,9 +895,7 @@ export async function runEmbeddedPiAgent(
             return {
               payloads: [
                 {
-                  text:
-                    "Request failed after repeated internal retries. " +
-                    "Please try again, or use /new to start a fresh session.",
+                  text: "多次内部重试后请求失败。" + "请重试，或使用 /new 开始新会话。",
                   isError: true,
                 },
               ],
@@ -1344,9 +1342,7 @@ export async function runEmbeddedPiAgent(
               return {
                 payloads: [
                   {
-                    text:
-                      `Image too large for the model${maxBytesHint}. ` +
-                      "Please compress or resize the image and try again.",
+                    text: `图片对该模型来说过大${maxBytesHint}。` + "请压缩或调整图片大小后重试。",
                     isError: true,
                   },
                 ],
@@ -1619,8 +1615,8 @@ export async function runEmbeddedPiAgent(
               payloads: [
                 {
                   text:
-                    "Request timed out before a response was generated. " +
-                    "Please try again, or increase `agents.defaults.timeoutSeconds` in your config.",
+                    "请求在生成响应前超时。" +
+                    "请重试，或增加配置中的 `agents.defaults.timeoutSeconds`。",
                   isError: true,
                 },
               ],

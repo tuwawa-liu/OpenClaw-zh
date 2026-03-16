@@ -90,7 +90,7 @@ export async function importProfileFromRelays(
   if (!pubkey || !/^[0-9a-fA-F]{64}$/.test(pubkey)) {
     return {
       ok: false,
-      error: "Invalid pubkey format (must be 64 hex characters)",
+      error: "无效的公钥格式（必须为 64 位十六进制字符）",
       relaysQueried: [],
     };
   }

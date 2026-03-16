@@ -137,7 +137,7 @@ function defaultIndexHTML() {
       sourceComponentId,
       context: { t: Date.now() },
     });
-    log(ok ? ("Sent action: " + name) : ("Failed to send action: " + name));
+    log(ok ? ("已发送操作：" + name) : ("发送操作失败：" + name));
   }
 
   document.getElementById("btn-hello").onclick = () => send("hello", "demo.hello");

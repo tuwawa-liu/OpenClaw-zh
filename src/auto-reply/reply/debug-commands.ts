@@ -11,8 +11,8 @@ export function parseDebugCommand(raw: string): DebugCommand | null {
   return parseStandardSetUnsetSlashCommand<DebugCommand>({
     raw,
     slash: "/debug",
-    invalidMessage: "Invalid /debug syntax.",
-    usageMessage: "Usage: /debug show|set|unset|reset",
+    invalidMessage: "无效的 /debug 语法。",
+    usageMessage: "用法：/debug show|set|unset|reset",
     onKnownAction: (action) => {
       if (action === "show") {
         return { action: "show" };

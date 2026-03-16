@@ -60,7 +60,7 @@ export function setConfigOverride(
 } {
   const parsed = parseConfigPath(pathRaw);
   if (!parsed.ok || !parsed.path) {
-    return { ok: false, error: parsed.error ?? "Invalid path." };
+    return { ok: false, error: parsed.error ?? "无效路径。" };
   }
   setConfigValueAtPath(overrides, parsed.path, sanitizeOverrideValue(value));
   return { ok: true };
@@ -76,7 +76,7 @@ export function unsetConfigOverride(pathRaw: string): {
     return {
       ok: false,
       removed: false,
-      error: parsed.error ?? "Invalid path.",
+      error: parsed.error ?? "无效路径。",
     };
   }
   const removed = unsetConfigValueAtPath(overrides, parsed.path);

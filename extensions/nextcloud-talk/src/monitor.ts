@@ -30,9 +30,9 @@ const PREAUTH_WEBHOOK_BODY_TIMEOUT_MS = 5_000;
 const HEALTH_PATH = "/healthz";
 const WEBHOOK_ERRORS = {
   missingSignatureHeaders: "Missing signature headers",
-  invalidBackend: "Invalid backend",
-  invalidSignature: "Invalid signature",
-  invalidPayloadFormat: "Invalid payload format",
+  invalidBackend: "无效的后端",
+  invalidSignature: "无效的签名",
+  invalidPayloadFormat: "无效的负载格式",
   payloadTooLarge: "Payload too large",
   internalServerError: "Internal server error",
 } as const;

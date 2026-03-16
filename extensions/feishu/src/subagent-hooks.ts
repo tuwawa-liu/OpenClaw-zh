@@ -285,8 +285,7 @@ export function registerFeishuSubagentHooks(api: OpenClawPluginApi) {
       if (!binding) {
         return {
           status: "error" as const,
-          error:
-            "Unable to bind this Feishu conversation to the spawned subagent session. Session mode is unavailable for this target.",
+          error: "无法将此飞书会话绑定到生成的子代理会话。此目标不支持会话模式。",
         };
       }
       return {
@@ -296,7 +295,7 @@ export function registerFeishuSubagentHooks(api: OpenClawPluginApi) {
     } catch (err) {
       return {
         status: "error" as const,
-        error: `Feishu conversation bind failed: ${summarizeError(err)}`,
+        error: `飞书会话绑定失败：${summarizeError(err)}`,
       };
     }
   });

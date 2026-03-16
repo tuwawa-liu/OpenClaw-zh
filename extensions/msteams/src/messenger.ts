@@ -103,15 +103,15 @@ export function buildConversationReference(
 ): MSTeamsConversationReference {
   const conversationId = ref.conversation?.id?.trim();
   if (!conversationId) {
-    throw new Error("Invalid stored reference: missing conversation.id");
+    throw new Error("无效的存储引用：缺少 conversation.id");
   }
   const agent = ref.agent ?? ref.bot ?? undefined;
   if (agent == null || !agent.id) {
-    throw new Error("Invalid stored reference: missing agent.id");
+    throw new Error("无效的存储引用：缺少 agent.id");
   }
   const user = ref.user;
   if (!user?.id) {
-    throw new Error("Invalid stored reference: missing user.id");
+    throw new Error("无效的存储引用：缺少 user.id");
   }
   return {
     activityId: ref.activityId,

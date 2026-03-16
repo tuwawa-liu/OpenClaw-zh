@@ -254,9 +254,9 @@ export const slackOnboardingAdapter: ChannelOnboardingAdapter = {
       hasConfigToken: hasConfiguredBotToken,
       allowEnv,
       envValue: process.env.SLACK_BOT_TOKEN,
-      envPrompt: "SLACK_BOT_TOKEN detected. Use env var?",
-      keepPrompt: "Slack bot token already configured. Keep it?",
-      inputPrompt: "Enter Slack bot token (xoxb-...)",
+      envPrompt: "检测到 SLACK_BOT_TOKEN。使用环境变量？",
+      keepPrompt: "Slack 机器人 token 已配置。保留它？",
+      inputPrompt: "输入 Slack 机器人 token (xoxb-...)",
       preferredEnvVar: allowEnv ? "SLACK_BOT_TOKEN" : undefined,
       applySet: async (cfg, value) =>
         patchChannelConfigForAccount({
@@ -281,9 +281,9 @@ export const slackOnboardingAdapter: ChannelOnboardingAdapter = {
       hasConfigToken: hasConfiguredAppToken,
       allowEnv,
       envValue: process.env.SLACK_APP_TOKEN,
-      envPrompt: "SLACK_APP_TOKEN detected. Use env var?",
-      keepPrompt: "Slack app token already configured. Keep it?",
-      inputPrompt: "Enter Slack app token (xapp-...)",
+      envPrompt: "检测到 SLACK_APP_TOKEN。使用环境变量？",
+      keepPrompt: "Slack 应用 token 已配置。保留它？",
+      inputPrompt: "输入 Slack 应用 token (xapp-...)",
       preferredEnvVar: allowEnv ? "SLACK_APP_TOKEN" : undefined,
       applySet: async (cfg, value) =>
         patchChannelConfigForAccount({

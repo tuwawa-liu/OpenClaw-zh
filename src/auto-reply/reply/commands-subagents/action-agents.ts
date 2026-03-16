@@ -52,9 +52,9 @@ export function handleSubagentsAgentsAction(ctx: SubagentsCommandContext): Comma
     return resolveSessionBindings(entry.childSessionKey).length > 0;
   });
 
-  const lines = ["agents:", "-----"];
+  const lines = ["代理：", "-----"];
   if (visibleRuns.length === 0) {
-    lines.push("(none)");
+    lines.push("（无）");
   } else {
     let index = 1;
     for (const entry of visibleRuns) {
@@ -65,8 +65,8 @@ export function handleSubagentsAgentsAction(ctx: SubagentsCommandContext): Comma
             conversationId: binding.conversation.conversationId,
           })
         : channel === "discord" || channel === "telegram"
-          ? "unbound"
-          : "bindings available on discord/telegram";
+          ? "未绑定"
+          : "绑定可在 discord/telegram 上使用";
       lines.push(`${index}. ${formatRunLabel(entry)} (${bindingText})`);
       index += 1;
     }
@@ -76,7 +76,7 @@ export function handleSubagentsAgentsAction(ctx: SubagentsCommandContext): Comma
     (entry) => entry.targetKind === "session",
   );
   if (requesterBindings.length > 0) {
-    lines.push("", "acp/session bindings:", "-----");
+    lines.push("", "ACP/会话绑定：", "-----");
     for (const binding of requesterBindings) {
       const label =
         typeof binding.metadata?.label === "string" && binding.metadata.label.trim()

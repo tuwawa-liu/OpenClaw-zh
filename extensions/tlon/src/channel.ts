@@ -96,7 +96,7 @@ function resolveOutboundContext(params: {
 }) {
   const account = resolveTlonAccount(params.cfg, params.accountId ?? undefined);
   if (!account.configured || !account.ship || !account.url || !account.code) {
-    throw new Error("Tlon account not configured");
+    throw new Error("Tlon 账户未配置");
   }
 
   const parsed = parseTlonTarget(params.to);
@@ -215,7 +215,7 @@ export const tlonPlugin: ChannelPlugin = {
     selectionLabel: "Tlon (Urbit)",
     docsPath: "/channels/tlon",
     docsLabel: "tlon",
-    blurb: "Decentralized messaging on Urbit",
+    blurb: "Urbit 上的去中心化即时通讯",
     aliases: ["urbit"],
     order: 90,
   },
@@ -337,7 +337,7 @@ export const tlonPlugin: ChannelPlugin = {
               channel: TLON_CHANNEL_ID,
               accountId: account.accountId,
               kind: "config",
-              message: "Account not configured (missing ship, code, or url)",
+              message: "账户未配置（缺少 ship、code 或 url）",
             },
           ];
         }
@@ -354,7 +354,7 @@ export const tlonPlugin: ChannelPlugin = {
     },
     probeAccount: async ({ account }) => {
       if (!account.configured || !account.ship || !account.url || !account.code) {
-        return { ok: false, error: "Not configured" };
+        return { ok: false, error: "未配置" };
       }
       try {
         const ssrfPolicy = ssrfPolicyFromAllowPrivateNetwork(account.allowPrivateNetwork);

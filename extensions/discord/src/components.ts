@@ -1081,7 +1081,7 @@ export function buildDiscordComponentMessage(params: {
     });
 
     const triggerSpec: DiscordComponentButtonSpec = {
-      label: params.spec.modal.triggerLabel ?? "Open form",
+      label: params.spec.modal.triggerLabel ?? "打开表单",
       style: params.spec.modal.triggerStyle ?? "primary",
       allowedUsers: params.spec.modal.allowedUsers,
     };

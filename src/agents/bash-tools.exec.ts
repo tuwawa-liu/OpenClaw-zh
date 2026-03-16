@@ -223,7 +223,7 @@ export function createExecTool(
       };
 
       if (!params.command) {
-        throw new Error("Provide a command to start.");
+        throw new Error("请提供要启动的命令。");
       }
 
       const maxOutput = DEFAULT_MAX_OUTPUT;
@@ -233,7 +233,7 @@ export function createExecTool(
       const backgroundRequested = params.background === true;
       const yieldRequested = typeof params.yieldMs === "number";
       if (!allowBackground && (backgroundRequested || yieldRequested)) {
-        warnings.push("Warning: background execution is disabled; running synchronously.");
+        warnings.push("警告：后台执行已禁用，将同步运行。");
       }
       const yieldWindow = allowBackground
         ? backgroundRequested
@@ -393,7 +393,7 @@ export function createExecTool(
       // Node hosts intentionally ignore request-scoped PATH overrides, so don't pretend this applies.
       if (host === "node" && defaultPathPrepend.length > 0) {
         warnings.push(
-          "Warning: tools.exec.pathPrepend is ignored for host=node. Configure PATH on the node host/service instead.",
+          "警告：tools.exec.pathPrepend 对 host=node 无效。请在节点主机/服务上配置 PATH。",
         );
       } else {
         applyPathPrepend(env, defaultPathPrepend);

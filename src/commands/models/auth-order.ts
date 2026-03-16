@@ -73,8 +73,14 @@ export async function modelsAuthOrderGetCommand(
 
   runtime.log(t("modelsCli.agentLabel", { id: agentId }));
   runtime.log(t("modelsCli.providerLabel", { provider }));
-  runtime.log(t("modelsCli.authFileLabel", { path: shortenHomePath(`${agentDir}/auth-profiles.json`) }));
-  runtime.log(order.length > 0 ? t("modelsCli.orderOverride", { order: order.join(", ") }) : t("modelsCli.orderOverrideNone"));
+  runtime.log(
+    t("modelsCli.authFileLabel", { path: shortenHomePath(`${agentDir}/auth-profiles.json`) }),
+  );
+  runtime.log(
+    order.length > 0
+      ? t("modelsCli.orderOverride", { order: order.join(", ") })
+      : t("modelsCli.orderOverrideNone"),
+  );
 }
 
 export async function modelsAuthOrderClearCommand(
@@ -88,7 +94,7 @@ export async function modelsAuthOrderClearCommand(
     order: null,
   });
   if (!updated) {
-    throw new Error("Failed to update auth-profiles.json (lock busy?).");
+    throw new Error("更新 auth-profiles.json 失败（锁忙？）。");
   }
 
   runtime.log(t("modelsCli.agentLabel", { id: agentId }));
@@ -127,7 +133,7 @@ export async function modelsAuthOrderSetCommand(
     order: requested,
   });
   if (!updated) {
-    throw new Error("Failed to update auth-profiles.json (lock busy?).");
+    throw new Error("更新 auth-profiles.json 失败（锁忙？）。");
   }
 
   runtime.log(t("modelsCli.agentLabel", { id: agentId }));

@@ -16,7 +16,7 @@ export function handleSubagentsInfoAction(ctx: SubagentsCommandContext): Command
   const { params, runs, restTokens } = ctx;
   const target = restTokens[0];
   if (!target) {
-    return stopWithText("ℹ️ Usage: /subagents info <id|#>");
+    return stopWithText("ℹ️ 用法：/subagents info <id|#>");
   }
 
   const targetResolution = resolveSubagentEntryForToken(runs, target);
@@ -38,22 +38,22 @@ export function handleSubagentsInfoAction(ctx: SubagentsCommandContext): Command
     : "n/a";
 
   const lines = [
-    "ℹ️ Subagent info",
-    `Status: ${resolveDisplayStatus(run, { pendingDescendants: countPendingDescendantRuns(run.childSessionKey) })}`,
-    `Label: ${formatRunLabel(run)}`,
-    `Task: ${run.task}`,
-    `Run: ${run.runId}`,
-    `Session: ${run.childSessionKey}`,
-    `SessionId: ${sessionEntry?.sessionId ?? "n/a"}`,
-    `Transcript: ${sessionEntry?.sessionFile ?? "n/a"}`,
-    `Runtime: ${runtime}`,
-    `Created: ${formatTimestampWithAge(run.createdAt)}`,
-    `Started: ${formatTimestampWithAge(run.startedAt)}`,
-    `Ended: ${formatTimestampWithAge(run.endedAt)}`,
-    `Cleanup: ${run.cleanup}`,
-    run.archiveAtMs ? `Archive: ${formatTimestampWithAge(run.archiveAtMs)}` : undefined,
-    run.cleanupHandled ? "Cleanup handled: yes" : undefined,
-    `Outcome: ${outcome}`,
+    "ℹ️ 子代理信息",
+    `状态：${resolveDisplayStatus(run, { pendingDescendants: countPendingDescendantRuns(run.childSessionKey) })}`,
+    `标签：${formatRunLabel(run)}`,
+    `任务：${run.task}`,
+    `运行：${run.runId}`,
+    `会话：${run.childSessionKey}`,
+    `会话ID：${sessionEntry?.sessionId ?? "n/a"}`,
+    `记录：${sessionEntry?.sessionFile ?? "n/a"}`,
+    `运行时长：${runtime}`,
+    `创建时间：${formatTimestampWithAge(run.createdAt)}`,
+    `开始时间：${formatTimestampWithAge(run.startedAt)}`,
+    `结束时间：${formatTimestampWithAge(run.endedAt)}`,
+    `清理：${run.cleanup}`,
+    run.archiveAtMs ? `归档：${formatTimestampWithAge(run.archiveAtMs)}` : undefined,
+    run.cleanupHandled ? "清理已处理：是" : undefined,
+    `结果：${outcome}`,
   ].filter(Boolean);
 
   return stopWithText(lines.join("\n"));

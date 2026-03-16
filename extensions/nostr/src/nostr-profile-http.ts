@@ -118,7 +118,7 @@ function validateUrlSafety(urlStr: string): { ok: true } | { ok: false; error: s
 
     return { ok: true };
   } catch {
-    return { ok: false, error: "Invalid URL format" };
+    return { ok: false, error: "无效的 URL 格式" };
   }
 }
 
@@ -357,11 +357,11 @@ export function createNostrProfileHttpHandler(
       }
 
       // Method not allowed
-      sendJson(res, 405, { ok: false, error: "Method not allowed" });
+      sendJson(res, 405, { ok: false, error: "不允许的方法" });
       return true;
     } catch (err) {
       ctx.log?.error(`Profile HTTP error: ${String(err)}`);
-      sendJson(res, 500, { ok: false, error: "Internal server error" });
+      sendJson(res, 500, { ok: false, error: "内部服务器错误" });
       return true;
     }
   };
@@ -403,7 +403,7 @@ async function handleUpdateProfile(
 
   // Rate limiting
   if (!checkRateLimit(accountId)) {
-    sendJson(res, 429, { ok: false, error: "Rate limit exceeded (5 requests/minute)" });
+    sendJson(res, 429, { ok: false, error: "速率限制已超出（5 次请求/分钟）" });
     return true;
   }
 

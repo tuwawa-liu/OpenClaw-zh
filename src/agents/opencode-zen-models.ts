@@ -295,7 +295,7 @@ export async function fetchOpencodeZenModels(apiKey?: string): Promise<ModelDefi
     const data = (await response.json()) as ZenModelsResponse;
 
     if (!data.data || !Array.isArray(data.data)) {
-      throw new Error("Invalid response format from /models endpoint");
+      throw new Error("来自 /models 端点的响应格式无效");
     }
 
     const models = data.data.map((model) => buildModelDefinition(model.id));

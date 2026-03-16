@@ -412,7 +412,7 @@ async function resolveUploadInput(
   if (imageInput?.startsWith("data:")) {
     const commaIdx = imageInput.indexOf(",");
     if (commaIdx === -1) {
-      throw new Error("Invalid data URI: missing comma separator.");
+      throw new Error("无效的 data URI：缺少逗号分隔符。");
     }
     const header = imageInput.slice(0, commaIdx);
     const data = imageInput.slice(commaIdx + 1);
@@ -594,7 +594,7 @@ async function uploadImageBlock(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- SDK return shape
   const imageBlockId = insertRes.data?.children?.find((b: any) => b.block_type === 27)?.block_id;
   if (!imageBlockId) {
-    throw new Error("Failed to create image block");
+    throw new Error("创建图片块失败");
   }
 
   // Step 2: Resolve and upload the image buffer.
@@ -651,7 +651,7 @@ async function uploadFileBlock(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- SDK return shape
   const placeholderBlock = inserted[0];
   if (!placeholderBlock?.block_id) {
-    throw new Error("Failed to create placeholder block for file upload");
+    throw new Error("创建文件上传占位块失败");
   }
 
   // Delete the placeholder

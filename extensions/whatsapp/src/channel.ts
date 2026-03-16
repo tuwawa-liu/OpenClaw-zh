@@ -193,13 +193,13 @@ export const whatsappPlugin: ChannelPlugin<ResolvedWhatsAppAccount> = {
             groupPolicy,
             routeAllowlistConfigured: groupAllowlistConfigured,
             restrictSenders: {
-              surface: "WhatsApp groups",
+              surface: "WhatsApp 群组",
               openScope: "any member in allowed groups",
               groupPolicyPath: "channels.whatsapp.groupPolicy",
               groupAllowFromPath: "channels.whatsapp.groupAllowFrom",
             },
             noRouteAllowlist: {
-              surface: "WhatsApp groups",
+              surface: "WhatsApp 群组",
               routeAllowlistPath: "channels.whatsapp.groups",
               routeScope: "group",
               groupPolicyPath: "channels.whatsapp.groupPolicy",

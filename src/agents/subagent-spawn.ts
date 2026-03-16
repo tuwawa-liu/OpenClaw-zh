@@ -235,14 +235,13 @@ async function ensureThreadBindingForSubagentSpawn(params: {
       const error = result.error.trim();
       return {
         status: "error",
-        error: error || "Failed to prepare thread binding for this subagent session.",
+        error: error || "无法为此子代理会话准备线程绑定。",
       };
     }
     if (result?.status !== "ok" || !result.threadBindingReady) {
       return {
         status: "error",
-        error:
-          "Unable to create or bind a thread for this subagent session. Session mode is unavailable for this target.",
+        error: "无法为此子代理会话创建或绑定线程。此目标不支持会话模式。",
       };
     }
     return { status: "ok" };

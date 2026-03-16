@@ -111,7 +111,7 @@ export async function applyAuthChoiceAnthropic(
       expectedProviders: ["anthropic"],
       provider: "anthropic",
       envLabel: "ANTHROPIC_API_KEY",
-      promptMessage: "Enter Anthropic API key",
+      promptMessage: "输入 Anthropic API 密钥",
       normalize: normalizeApiKeyInput,
       validate: validateApiKeyInput,
       prompter: params.prompter,

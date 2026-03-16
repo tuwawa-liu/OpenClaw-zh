@@ -53,14 +53,14 @@ export function registerDiscordSubagentHooks(api: OpenClawPluginApi) {
       return {
         status: "error" as const,
         error:
-          "Discord thread bindings are disabled (set channels.discord.threadBindings.enabled=true to override for this account, or session.threadBindings.enabled=true globally).",
+          "Discord 线程绑定已禁用（设置 channels.discord.threadBindings.enabled=true 以为此账户启用，或 session.threadBindings.enabled=true 全局启用）。",
       };
     }
     if (!threadBindingFlags.spawnSubagentSessions) {
       return {
         status: "error" as const,
         error:
-          "Discord thread-bound subagent spawns are disabled for this account (set channels.discord.threadBindings.spawnSubagentSessions=true to enable).",
+          "Discord 线程绑定的子代理生成已禁用（设置 channels.discord.threadBindings.spawnSubagentSessions=true 以启用）。",
       };
     }
     try {
@@ -77,15 +77,14 @@ export function registerDiscordSubagentHooks(api: OpenClawPluginApi) {
       if (!binding) {
         return {
           status: "error" as const,
-          error:
-            "Unable to create or bind a Discord thread for this subagent session. Session mode is unavailable for this target.",
+          error: "无法为此子代理会话创建或绑定 Discord 线程。此目标不支持会话模式。",
         };
       }
       return { status: "ok" as const, threadBindingReady: true };
     } catch (err) {
       return {
         status: "error" as const,
-        error: `Discord thread bind failed: ${summarizeError(err)}`,
+        error: `Discord 线程绑定失败：${summarizeError(err)}`,
       };
     }
   });

@@ -21,7 +21,7 @@ import { normalizeAgentId } from "../../routing/session-key.js";
 
 export const ensureFlagCompatibility = (opts: { json?: boolean; plain?: boolean }) => {
   if (opts.json && opts.plain) {
-    throw new Error("Choose either --json or --plain, not both.");
+    throw new Error("请选择 --json 或 --plain，不能同时使用。");
   }
 };
 

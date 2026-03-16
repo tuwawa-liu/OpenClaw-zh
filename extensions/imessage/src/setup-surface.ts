@@ -37,18 +37,18 @@ export function parseIMessageAllowFromEntries(raw: string): { entries: string[];
     }
     if (lower.startsWith("chat_guid:")) {
       if (!entry.slice("chat_guid:".length).trim()) {
-        return { error: "Invalid chat_guid entry" };
+        return { error: "无效的 chat_guid 条目" };
       }
       return { value: entry };
     }
     if (lower.startsWith("chat_identifier:")) {
       if (!entry.slice("chat_identifier:".length).trim()) {
-        return { error: "Invalid chat_identifier entry" };
+        return { error: "无效的 chat_identifier 条目" };
       }
       return { value: entry };
     }
     if (!normalizeIMessageHandle(entry)) {
-      return { error: `Invalid handle: ${entry}` };
+      return { error: `无效的句柄：${entry}` };
     }
     return { value: entry };
   });
@@ -79,18 +79,18 @@ async function promptIMessageAllowFrom(params: {
     accountId: params.accountId,
     defaultAccountId: resolveDefaultIMessageAccountId(params.cfg),
     prompter: params.prompter,
-    noteTitle: "iMessage allowlist",
+    noteTitle: "iMessage 白名单",
     noteLines: [
-      "Allowlist iMessage DMs by handle or chat target.",
-      "Examples:",
+      "通过句柄或聊天目标将 iMessage 私信加入白名单。",
+      "示例：",
       "- +15555550123",
       "- user@example.com",
       "- chat_id:123",
-      "- chat_guid:... or chat_identifier:...",
-      "Multiple entries: comma-separated.",
+      "- chat_guid:... 或 chat_identifier:...",
+      "多个条目：用逗号分隔。",
       `Docs: ${formatDocsLink("/imessage", "imessage")}`,
     ],
-    message: "iMessage allowFrom (handle or chat_id)",
+    message: "iMessage allowFrom（句柄或 chat_id）",
     placeholder: "+15555550123, user@example.com, chat_id:123",
     parseEntries: parseIMessageAllowFromEntries,
     getExistingAllowFrom: ({ cfg, accountId }) =>
@@ -173,10 +173,10 @@ export const imessageSetupAdapter: ChannelSetupAdapter = {
 export const imessageSetupWizard: ChannelSetupWizard = {
   channel,
   status: {
-    configuredLabel: "configured",
-    unconfiguredLabel: "needs setup",
-    configuredHint: "imsg found",
-    unconfiguredHint: "imsg missing",
+    configuredLabel: "已配置",
+    unconfiguredLabel: "需要设置",
+    configuredHint: "imsg 已找到",
+    unconfiguredHint: "imsg 未找到",
     configuredScore: 1,
     unconfiguredScore: 0,
     resolveConfigured: ({ cfg }) =>
@@ -194,13 +194,13 @@ export const imessageSetupWizard: ChannelSetupWizard = {
       const cliPath = cfg.channels?.imessage?.cliPath ?? "imsg";
       const cliDetected = await detectBinary(cliPath);
       return [
-        `iMessage: ${configured ? "configured" : "needs setup"}`,
-        `imsg: ${cliDetected ? "found" : "missing"} (${cliPath})`,
+        `iMessage：${configured ? "已配置" : "需要设置"}`,
+        `imsg：${cliDetected ? "已找到" : "未找到"} (${cliPath})`,
       ];
     },
     resolveSelectionHint: async ({ cfg }) => {
       const cliPath = cfg.channels?.imessage?.cliPath ?? "imsg";
-      return (await detectBinary(cliPath)) ? "imsg found" : "imsg missing";
+      return (await detectBinary(cliPath)) ? "imsg 已找到" : "imsg 未找到";
     },
     resolveQuickstartScore: async ({ cfg }) => {
       const cliPath = cfg.channels?.imessage?.cliPath ?? "imsg";
@@ -211,7 +211,7 @@ export const imessageSetupWizard: ChannelSetupWizard = {
   textInputs: [
     {
       inputKey: "cliPath",
-      message: "imsg CLI path",
+      message: "imsg CLI 路径",
       initialValue: ({ cfg, accountId }) =>
         resolveIMessageAccount({ cfg, accountId }).config.cliPath ?? "imsg",
       currentValue: ({ cfg, accountId }) =>
@@ -220,16 +220,16 @@ export const imessageSetupWizard: ChannelSetupWizard = {
       confirmCurrentValue: false,
       applyCurrentValue: true,
       helpTitle: "iMessage",
-      helpLines: ["imsg CLI path required to enable iMessage."],
+      helpLines: ["启用 iMessage 需要 imsg CLI 路径。"],
     },
   ],
   completionNote: {
-    title: "iMessage next steps",
+    title: "iMessage 后续步骤",
     lines: [
-      "This is still a work in progress.",
-      "Ensure OpenClaw has Full Disk Access to Messages DB.",
-      "Grant Automation permission for Messages when prompted.",
-      "List chats with: imsg chats --limit 20",
+      "此功能仍在开发中。",
+      "确保 OpenClaw 对消息数据库有完全磁盘访问权限。",
+      "提示时授予消息应用的自动化权限。",
+      "列出聊天：imsg chats --limit 20",
       `Docs: ${formatDocsLink("/imessage", "imessage")}`,
     ],
   },

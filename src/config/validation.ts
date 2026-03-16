@@ -124,7 +124,7 @@ function mapZodIssueToConfigIssue(issue: unknown): ConfigValidationIssue {
         })
         .join(".")
     : "";
-  const message = typeof record?.message === "string" ? record.message : "Invalid input";
+  const message = typeof record?.message === "string" ? record.message : "无效输入";
   const allowedValuesSummary = summarizeAllowedValues(collectAllowedValuesFromUnknownIssue(issue));
 
   if (!allowedValuesSummary) {

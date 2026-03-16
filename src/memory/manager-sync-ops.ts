@@ -729,7 +729,7 @@ export abstract class MemoryManagerSyncOps {
       params.progress.report({
         completed: params.progress.completed,
         total: params.progress.total,
-        label: this.batch.enabled ? "Indexing memory files (batch)..." : "Indexing memory files…",
+        label: this.batch.enabled ? "正在索引记忆文件（批量）..." : "正在索引记忆文件…",
       });
     }
 
@@ -819,7 +819,7 @@ export abstract class MemoryManagerSyncOps {
       params.progress.report({
         completed: params.progress.completed,
         total: params.progress.total,
-        label: this.batch.enabled ? "Indexing session files (batch)..." : "Indexing session files…",
+        label: this.batch.enabled ? "正在索引会话文件（批量）..." : "正在索引会话文件…",
       });
     }
 
@@ -943,7 +943,7 @@ export abstract class MemoryManagerSyncOps {
       progress.report({
         completed: progress.completed,
         total: progress.total,
-        label: "Loading vector extension…",
+        label: "正在加载向量扩展…",
       });
     }
     const vectorReady = await this.ensureVectorReady();
@@ -1220,7 +1220,7 @@ export abstract class MemoryManagerSyncOps {
         chunkOverlap: this.settings.chunking.overlap,
       };
       if (!nextMeta) {
-        throw new Error("Failed to compute memory index metadata for reindexing.");
+        throw new Error("重新索引时无法计算记忆索引元数据。");
       }
 
       if (this.vector.available && this.vector.dims) {

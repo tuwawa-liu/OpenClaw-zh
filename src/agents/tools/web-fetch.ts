@@ -518,10 +518,10 @@ async function runWebFetch(params: WebFetchRuntimeParams): Promise<Record<string
   try {
     parsedUrl = new URL(params.url);
   } catch {
-    throw new Error("Invalid URL: must be http or https");
+    throw new Error("无效 URL：必须为 http 或 https");
   }
   if (!["http:", "https:"].includes(parsedUrl.protocol)) {
-    throw new Error("Invalid URL: must be http or https");
+    throw new Error("无效 URL：必须为 http 或 https");
   }
 
   const start = Date.now();

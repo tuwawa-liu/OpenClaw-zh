@@ -93,7 +93,7 @@ export function createSessionsSendTool(opts?: {
         return jsonResult({
           runId: crypto.randomUUID(),
           status: "error",
-          error: "Provide either sessionKey or label (not both).",
+          error: "请提供 sessionKey 或 label（不能同时提供）。",
         });
       }
 
@@ -180,7 +180,7 @@ export function createSessionsSendTool(opts?: {
         return jsonResult({
           runId: crypto.randomUUID(),
           status: "error",
-          error: "Either sessionKey or label is required",
+          error: "必须提供 sessionKey 或 label",
         });
       }
       const resolvedSession = await resolveSessionReference({

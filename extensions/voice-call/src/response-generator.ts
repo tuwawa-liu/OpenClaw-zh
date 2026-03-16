@@ -51,7 +51,7 @@ export async function generateVoiceResponse(
   } catch (err) {
     return {
       text: null,
-      error: err instanceof Error ? err.message : "Unable to load core agent dependencies",
+      error: err instanceof Error ? err.message : "无法加载核心代理依赖",
     };
   }
   const cfg = coreConfig;

@@ -88,9 +88,7 @@ export async function sendDiscordComponentMessage(
   const attachmentNames = extractComponentAttachmentNames(spec);
   const uniqueAttachmentNames = [...new Set(attachmentNames)];
   if (uniqueAttachmentNames.length > 1) {
-    throw new Error(
-      "Discord component attachments currently support a single file. Use media-gallery for multiple files.",
-    );
+    throw new Error("Discord 组件附件目前仅支持单个文件。多个文件请使用 media-gallery。");
   }
   const expectedAttachmentName = uniqueAttachmentNames[0];
   let files: MessagePayloadFile[] | undefined;
@@ -106,9 +104,7 @@ export async function sendDiscordComponentMessage(
     const fileData = toDiscordFileBlob(media.buffer);
     files = [{ data: fileData, name: fileName }];
   } else if (expectedAttachmentName) {
-    throw new Error(
-      "Discord component file blocks require a media attachment (media/path/filePath).",
-    );
+    throw new Error("Discord 组件文件块需要媒体附件 (media/path/filePath)。");
   }
 
   const payload: MessagePayloadObject = {

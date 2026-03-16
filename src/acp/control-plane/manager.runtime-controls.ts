@@ -19,7 +19,7 @@ export async function resolveManagerRuntimeCapabilities(params: {
     reported = await withAcpRuntimeErrorBoundary({
       run: async () => await params.runtime.getCapabilities!({ handle: params.handle }),
       fallbackCode: "ACP_TURN_FAILED",
-      fallbackMessage: "Could not read ACP runtime capabilities.",
+      fallbackMessage: "无法读取 ACP 运行时能力。",
     });
   }
   const controls = new Set<AcpRuntimeCapabilities["controls"][number]>(reported?.controls ?? []);
@@ -109,7 +109,7 @@ export async function applyManagerRuntimeControls(params: {
       }
     },
     fallbackCode: "ACP_TURN_FAILED",
-    fallbackMessage: "Could not apply ACP runtime options before turn execution.",
+    fallbackMessage: "无法在回合执行前应用 ACP 运行时选项。",
   });
 
   if (cached) {

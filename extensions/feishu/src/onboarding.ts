@@ -206,9 +206,7 @@ export const feishuOnboardingAdapter: ChannelOnboardingAdapter = {
     if (!configured) {
       statusLines.push("飞书：需要应用凭据");
     } else if (probeResult?.ok) {
-      statusLines.push(
-        `Feishu: connected as ${probeResult.botName ?? probeResult.botOpenId ?? "bot"}`,
-      );
+      statusLines.push(`飞书：已连接为 ${probeResult.botName ?? probeResult.botOpenId ?? "bot"}`);
     } else {
       statusLines.push("飞书：已配置（连接未验证）");
     }
@@ -306,10 +304,7 @@ export const feishuOnboardingAdapter: ChannelOnboardingAdapter = {
             "飞书连接测试",
           );
         } else {
-          await prompter.note(
-            `连接失败：${probe.error ?? "未知错误"}`,
-            "飞书连接测试",
-          );
+          await prompter.note(`连接失败：${probe.error ?? "未知错误"}`, "飞书连接测试");
         }
       } catch (err) {
         await prompter.note(`连接测试失败：${String(err)}`, "飞书连接测试");
@@ -380,13 +375,13 @@ export const feishuOnboardingAdapter: ChannelOnboardingAdapter = {
         cfg: next,
         prompter,
         providerHint: "feishu-webhook",
-        credentialLabel: "encrypt key",
+        credentialLabel: "加密密钥",
         accountConfigured: encryptKeyPromptState.accountConfigured,
         canUseEnv: encryptKeyPromptState.canUseEnv,
         hasConfigToken: encryptKeyPromptState.hasConfigToken,
         envPrompt: "",
-        keepPrompt: "Feishu encrypt key already configured. Keep it?",
-        inputPrompt: "Enter Feishu encrypt key",
+        keepPrompt: "飞书加密密钥已配置。保留吗？",
+        inputPrompt: "输入飞书加密密钥",
         preferredEnvVar: "FEISHU_ENCRYPT_KEY",
       });
       if (encryptKeyResult.action === "set") {

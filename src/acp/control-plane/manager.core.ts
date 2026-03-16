@@ -942,7 +942,7 @@ export class AcpSessionManager {
           cwd,
         }),
       fallbackCode: "ACP_SESSION_INIT_FAILED",
-      fallbackMessage: "Could not initialize ACP session runtime.",
+      fallbackMessage: "无法初始化 ACP 会话运行时。",
     });
 
     const previousMeta = params.meta;

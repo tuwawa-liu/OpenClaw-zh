@@ -33,14 +33,14 @@ export async function resolveSessionKeyFromResolveParams(params: {
       ok: false,
       error: errorShape(
         ErrorCodes.INVALID_REQUEST,
-        "Provide either key, sessionId, or label (not multiple)",
+        "请提供 key、sessionId 或 label（不能同时提供多个）",
       ),
     };
   }
   if (selectionCount === 0) {
     return {
       ok: false,
-      error: errorShape(ErrorCodes.INVALID_REQUEST, "Either key, sessionId, or label is required"),
+      error: errorShape(ErrorCodes.INVALID_REQUEST, "必须提供 key、sessionId 或 label"),
     };
   }
 

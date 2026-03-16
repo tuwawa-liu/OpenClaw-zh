@@ -22,13 +22,13 @@ export async function promptChannelAccessPolicy(params: {
   allowDisabled?: boolean;
 }): Promise<ChannelAccessPolicy> {
   const options: Array<{ value: ChannelAccessPolicy; label: string }> = [
-    { value: "allowlist", label: "Allowlist (recommended)" },
+    { value: "allowlist", label: "允许列表（推荐）" },
   ];
   if (params.allowOpen !== false) {
-    options.push({ value: "open", label: "Open (allow all channels)" });
+    options.push({ value: "open", label: "开放（允许所有频道）" });
   }
   if (params.allowDisabled !== false) {
-    options.push({ value: "disabled", label: "Disabled (block all channels)" });
+    options.push({ value: "disabled", label: "禁用（阻止所有频道）" });
   }
   const initialValue = params.currentPolicy ?? "allowlist";
   return await params.prompter.select({

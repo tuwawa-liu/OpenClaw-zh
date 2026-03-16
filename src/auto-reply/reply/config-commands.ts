@@ -10,8 +10,8 @@ export function parseConfigCommand(raw: string): ConfigCommand | null {
   return parseStandardSetUnsetSlashCommand<ConfigCommand>({
     raw,
     slash: "/config",
-    invalidMessage: "Invalid /config syntax.",
-    usageMessage: "Usage: /config show|set|unset",
+    invalidMessage: "无效的 /config 语法。",
+    usageMessage: "用法：/config show|set|unset",
     onKnownAction: (action, args) => {
       if (action === "show" || action === "get") {
         return { action: "show", path: args || undefined };

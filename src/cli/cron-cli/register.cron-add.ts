@@ -99,7 +99,7 @@ export function registerCronAddCommand(cron: Command) {
           const staggerRaw = typeof opts.stagger === "string" ? opts.stagger.trim() : "";
           const useExact = Boolean(opts.exact);
           if (staggerRaw && useExact) {
-            throw new Error("Choose either --stagger or --exact, not both");
+            throw new Error("请选择 --stagger 或 --exact，不能同时使用");
           }
 
           const schedule = (() => {
@@ -108,22 +108,22 @@ export function registerCronAddCommand(cron: Command) {
             const cronExpr = typeof opts.cron === "string" ? opts.cron : "";
             const chosen = [Boolean(at), Boolean(every), Boolean(cronExpr)].filter(Boolean).length;
             if (chosen !== 1) {
-              throw new Error("Choose exactly one schedule: --at, --every, or --cron");
+              throw new Error("请选择一个调度方式：--at、--every 或 --cron");
             }
             if ((useExact || staggerRaw) && !cronExpr) {
-              throw new Error("--stagger/--exact are only valid with --cron");
+              throw new Error("--stagger/--exact 仅在使用 --cron 时有效");
             }
             if (at) {
               const atIso = parseAt(at);
               if (!atIso) {
-                throw new Error("Invalid --at; use ISO time or duration like 20m");
+                throw new Error("无效的 --at；请使用 ISO 时间或持续时间如 20m");
               }
               return { kind: "at" as const, at: atIso };
             }
             if (every) {
               const everyMs = parseDurationMs(every);
               if (!everyMs) {
-                throw new Error("Invalid --every; use e.g. 10m, 1h, 1d");
+                throw new Error("无效的 --every；请使用如 10m、1h、1d");
               }
               return { kind: "every" as const, everyMs };
             }
@@ -139,7 +139,7 @@ export function registerCronAddCommand(cron: Command) {
           const wakeModeRaw = typeof opts.wake === "string" ? opts.wake : "now";
           const wakeMode = wakeModeRaw.trim() || "now";
           if (wakeMode !== "now" && wakeMode !== "next-heartbeat") {
-            throw new Error("--wake must be now or next-heartbeat");
+            throw new Error("--wake 必须为 now 或 next-heartbeat");
           }
 
           const agentId =
@@ -151,7 +151,7 @@ export function registerCronAddCommand(cron: Command) {
           const hasNoDeliver = opts.deliver === false;
           const deliveryFlagCount = [hasAnnounce, hasNoDeliver].filter(Boolean).length;
           if (deliveryFlagCount > 1) {
-            throw new Error("Choose at most one of --announce or --no-deliver");
+            throw new Error("请最多选择 --announce 或 --no-deliver 之一");
           }
 
           const payload = (() => {
@@ -159,7 +159,7 @@ export function registerCronAddCommand(cron: Command) {
             const message = typeof opts.message === "string" ? opts.message.trim() : "";
             const chosen = [Boolean(systemEvent), Boolean(message)].filter(Boolean).length;
             if (chosen !== 1) {
-              throw new Error("Choose exactly one payload: --system-event or --message");
+              throw new Error("请选择一个载荷：--system-event 或 --message");
             }
             if (systemEvent) {
               return { kind: "systemEvent" as const, text: systemEvent };
@@ -195,24 +195,24 @@ export function registerCronAddCommand(cron: Command) {
           const isIsolatedLikeSessionTarget =
             sessionTarget === "isolated" || sessionTarget === "current" || isCustomSessionTarget;
           if (sessionTarget !== "main" && !isIsolatedLikeSessionTarget) {
-            throw new Error("--session must be main, isolated, current, or session:<id>");
+            throw new Error("--session 必须为 main、isolated、current 或 session:<id>");
           }
 
           if (opts.deleteAfterRun && opts.keepAfterRun) {
-            throw new Error("Choose --delete-after-run or --keep-after-run, not both");
+            throw new Error("请选择 --delete-after-run 或 --keep-after-run，不能同时使用");
           }
 
           if (sessionTarget === "main" && payload.kind !== "systemEvent") {
-            throw new Error("Main jobs require --system-event (systemEvent).");
+            throw new Error("主任务需要 --system-event (systemEvent)。");
           }
           if (isIsolatedLikeSessionTarget && payload.kind !== "agentTurn") {
-            throw new Error("Isolated/current/custom-session jobs require --message (agentTurn).");
+            throw new Error("隔离/当前/自定义会话任务需要 --message (agentTurn)。");
           }
           if (
             (opts.announce || typeof opts.deliver === "boolean") &&
             (!isIsolatedLikeSessionTarget || payload.kind !== "agentTurn")
           ) {
-            throw new Error("--announce/--no-deliver require a non-main agentTurn session target.");
+            throw new Error("--announce/--no-deliver 需要非 main 的 agentTurn 会话目标。");
           }
 
           const accountId =
@@ -221,7 +221,7 @@ export function registerCronAddCommand(cron: Command) {
               : undefined;
 
           if (accountId && (!isIsolatedLikeSessionTarget || payload.kind !== "agentTurn")) {
-            throw new Error("--account requires a non-main agentTurn job with delivery.");
+            throw new Error("--account 需要非 main 的带投递功能的 agentTurn 任务。");
           }
 
           const deliveryMode =
@@ -236,7 +236,7 @@ export function registerCronAddCommand(cron: Command) {
           const nameRaw = typeof opts.name === "string" ? opts.name : "";
           const name = nameRaw.trim();
           if (!name) {
-            throw new Error("--name is required");
+            throw new Error("--name 为必填项");
           }
 
           const description =

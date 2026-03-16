@@ -15,12 +15,12 @@ export function resolvePinnedNpmSpec(params: {
   if (!params.resolvedSpec) {
     return {
       recordSpec,
-      pinWarning: "Could not resolve exact npm version for --pin; storing original npm spec.",
+      pinWarning: "无法解析精确的 npm 版本用于 --pin；将存储原始 npm spec。",
     };
   }
   return {
     recordSpec,
-    pinNotice: `Pinned npm install record to ${params.resolvedSpec}.`,
+    pinNotice: `已将 npm 安装记录固定到 ${params.resolvedSpec}。`,
   };
 }
 

@@ -99,7 +99,7 @@ export function createApplyPatchTool(
       const params = args as { input?: string };
       const input = typeof params.input === "string" ? params.input : "";
       if (!input.trim()) {
-        throw new Error("Provide a patch input.");
+        throw new Error("请提供补丁输入。");
       }
       if (signal?.aborted) {
         const err = new Error("Aborted");
@@ -371,7 +371,7 @@ function toDisplayPath(resolved: string, cwd: string): string {
 function parsePatchText(input: string): { hunks: Hunk[]; patch: string } {
   const trimmed = input.trim();
   if (!trimmed) {
-    throw new Error("Invalid patch: input is empty.");
+    throw new Error("无效补丁：输入为空。");
   }
 
   const lines = trimmed.split(/\r?\n/);

@@ -387,7 +387,7 @@ export async function resolveMessagingTarget(params: {
 }): Promise<ResolveMessagingTargetResult> {
   const raw = normalizeChannelTargetInput(params.input);
   if (!raw) {
-    return { ok: false, error: new Error("Target is required") };
+    return { ok: false, error: new Error("目标是必需的") };
   }
   const plugin = getChannelPlugin(params.channel);
   const providerLabel = plugin?.meta?.label ?? params.channel;

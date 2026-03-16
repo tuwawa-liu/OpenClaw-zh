@@ -390,7 +390,7 @@ export async function resolvePairingSetupFromConfig(
   }
 
   if (!authLabel.label) {
-    return { ok: false, error: "Gateway auth is not configured (no token or password)." };
+    return { ok: false, error: "网关认证未配置（无 token 或密码）。" };
   }
 
   return {

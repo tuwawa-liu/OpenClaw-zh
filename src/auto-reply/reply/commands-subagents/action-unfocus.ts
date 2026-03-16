@@ -16,7 +16,7 @@ export async function handleSubagentsUnfocusAction(
   const { params } = ctx;
   const channel = resolveCommandSurfaceChannel(params);
   if (channel !== "discord" && channel !== "telegram") {
-    return stopWithText("⚠️ /unfocus is only available on Discord and Telegram.");
+    return stopWithText("⚠️ /unfocus 仅在 Discord 和 Telegram 上可用。");
   }
 
   const accountId = resolveChannelAccountId(params);
@@ -35,11 +35,9 @@ export async function handleSubagentsUnfocusAction(
 
   if (!conversationId) {
     if (channel === "discord") {
-      return stopWithText("⚠️ /unfocus must be run inside a Discord thread.");
+      return stopWithText("⚠️ /unfocus 必须在 Discord 线程内运行。");
     }
-    return stopWithText(
-      "⚠️ /unfocus on Telegram requires a topic context in groups, or a direct-message conversation.",
-    );
+    return stopWithText("⚠️ 在 Telegram 上使用 /unfocus 需要群组中的主题上下文，或私聊对话。");
   }
 
   const binding = bindingService.resolveByConversation({
@@ -48,11 +46,7 @@ export async function handleSubagentsUnfocusAction(
     conversationId,
   });
   if (!binding) {
-    return stopWithText(
-      channel === "discord"
-        ? "ℹ️ This thread is not currently focused."
-        : "ℹ️ This conversation is not currently focused.",
-    );
+    return stopWithText(channel === "discord" ? "ℹ️ 此线程当前未聚焦。" : "ℹ️ 此对话当前未聚焦。");
   }
 
   const senderId = params.command.senderId?.trim() || "";
@@ -61,8 +55,8 @@ export async function handleSubagentsUnfocusAction(
   if (boundBy && boundBy !== "system" && senderId && senderId !== boundBy) {
     return stopWithText(
       channel === "discord"
-        ? `⚠️ Only ${boundBy} can unfocus this thread.`
-        : `⚠️ Only ${boundBy} can unfocus this conversation.`,
+        ? `⚠️ 只有 ${boundBy} 可以取消聚焦此线程。`
+        : `⚠️ 只有 ${boundBy} 可以取消聚焦此对话。`,
     );
   }
 
@@ -70,7 +64,5 @@ export async function handleSubagentsUnfocusAction(
     bindingId: binding.bindingId,
     reason: "manual",
   });
-  return stopWithText(
-    channel === "discord" ? "✅ Thread unfocused." : "✅ Conversation unfocused.",
-  );
+  return stopWithText(channel === "discord" ? "✅ 线程已取消聚焦。" : "✅ 对话已取消聚焦。");
 }

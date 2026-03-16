@@ -211,65 +211,65 @@ function formatApprovalCommand(command: string): { inline: boolean; text: string
 }
 
 function buildRequestMessage(request: ExecApprovalRequest, nowMs: number) {
-  const lines: string[] = ["🔒 Exec approval required", `ID: ${request.id}`];
+  const lines: string[] = ["🔒 需要执行审批", `ID: ${request.id}`];
   const command = formatApprovalCommand(
     resolveExecApprovalCommandDisplay(request.request).commandText,
   );
   if (command.inline) {
-    lines.push(`Command: ${command.text}`);
+    lines.push(`命令：${command.text}`);
   } else {
-    lines.push("Command:");
+    lines.push("命令：");
     lines.push(command.text);
   }
   if (request.request.cwd) {
-    lines.push(`CWD: ${request.request.cwd}`);
+    lines.push(`工作目录：${request.request.cwd}`);
   }
   if (request.request.nodeId) {
-    lines.push(`Node: ${request.request.nodeId}`);
+    lines.push(`节点：${request.request.nodeId}`);
   }
   if (Array.isArray(request.request.envKeys) && request.request.envKeys.length > 0) {
-    lines.push(`Env overrides: ${request.request.envKeys.join(", ")}`);
+    lines.push(`环境变量覆盖：${request.request.envKeys.join(", ")}`);
   }
   if (request.request.host) {
-    lines.push(`Host: ${request.request.host}`);
+    lines.push(`主机：${request.request.host}`);
   }
   if (request.request.agentId) {
-    lines.push(`Agent: ${request.request.agentId}`);
+    lines.push(`代理：${request.request.agentId}`);
   }
   if (request.request.security) {
-    lines.push(`Security: ${request.request.security}`);
+    lines.push(`安全：${request.request.security}`);
   }
   if (request.request.ask) {
     lines.push(`Ask: ${request.request.ask}`);
   }
   const expiresIn = Math.max(0, Math.round((request.expiresAtMs - nowMs) / 1000));
-  lines.push(`Expires in: ${expiresIn}s`);
-  lines.push("Mode: foreground (interactive approvals available in this chat).");
+  lines.push(`过期时间：${expiresIn}秒`);
+  lines.push("模式：前台（可在此聊天中进行交互式审批）。");
   lines.push(
-    "Background mode note: non-interactive runs cannot wait for chat approvals; use pre-approved policy (allow-always or ask=off).",
+    "后台模式注意：非交互式运行无法等待聊天审批；请使用预审批策略 (allow-always 或 ask=off)。",
   );
-  lines.push("Reply with: /approve <id> allow-once|allow-always|deny");
+  lines.push("回复：/approve <id> allow-once|allow-always|deny");
   return lines.join("\n");
 }
 
 function decisionLabel(decision: ExecApprovalDecision): string {
   if (decision === "allow-once") {
-    return "allowed once";
+    return "已允许一次";
   }
   if (decision === "allow-always") {
-    return "allowed always";
+    return "已始终允许";
   }
-  return "denied";
+  return "已拒绝";
 }
 
 function buildResolvedMessage(resolved: ExecApprovalResolved) {
-  const base = `✅ Exec approval ${decisionLabel(resolved.decision)}.`;
-  const by = resolved.resolvedBy ? ` Resolved by ${resolved.resolvedBy}.` : "";
+  const base = `✅ 执行审批${decisionLabel(resolved.decision)}。`;
+  const by = resolved.resolvedBy ? ` 由 ${resolved.resolvedBy} 处理。` : "";
   return `${base}${by} ID: ${resolved.id}`;
 }
 
 function buildExpiredMessage(request: ExecApprovalRequest) {
-  return `⏱️ Exec approval expired. ID: ${request.id}`;
+  return `⏱️ 执行审批已过期。ID: ${request.id}`;
 }
 
 function normalizeTurnSourceChannel(value?: string | null): DeliverableMessageChannel | undefined {

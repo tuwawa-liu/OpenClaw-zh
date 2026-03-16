@@ -120,28 +120,28 @@ export async function handleAcpStatusAction(
         sessionKey: targetSessionKey,
       }),
     fallbackCode: "ACP_TURN_FAILED",
-    fallbackMessage: "Could not read ACP session status.",
+    fallbackMessage: "无法读取 ACP 会话状态。",
     onSuccess: (status) => {
       const sessionIdentifierLines = resolveAcpSessionIdentifierLinesFromIdentity({
         backend: status.backend,
         identity: status.identity,
       });
       const lines = [
-        "ACP status:",
+        "ACP 状态：",
         "-----",
-        `session: ${status.sessionKey}`,
-        `backend: ${status.backend}`,
-        `agent: ${status.agent}`,
+        `会话：${status.sessionKey}`,
+        `后端：${status.backend}`,
+        `代理：${status.agent}`,
         ...sessionIdentifierLines,
-        `sessionMode: ${status.mode}`,
-        `state: ${status.state}`,
-        `runtimeOptions: ${formatRuntimeOptionsText(status.runtimeOptions)}`,
-        `capabilities: ${formatAcpCapabilitiesText(status.capabilities.controls)}`,
-        `lastActivityAt: ${new Date(status.lastActivityAt).toISOString()}`,
-        ...(status.lastError ? [`lastError: ${status.lastError}`] : []),
-        ...(status.runtimeStatus?.summary ? [`runtime: ${status.runtimeStatus.summary}`] : []),
+        `会话模式：${status.mode}`,
+        `状态：${status.state}`,
+        `运行时选项：${formatRuntimeOptionsText(status.runtimeOptions)}`,
+        `能力：${formatAcpCapabilitiesText(status.capabilities.controls)}`,
+        `最后活动时间：${new Date(status.lastActivityAt).toISOString()}`,
+        ...(status.lastError ? [`最后错误：${status.lastError}`] : []),
+        ...(status.runtimeStatus?.summary ? [`运行时：${status.runtimeStatus.summary}`] : []),
         ...(status.runtimeStatus?.details
-          ? [`runtimeDetails: ${JSON.stringify(status.runtimeStatus.details)}`]
+          ? [`运行时详情：${JSON.stringify(status.runtimeStatus.details)}`]
           : []),
       ];
       return stopWithText(lines.join("\n"));
@@ -172,7 +172,7 @@ export async function handleAcpSetModeAction(
           };
         },
         fallbackCode: "ACP_TURN_FAILED",
-        fallbackMessage: "Could not update ACP runtime mode.",
+        fallbackMessage: "无法更新 ACP 运行时模式。",
         onSuccess: ({ runtimeMode, options }) =>
           stopWithText(
             `✅ Updated ACP runtime mode for ${targetSessionKey}: ${runtimeMode}. Effective options: ${formatRuntimeOptionsText(options)}`,
@@ -225,7 +225,7 @@ export async function handleAcpSetAction(
       };
     },
     fallbackCode: "ACP_TURN_FAILED",
-    fallbackMessage: "Could not update ACP config option.",
+    fallbackMessage: "无法更新 ACP 配置选项。",
     onSuccess: ({ text }) => stopWithText(text),
   });
 }
@@ -253,7 +253,7 @@ export async function handleAcpCwdAction(
           };
         },
         fallbackCode: "ACP_TURN_FAILED",
-        fallbackMessage: "Could not update ACP cwd.",
+        fallbackMessage: "无法更新 ACP cwd。",
         onSuccess: ({ cwd, options }) =>
           stopWithText(
             `✅ Updated ACP cwd for ${targetSessionKey}: ${cwd}. Effective options: ${formatRuntimeOptionsText(options)}`,
@@ -286,7 +286,7 @@ export async function handleAcpPermissionsAction(
           };
         },
         fallbackCode: "ACP_TURN_FAILED",
-        fallbackMessage: "Could not update ACP permissions profile.",
+        fallbackMessage: "无法更新 ACP 权限配置。",
         onSuccess: ({ permissionProfile, options }) =>
           stopWithText(
             `✅ Updated ACP permissions profile for ${targetSessionKey}: ${permissionProfile}. Effective options: ${formatRuntimeOptionsText(options)}`,

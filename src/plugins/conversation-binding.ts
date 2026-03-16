@@ -245,19 +245,19 @@ function buildDiscordButtonRow(
       new PluginBindingApprovalButton({
         approvalId,
         decision: "allow-once",
-        label: labels?.once ?? "Allow once",
+        label: labels?.once ?? "允许一次",
         style: ButtonStyle.Success,
       }),
       new PluginBindingApprovalButton({
         approvalId,
         decision: "allow-always",
-        label: labels?.always ?? "Always allow",
+        label: labels?.always ?? "始终允许",
         style: ButtonStyle.Primary,
       }),
       new PluginBindingApprovalButton({
         approvalId,
         decision: "deny",
-        label: labels?.deny ?? "Deny",
+        label: labels?.deny ?? "拒绝",
         style: ButtonStyle.Danger,
       }),
     ]),
@@ -268,17 +268,17 @@ function buildTelegramButtons(approvalId: string) {
   return [
     [
       {
-        text: "Allow once",
+        text: "允许一次",
         callback_data: buildPluginBindingApprovalCustomId(approvalId, "allow-once"),
         style: "success" as const,
       },
       {
-        text: "Always allow",
+        text: "始终允许",
         callback_data: buildPluginBindingApprovalCustomId(approvalId, "allow-always"),
         style: "primary" as const,
       },
       {
-        text: "Deny",
+        text: "拒绝",
         callback_data: buildPluginBindingApprovalCustomId(approvalId, "deny"),
         style: "danger" as const,
       },
@@ -500,7 +500,7 @@ function buildApprovalMessage(request: PendingPluginBindingRequest): string {
   } else {
     lines.push("Request: Bind this conversation so future plain messages route to the plugin.");
   }
-  lines.push("Choose whether to allow this plugin to bind the current conversation.");
+  lines.push("选择是否允许该插件绑定当前对话。");
   return lines.join("\n");
 }
 

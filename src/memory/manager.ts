@@ -791,7 +791,7 @@ export class MemoryIndexManager extends MemoryManagerEmbeddingOps implements Mem
     if (!this.provider) {
       return {
         ok: false,
-        error: this.providerUnavailableReason ?? "No embedding provider available (FTS-only mode)",
+        error: this.providerUnavailableReason ?? "无可用的嵌入提供商（仅 FTS 模式）",
       };
     }
     try {

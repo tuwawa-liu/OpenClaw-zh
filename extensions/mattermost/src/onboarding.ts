@@ -108,7 +108,7 @@ export const mattermostOnboardingAdapter: ChannelOnboardingAdapter = {
       cfg: next,
       prompter,
       providerHint: "mattermost",
-      credentialLabel: "bot token",
+      credentialLabel: "机器人令牌",
       accountConfigured: tokenPromptState.accountConfigured,
       canUseEnv: tokenPromptState.canUseEnv,
       hasConfigToken: tokenPromptState.hasConfigToken,

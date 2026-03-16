@@ -26,17 +26,17 @@ export async function runDaemonInstall(opts: DaemonInstallOptions) {
   const cfg = await readBestEffortConfig();
   const portOverride = parsePort(opts.port);
   if (opts.port !== undefined && portOverride === null) {
-    fail("Invalid port");
+    fail("无效端口");
     return;
   }
   const port = portOverride ?? resolveGatewayPort(cfg);
   if (!Number.isFinite(port) || port <= 0) {
-    fail("Invalid port");
+    fail("无效端口");
     return;
   }
   const runtimeRaw = opts.runtime ? String(opts.runtime) : DEFAULT_GATEWAY_DAEMON_RUNTIME;
   if (!isGatewayDaemonRuntime(runtimeRaw)) {
-    fail('Invalid --runtime (use "node" or "bun")');
+    fail('无效的 --runtime（使用 "node" 或 "bun"）');
     return;
   }
 

@@ -145,7 +145,7 @@ export const SandboxDockerSchema = z
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ["binds", i],
-            message: "Sandbox security: bind mount entry must be a non-empty string.",
+            message: "沙箱安全：绑定挂载条目必须是非空字符串。",
           });
           continue;
         }

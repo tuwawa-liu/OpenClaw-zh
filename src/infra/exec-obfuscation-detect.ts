@@ -92,78 +92,78 @@ function stripInvisibleUnicode(command: string): string {
 const OBFUSCATION_PATTERNS: ObfuscationPattern[] = [
   {
     id: "base64-pipe-exec",
-    description: "Base64 decode piped to shell execution",
+    description: "Base64 解码通过管道传递给 Shell 执行",
     regex: /base64\s+(?:-d|--decode)\b.*\|\s*(?:sh|bash|zsh|dash|ksh|fish)\b/i,
   },
   {
     id: "hex-pipe-exec",
-    description: "Hex decode (xxd) piped to shell execution",
+    description: "十六进制解码 (xxd) 通过管道传递给 Shell 执行",
     regex: /xxd\s+-r\b.*\|\s*(?:sh|bash|zsh|dash|ksh|fish)\b/i,
   },
   {
     id: "printf-pipe-exec",
-    description: "printf with escape sequences piped to shell execution",
+    description: "带转义序列的 printf 通过管道传递给 Shell 执行",
     regex: /printf\s+.*\\x[0-9a-f]{2}.*\|\s*(?:sh|bash|zsh|dash|ksh|fish)\b/i,
   },
   {
     id: "eval-decode",
-    description: "eval with encoded/decoded input",
+    description: "使用编码/解码输入的 eval",
     regex: /eval\s+.*(?:base64|xxd|printf|decode)/i,
   },
   {
     id: "base64-decode-to-shell",
-    description: "Base64 decode piped to shell",
+    description: "Base64 解码通过管道传递给 Shell",
     regex: /\|\s*base64\s+(?:-d|--decode)\b.*\|\s*(?:sh|bash|zsh|dash|ksh|fish)\b/i,
   },
   {
     id: "pipe-to-shell",
-    description: "Content piped directly to shell interpreter",
+    description: "内容直接通过管道传递给 Shell 解释器",
     regex: /\|\s*(?:sh|bash|zsh|dash|ksh|fish)\b(?:\s+[^|;\n\r]+)?\s*$/im,
   },
   {
     id: "command-substitution-decode-exec",
-    description: "Shell -c with command substitution decode/obfuscation",
+    description: "Shell -c 使用命令替换解码/混淆",
     regex:
       /(?:sh|bash|zsh|dash|ksh|fish)\s+-c\s+["'][^"']*\$\([^)]*(?:base64\s+(?:-d|--decode)|xxd\s+-r|printf\s+.*\\x[0-9a-f]{2})[^)]*\)[^"']*["']/i,
   },
   {
     id: "process-substitution-remote-exec",
-    description: "Shell process substitution from remote content",
+    description: "Shell 进程替换获取远程内容",
     regex: /(?:sh|bash|zsh|dash|ksh|fish)\s+<\(\s*(?:curl|wget)\b/i,
   },
   {
     id: "source-process-substitution-remote",
-    description: "source/. with process substitution from remote content",
+    description: "source/. 使用进程替换获取远程内容",
     regex: /(?:^|[;&\s])(?:source|\.)\s+<\(\s*(?:curl|wget)\b/i,
   },
   {
     id: "shell-heredoc-exec",
-    description: "Shell heredoc execution",
+    description: "Shell heredoc 执行",
     regex: /(?:sh|bash|zsh|dash|ksh|fish)\s+<<-?\s*['"]?[a-zA-Z_][\w-]*['"]?/i,
   },
   {
     id: "octal-escape",
-    description: "Bash octal escape sequences (potential command obfuscation)",
+    description: "Bash 八进制转义序列（可能的命令混淆）",
     regex: /\$'(?:[^']*\\[0-7]{3}){2,}/,
   },
   {
     id: "hex-escape",
-    description: "Bash hex escape sequences (potential command obfuscation)",
+    description: "Bash 十六进制转义序列（可能的命令混淆）",
     regex: /\$'(?:[^']*\\x[0-9a-fA-F]{2}){2,}/,
   },
   {
     id: "python-exec-encoded",
-    description: "Python/Perl/Ruby with base64 or encoded execution",
+    description: "Python/Perl/Ruby 使用 base64 或编码执行",
     regex: /(?:python[23]?|perl|ruby)\s+-[ec]\s+.*(?:base64|b64decode|decode|exec|system|eval)/i,
   },
   {
     id: "curl-pipe-shell",
-    description: "Remote content (curl/wget) piped to shell execution",
+    description: "远程内容 (curl/wget) 通过管道传递给 Shell 执行",
     regex: /(?:curl|wget)\s+.*\|\s*(?:sh|bash|zsh|dash|ksh|fish)\b/i,
   },
   {
     id: "var-expansion-obfuscation",
-    description: "Variable assignment chain with expansion (potential obfuscation)",
+    description: "变量赋值链与展开（可能的混淆）",
     regex: /(?:[a-zA-Z_]\w{0,2}=[^;\s]+\s*;\s*){2,}[^$]*\$(?:[a-zA-Z_]|\{[a-zA-Z_])/,
   },
 ];

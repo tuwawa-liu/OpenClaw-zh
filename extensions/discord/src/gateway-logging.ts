@@ -6,7 +6,7 @@ type GatewayEmitter = Pick<EventEmitter, "on" | "removeListener">;
 
 const INFO_DEBUG_MARKERS = [
   "WebSocket connection closed",
-  "Reconnecting with backoff",
+  "正在重新连接（退避）",
   "Attempting resume with backoff",
 ];
 

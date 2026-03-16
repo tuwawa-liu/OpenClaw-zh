@@ -139,7 +139,7 @@ async function promptIrcAllowFrom(params: {
   await params.prompter.note(
     [
       "通过发送者将 IRC 私信加入白名单。",
-      "Examples:",
+      "示例：",
       "- alice",
       "- alice!ident@example.org",
       "多个条目：用逗号分隔。",

@@ -41,10 +41,10 @@ function formatOllamaPullStatus(status: string): { text: string; hidePercent: bo
   const trimmed = status.trim();
   const partStatusMatch = trimmed.match(/^([a-z-]+)\s+(?:sha256:)?[a-f0-9]{8,}$/i);
   if (partStatusMatch) {
-    return { text: `${partStatusMatch[1]} part`, hidePercent: false };
+    return { text: `${partStatusMatch[1]} 部分`, hidePercent: false };
   }
   if (/^verifying\b.*\bdigest\b/i.test(trimmed)) {
-    return { text: "verifying digest", hidePercent: true };
+    return { text: "验证摘要", hidePercent: true };
   }
   return { text: trimmed, hidePercent: false };
 }
@@ -112,14 +112,14 @@ async function pullOllamaModelCore(params: {
       return {
         ok: false,
         kind: "http",
-        message: `Failed to download ${modelName} (HTTP ${response.status})`,
+        message: `下载 ${modelName} 失败 (HTTP ${response.status})`,
       };
     }
     if (!response.body) {
       return {
         ok: false,
         kind: "no-body",
-        message: `Failed to download ${modelName} (no response body)`,
+        message: `下载 ${modelName} 失败（无响应体）`,
       };
     }
 
@@ -139,7 +139,7 @@ async function pullOllamaModelCore(params: {
           return {
             ok: false,
             kind: "chunk-error",
-            message: `Download failed: ${chunk.error}`,
+            message: `下载失败：${chunk.error}`,
           };
         }
         if (!chunk.status) {
@@ -194,7 +194,7 @@ async function pullOllamaModelCore(params: {
     return {
       ok: false,
       kind: "network",
-      message: `Failed to download ${modelName}: ${reason}`,
+      message: `下载 ${modelName} 失败：${reason}`,
     };
   }
 }
@@ -205,16 +205,16 @@ async function pullOllamaModel(
   modelName: string,
   prompter: WizardPrompter,
 ): Promise<boolean> {
-  const spinner = prompter.progress(`Downloading ${modelName}...`);
+  const spinner = prompter.progress(`正在下载 ${modelName}...`);
   const result = await pullOllamaModelCore({
     baseUrl,
     modelName,
     onStatus: (status, percent) => {
       const displayStatus = formatOllamaPullStatus(status);
       if (displayStatus.hidePercent) {
-        spinner.update(`Downloading ${modelName} - ${displayStatus.text}`);
+        spinner.update(`正在下载 ${modelName} - ${displayStatus.text}`);
       } else {
-        spinner.update(`Downloading ${modelName} - ${displayStatus.text} - ${percent ?? 0}%`);
+        spinner.update(`正在下载 ${modelName} - ${displayStatus.text} - ${percent ?? 0}%`);
       }
     },
   });
@@ -222,7 +222,7 @@ async function pullOllamaModel(
     spinner.stop(result.message);
     return false;
   }
-  spinner.stop(`Downloaded ${modelName}`);
+  spinner.stop(`已下载 ${modelName}`);
   return true;
 }
 
@@ -231,13 +231,13 @@ async function pullOllamaModelNonInteractive(
   modelName: string,
   runtime: RuntimeEnv,
 ): Promise<boolean> {
-  runtime.log(`Downloading ${modelName}...`);
+  runtime.log(`正在下载 ${modelName}...`);
   const result = await pullOllamaModelCore({ baseUrl, modelName });
   if (!result.ok) {
     runtime.error(result.message);
     return false;
   }
-  runtime.log(`Downloaded ${modelName}`);
+  runtime.log(`已下载 ${modelName}`);
   return true;
 }
 
@@ -294,10 +294,10 @@ export async function promptAndConfigureOllama(params: {
 
   // 1. Prompt base URL
   const baseUrlRaw = await prompter.text({
-    message: "Ollama base URL",
+    message: "Ollama 基础 URL",
     initialValue: OLLAMA_DEFAULT_BASE_URL,
     placeholder: OLLAMA_DEFAULT_BASE_URL,
-    validate: (value) => (value?.trim() ? undefined : "Required"),
+    validate: (value) => (value?.trim() ? undefined : "必填"),
   });
   const configuredBaseUrl = String(baseUrlRaw ?? "")
     .trim()
@@ -310,14 +310,14 @@ export async function promptAndConfigureOllama(params: {
   if (!reachable) {
     await prompter.note(
       [
-        `Ollama could not be reached at ${baseUrl}.`,
-        "Download it at https://ollama.com/download",
+        `无法连接到 ${baseUrl} 上的 Ollama。`,
+        "请前往 https://ollama.com/download 下载",
         "",
-        "Start Ollama and re-run onboarding.",
+        "请启动 Ollama 并重新运行引导流程。",
       ].join("\n"),
       "Ollama",
     );
-    throw new WizardCancelledError("Ollama not reachable");
+    throw new WizardCancelledError("无法连接 Ollama");
   }
 
   const enrichedModels = await enrichOllamaModelsWithContext(baseUrl, models.slice(0, 50));
@@ -326,10 +326,10 @@ export async function promptAndConfigureOllama(params: {
 
   // 3. Mode selection
   const mode = (await prompter.select({
-    message: "Ollama mode",
+    message: "Ollama 模式",
     options: [
-      { value: "remote", label: "Cloud + Local", hint: "Ollama cloud models + local models" },
-      { value: "local", label: "Local", hint: "Local models only" },
+      { value: "remote", label: "云端 + 本地", hint: "Ollama 云端模型 + 本地模型" },
+      { value: "local", label: "仅本地", hint: "仅本地模型" },
     ],
   })) as OnboardMode;
 
@@ -343,35 +343,35 @@ export async function promptAndConfigureOllama(params: {
           await openUrl(authResult.signinUrl);
         }
         await prompter.note(
-          ["Sign in to Ollama Cloud:", authResult.signinUrl].join("\n"),
+          ["登录 Ollama Cloud：", authResult.signinUrl].join("\n"),
           "Ollama Cloud",
         );
         const confirmed = await prompter.confirm({
-          message: "Have you signed in?",
+          message: "你是否已登录？",
         });
         if (!confirmed) {
-          throw new WizardCancelledError("Ollama cloud sign-in cancelled");
+          throw new WizardCancelledError("Ollama 云端登录已取消");
         }
         // Re-check after user claims sign-in
         const recheck = await checkOllamaCloudAuth(baseUrl);
         if (!recheck.signedIn) {
-          throw new WizardCancelledError("Ollama cloud sign-in required");
+          throw new WizardCancelledError("需要登录 Ollama 云端");
         }
         cloudAuthVerified = true;
       } else {
         // No signin URL available (older server, unreachable /api/me, or custom gateway).
         await prompter.note(
           [
-            "Could not verify Ollama Cloud authentication.",
-            "Cloud models may not work until you sign in at https://ollama.com.",
+            "无法验证 Ollama Cloud 认证。",
+            "在登录 https://ollama.com 之前，云端模型可能无法使用。",
           ].join("\n"),
           "Ollama Cloud",
         );
         const continueAnyway = await prompter.confirm({
-          message: "Continue without cloud auth?",
+          message: "是否在无云端认证的情况下继续？",
         });
         if (!continueAnyway) {
-          throw new WizardCancelledError("Ollama cloud auth could not be verified");
+          throw new WizardCancelledError("Ollama 云端认证无法验证");
         }
         // Cloud auth unverified — fall back to local defaults so the model
         // picker doesn't steer toward cloud models that may fail.
@@ -422,10 +422,7 @@ export async function configureOllamaNonInteractive(params: {
 
   if (!reachable) {
     runtime.error(
-      [
-        `Ollama could not be reached at ${baseUrl}.`,
-        "Download it at https://ollama.com/download",
-      ].join("\n"),
+      [`无法连接到 ${baseUrl} 上的 Ollama。`, "请前往 https://ollama.com/download 下载"].join("\n"),
     );
     runtime.exit(1);
     return params.nextConfig;
@@ -479,15 +476,12 @@ export async function configureOllamaNonInteractive(params: {
         allModelNames.find((name) => availableModelNames.has(name)) ??
         Array.from(availableModelNames)[0];
       defaultModelId = firstAvailableModel;
-      runtime.log(
-        `Ollama model ${requestedDefaultModelId} was not available; using ${defaultModelId} instead.`,
-      );
+      runtime.log(`Ollama 模型 ${requestedDefaultModelId} 不可用；改为使用 ${defaultModelId}。`);
     } else {
       runtime.error(
-        [
-          `No Ollama models are available at ${baseUrl}.`,
-          "Pull a model first, then re-run onboarding.",
-        ].join("\n"),
+        [`${baseUrl} 上没有可用的 Ollama 模型。`, "请先拉取模型，然后重新运行引导流程。"].join(
+          "\n",
+        ),
       );
       runtime.exit(1);
       return params.nextConfig;
@@ -501,7 +495,7 @@ export async function configureOllamaNonInteractive(params: {
     discoveredModelsByName,
   );
   const modelRef = `ollama/${defaultModelId}`;
-  runtime.log(`Default Ollama model: ${defaultModelId}`);
+  runtime.log(`默认 Ollama 模型：${defaultModelId}`);
   return applyAgentDefaultModelPrimary(config, modelRef);
 }
 
@@ -526,6 +520,6 @@ export async function ensureOllamaModelPulled(params: {
   }
   const pulled = await pullOllamaModel(baseUrl, modelName, params.prompter);
   if (!pulled) {
-    throw new WizardCancelledError("Failed to download selected Ollama model");
+    throw new WizardCancelledError("下载所选 Ollama 模型失败");
   }
 }

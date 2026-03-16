@@ -26,9 +26,9 @@ const DEFAULT_ERROR_STATUS_CODE: Record<RequestBodyLimitErrorCode, number> = {
 };
 
 const DEFAULT_RESPONSE_MESSAGE: Record<RequestBodyLimitErrorCode, string> = {
-  PAYLOAD_TOO_LARGE: "Payload too large",
-  REQUEST_BODY_TIMEOUT: "Request body timeout",
-  CONNECTION_CLOSED: "Connection closed",
+  PAYLOAD_TOO_LARGE: "负载过大",
+  REQUEST_BODY_TIMEOUT: "请求体超时",
+  CONNECTION_CLOSED: "连接已关闭",
 };
 
 export class RequestBodyLimitError extends Error {

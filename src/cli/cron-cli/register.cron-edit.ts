@@ -77,14 +77,10 @@ export function registerCronEditCommand(cron: Command) {
       .action(async (id, opts) => {
         try {
           if (opts.session === "main" && opts.message) {
-            throw new Error(
-              t("cronEdit.mainJobsCannotUseMessage"),
-            );
+            throw new Error(t("cronEdit.mainJobsCannotUseMessage"));
           }
           if (opts.session === "isolated" && opts.systemEvent) {
-            throw new Error(
-              t("cronEdit.isolatedJobsCannotUseSystemEvent"),
-            );
+            throw new Error(t("cronEdit.isolatedJobsCannotUseSystemEvent"));
           }
           if (opts.announce && typeof opts.deliver === "boolean") {
             throw new Error(t("cronEdit.chooseAnnounceOrNoDeliver"));
@@ -287,7 +283,9 @@ export function registerCronEditCommand(cron: Command) {
           const failureAlertFlag =
             typeof opts.failureAlert === "boolean" ? opts.failureAlert : undefined;
           if (failureAlertFlag === false && hasFailureAlertFields) {
-            throw new Error("请单独使用 --no-failure-alert（不要与 failure-alert-* 选项同时使用）。");
+            throw new Error(
+              "请单独使用 --no-failure-alert（不要与 failure-alert-* 选项同时使用）。",
+            );
           }
           if (failureAlertFlag === false) {
             patch.failureAlert = false;
@@ -318,7 +316,7 @@ export function registerCronEditCommand(cron: Command) {
             if (hasFailureAlertMode) {
               const mode = String(opts.failureAlertMode).trim().toLowerCase();
               if (mode !== "announce" && mode !== "webhook") {
-                throw new Error("Invalid --failure-alert-mode (must be 'announce' or 'webhook').");
+                throw new Error("无效的 --failure-alert-mode（必须为 'announce' 或 'webhook'）。");
               }
               failureAlert.mode = mode;
             }

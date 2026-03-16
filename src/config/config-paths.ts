@@ -12,18 +12,18 @@ export function parseConfigPath(raw: string): {
   if (!trimmed) {
     return {
       ok: false,
-      error: "Invalid path. Use dot notation (e.g. foo.bar).",
+      error: "无效路径。请使用点表示法（如 foo.bar）。",
     };
   }
   const parts = trimmed.split(".").map((part) => part.trim());
   if (parts.some((part) => !part)) {
     return {
       ok: false,
-      error: "Invalid path. Use dot notation (e.g. foo.bar).",
+      error: "无效路径。请使用点表示法（如 foo.bar）。",
     };
   }
   if (parts.some((part) => isBlockedObjectKey(part))) {
-    return { ok: false, error: "Invalid path segment." };
+    return { ok: false, error: "无效的路径段。" };
   }
   return { ok: true, path: parts };
 }

@@ -75,7 +75,7 @@ export const handleConfigCommand: CommandHandler = async (params, allowTextComma
     if (!parsedPath.ok || !parsedPath.path) {
       return {
         shouldContinue: false,
-        reply: { text: `⚠️ ${parsedPath.error ?? "Invalid path."}` },
+        reply: { text: `⚠️ ${parsedPath.error ?? "无效路径。"}` },
       };
     }
     parsedWritePath = parsedPath.path;
@@ -116,7 +116,7 @@ export const handleConfigCommand: CommandHandler = async (params, allowTextComma
       if (!parsedPath.ok || !parsedPath.path) {
         return {
           shouldContinue: false,
-          reply: { text: `⚠️ ${parsedPath.error ?? "Invalid path."}` },
+          reply: { text: `⚠️ ${parsedPath.error ?? "无效路径。"}` },
         };
       }
       const value = getConfigValueAtPath(parsedBase, parsedPath.path);
@@ -246,14 +246,14 @@ export const handleDebugCommand: CommandHandler = async (params, allowTextComman
     if (!result.ok) {
       return {
         shouldContinue: false,
-        reply: { text: `⚠️ ${result.error ?? "Invalid path."}` },
+        reply: { text: `⚠️ ${result.error ?? "无效路径。"}` },
       };
     }
     if (!result.removed) {
       return {
         shouldContinue: false,
         reply: {
-          text: `⚙️ No debug override found for ${debugCommand.path}.`,
+          text: `⚙️ 未找到 ${debugCommand.path} 的调试覆盖。`,
         },
       };
     }
@@ -267,7 +267,7 @@ export const handleDebugCommand: CommandHandler = async (params, allowTextComman
     if (!result.ok) {
       return {
         shouldContinue: false,
-        reply: { text: `⚠️ ${result.error ?? "Invalid override."}` },
+        reply: { text: `⚠️ ${result.error ?? "无效覆盖。"}` },
       };
     }
     const valueLabel =

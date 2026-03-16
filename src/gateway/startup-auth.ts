@@ -311,6 +311,6 @@ export function assertHooksTokenSeparateFromGatewayAuth(params: {
     return;
   }
   throw new Error(
-    "Invalid config: hooks.token must not match gateway auth token. Set a distinct hooks.token for hook ingress.",
+    "无效配置：hooks.token 不能与网关认证 token 相同。请为 hook 入口设置独立的 hooks.token。",
   );
 }

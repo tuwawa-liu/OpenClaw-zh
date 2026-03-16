@@ -96,7 +96,7 @@ async function promptBlueBubblesAllowFrom(params: {
         }
         const parsed = parseBlueBubblesAllowTarget(part);
         if (parsed.kind === "handle" && !parsed.handle) {
-          return `Invalid entry: ${part}`;
+          return `无效条目: ${part}`;
         }
       }
       return undefined;
@@ -198,15 +198,12 @@ export const blueBubblesOnboardingAdapter: ChannelOnboardingAdapter = {
     let password: unknown = existingPasswordText;
     if (!hasConfiguredPassword) {
       await prompter.note(
-        [
-          "输入 BlueBubbles 服务器密码。",
-          "在 BlueBubbles Server 应用的设置中查找。",
-        ].join("\n"),
+        ["输入 BlueBubbles 服务器密码。", "在 BlueBubbles Server 应用的设置中查找。"].join("\n"),
         "BlueBubbles 密码",
       );
       const entered = await prompter.text({
         message: "BlueBubbles 密码",
-        validate: (value) => (String(value ?? "").trim() ? undefined : "Required"),
+        validate: (value) => (String(value ?? "").trim() ? undefined : "必填"),
       });
       password = String(entered).trim();
     } else {
@@ -217,7 +214,7 @@ export const blueBubblesOnboardingAdapter: ChannelOnboardingAdapter = {
       if (!keepPassword) {
         const entered = await prompter.text({
           message: "BlueBubbles 密码",
-          validate: (value) => (String(value ?? "").trim() ? undefined : "Required"),
+          validate: (value) => (String(value ?? "").trim() ? undefined : "必填"),
         });
         password = String(entered).trim();
       } else if (!existingPasswordText) {

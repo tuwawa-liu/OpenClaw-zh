@@ -33,7 +33,7 @@ export function parseDiscordTarget(
       { prefix: "discord:", kind: "user" },
     ],
     atUserPattern: /^\d+$/,
-    atUserErrorMessage: "Discord DMs require a user id (use user:<id> or a <@id> mention)",
+    atUserErrorMessage: "Discord 私信需要用户 ID（使用 user:<id> 或 <@id>）",
   });
   if (userTarget) {
     return userTarget;

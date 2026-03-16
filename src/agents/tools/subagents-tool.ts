@@ -175,7 +175,7 @@ export function createSubagentsTool(opts?: { agentSessionKey?: string }): AnyAge
 
       return jsonResult({
         status: "error",
-        error: "Unsupported action.",
+        error: "不支持的操作。",
       });
     },
   };

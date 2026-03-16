@@ -81,7 +81,7 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
     },
     {
       name: "fast",
-      description: "Set fast mode on/off",
+      description: "设置快速模式 on/off",
       getArgumentCompletions: fastCompletions,
     },
     {

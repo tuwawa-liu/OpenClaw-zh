@@ -246,7 +246,7 @@ export async function resolveModelsCommandReply(params: {
         count: byProvider.get(p)?.size ?? 0,
       }));
       const buttons = buildProviderKeyboard(providerInfos);
-      const text = "Select a provider:";
+      const text = "选择提供商：";
       return {
         text,
         channelData: { telegram: { buttons } },
@@ -255,13 +255,13 @@ export async function resolveModelsCommandReply(params: {
 
     // Text fallback for non-Telegram surfaces
     const lines: string[] = [
-      "Providers:",
+      "提供商：",
       ...providers.map((p) =>
         formatProviderLine({ provider: p, count: byProvider.get(p)?.size ?? 0 }),
       ),
       "",
-      "Use: /models <provider>",
-      "Switch: /model <provider/model>",
+      "使用: /models <provider>",
+      "切换: /model <provider/model>",
     ];
     return { text: lines.join("\n") };
   }

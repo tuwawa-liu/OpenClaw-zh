@@ -108,7 +108,7 @@ export function registerNodesStatusCommands(nodes: Command) {
       .action(async (opts: NodesRpcOpts) => {
         await runNodesCommand("status", async () => {
           const connectedOnly = Boolean(opts.connected);
-          const sinceMs = parseSinceMs(opts.lastConnected, "Invalid --last-connected");
+          const sinceMs = parseSinceMs(opts.lastConnected, "无效的 --last-connected");
           const result = await callGatewayCli("node.list", opts, {});
           const obj: Record<string, unknown> =
             typeof result === "object" && result !== null ? result : {};
@@ -304,7 +304,7 @@ export function registerNodesStatusCommands(nodes: Command) {
       .action(async (opts: NodesRpcOpts) => {
         await runNodesCommand("list", async () => {
           const connectedOnly = Boolean(opts.connected);
-          const sinceMs = parseSinceMs(opts.lastConnected, "Invalid --last-connected");
+          const sinceMs = parseSinceMs(opts.lastConnected, "无效的 --last-connected");
           const result = await callGatewayCli("node.pair.list", opts, {});
           const { pending, paired } = parsePairingList(result);
           const { heading, muted, warn } = getNodesTheme();

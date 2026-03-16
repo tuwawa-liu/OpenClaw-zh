@@ -64,7 +64,7 @@ async function noteNextcloudTalkUserIdHelp(prompter: WizardPrompter): Promise<vo
   await prompter.note(
     [
       "1) 在 Nextcloud 管理面板中查看用户 ID",
-      "2) Or look at the webhook payload logs when someone messages",
+      "2) 或者查看有人发消息时的 webhook 负载日志",
       "3) 用户 ID 通常是 Nextcloud 中的小写用户名",
       `Docs: ${formatDocsLink("/channels/nextcloud-talk", "channels/nextcloud-talk")}`,
     ].join("\n"),

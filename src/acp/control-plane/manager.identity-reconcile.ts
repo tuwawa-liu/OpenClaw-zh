@@ -44,7 +44,7 @@ export async function reconcileManagerRuntimeSessionIdentifiers(params: {
             handle: params.handle,
           }),
         fallbackCode: "ACP_TURN_FAILED",
-        fallbackMessage: "Could not read ACP runtime status.",
+        fallbackMessage: "无法读取 ACP 运行时状态。",
       });
     } catch (error) {
       if (params.failOnStatusError) {

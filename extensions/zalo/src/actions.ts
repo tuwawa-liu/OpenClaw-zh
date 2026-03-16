@@ -44,7 +44,7 @@ export const zaloMessageActions: ChannelMessageActionAdapter = {
       if (!result.ok) {
         return jsonResult({
           ok: false,
-          error: result.error ?? "Failed to send Zalo message",
+          error: result.error ?? "发送 Zalo 消息失败",
         });
       }
 

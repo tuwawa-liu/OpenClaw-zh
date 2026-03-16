@@ -88,30 +88,30 @@ async function promptBlueBubblesAllowFrom(params: {
   const existing = resolved.config.allowFrom ?? [];
   await params.prompter.note(
     [
-      "Allowlist BlueBubbles DMs by handle or chat target.",
-      "Examples:",
+      "通过句柄或聊天目标将 BlueBubbles 私信加入白名单。",
+      "示例：",
       "- +15555550123",
       "- user@example.com",
       "- chat_id:123",
       "- chat_guid:iMessage;-;+15555550123",
-      "Multiple entries: comma- or newline-separated.",
+      "多个条目：用逗号或换行分隔。",
       `Docs: ${formatDocsLink("/channels/bluebubbles", "bluebubbles")}`,
     ].join("\n"),
-    "BlueBubbles allowlist",
+    "BlueBubbles 白名单",
   );
   const entry = await params.prompter.text({
-    message: "BlueBubbles allowFrom (handle or chat_id)",
+    message: "BlueBubbles allowFrom（句柄或 chat_id）",
     placeholder: "+15555550123, user@example.com, chat_id:123",
     initialValue: existing[0] ? String(existing[0]) : undefined,
     validate: (value) => {
       const raw = String(value ?? "").trim();
       if (!raw) {
-        return "Required";
+        return "必填";
       }
       const parts = parseBlueBubblesAllowFromInput(raw);
       for (const part of parts) {
         if (!validateBlueBubblesAllowFromEntry(part)) {
-          return `Invalid entry: ${part}`;
+          return `无效条目: ${part}`;
         }
       }
       return undefined;
@@ -125,14 +125,14 @@ async function promptBlueBubblesAllowFrom(params: {
 function validateBlueBubblesServerUrlInput(value: unknown): string | undefined {
   const trimmed = String(value ?? "").trim();
   if (!trimmed) {
-    return "Required";
+    return "必填";
   }
   try {
     const normalized = normalizeBlueBubblesServerUrl(trimmed);
     new URL(normalized);
     return undefined;
   } catch {
-    return "Invalid URL format";
+    return "无效的 URL 格式";
   }
 }
 
@@ -165,10 +165,10 @@ function resolveBlueBubblesWebhookPath(cfg: OpenClawConfig, accountId: string): 
 function validateBlueBubblesWebhookPath(value: string): string | undefined {
   const trimmed = String(value ?? "").trim();
   if (!trimmed) {
-    return "Required";
+    return "必填";
   }
   if (!trimmed.startsWith("/")) {
-    return "Path must start with /";
+    return "路径必须以 / 开头";
   }
   return undefined;
 }
@@ -194,13 +194,13 @@ export const blueBubblesSetupAdapter: ChannelSetupAdapter = {
     }),
   validateInput: ({ input }) => {
     if (!input.httpUrl && !input.password) {
-      return "BlueBubbles requires --http-url and --password.";
+      return "BlueBubbles 需要 --http-url 和 --password。";
     }
     if (!input.httpUrl) {
-      return "BlueBubbles requires --http-url.";
+      return "BlueBubbles 需要 --http-url。";
     }
     if (!input.password) {
-      return "BlueBubbles requires --password.";
+      return "BlueBubbles 需要 --password。";
     }
     return null;
   },
@@ -235,10 +235,10 @@ export const blueBubblesSetupWizard: ChannelSetupWizard = {
   channel,
   stepOrder: "text-first",
   status: {
-    configuredLabel: "configured",
-    unconfiguredLabel: "needs setup",
-    configuredHint: "configured",
-    unconfiguredHint: "iMessage via BlueBubbles app",
+    configuredLabel: "已配置",
+    unconfiguredLabel: "需要设置",
+    configuredHint: "已配置",
+    unconfiguredHint: "通过 BlueBubbles 应用使用 iMessage",
     configuredScore: 1,
     unconfiguredScore: 0,
     resolveConfigured: ({ cfg }) =>
@@ -246,16 +246,14 @@ export const blueBubblesSetupWizard: ChannelSetupWizard = {
         const account = resolveBlueBubblesAccount({ cfg, accountId });
         return account.configured;
       }),
-    resolveStatusLines: ({ configured }) => [
-      `BlueBubbles: ${configured ? "configured" : "needs setup"}`,
-    ],
+    resolveStatusLines: ({ configured }) => [`BlueBubbles：${configured ? "已配置" : "需要设置"}`],
     resolveSelectionHint: ({ configured }) =>
-      configured ? "configured" : "iMessage via BlueBubbles app",
+      configured ? "已配置" : "通过 BlueBubbles 应用使用 iMessage",
   },
   prepare: async ({ cfg, accountId, prompter, credentialValues }) => {
     const existingWebhookPath = resolveBlueBubblesWebhookPath(cfg, accountId);
     const wantsCustomWebhook = await prompter.confirm({
-      message: `Configure a custom webhook path? (default: ${DEFAULT_WEBHOOK_PATH})`,
+      message: `配置自定义 webhook 路径？（默认：${DEFAULT_WEBHOOK_PATH}）`,
       initialValue: Boolean(existingWebhookPath && existingWebhookPath !== DEFAULT_WEBHOOK_PATH),
     });
     return {
@@ -272,15 +270,12 @@ export const blueBubblesSetupWizard: ChannelSetupWizard = {
     {
       inputKey: "password",
       providerHint: channel,
-      credentialLabel: "server password",
-      helpTitle: "BlueBubbles password",
-      helpLines: [
-        "Enter the BlueBubbles server password.",
-        "Find this in the BlueBubbles Server app under Settings.",
-      ],
+      credentialLabel: "服务器密码",
+      helpTitle: "BlueBubbles 密码",
+      helpLines: ["输入 BlueBubbles 服务器密码。", "在 BlueBubbles Server 应用的设置中查找。"],
       envPrompt: "",
-      keepPrompt: "BlueBubbles password already set. Keep it?",
-      inputPrompt: "BlueBubbles password",
+      keepPrompt: "BlueBubbles 密码已设置。保留吗？",
+      inputPrompt: "BlueBubbles 密码",
       inspect: ({ cfg, accountId }) => {
         const existingPassword = resolveBlueBubblesAccount({ cfg, accountId }).config.password;
         return {
@@ -298,12 +293,12 @@ export const blueBubblesSetupWizard: ChannelSetupWizard = {
   textInputs: [
     {
       inputKey: "httpUrl",
-      message: "BlueBubbles server URL",
+      message: "BlueBubbles 服务器 URL",
       placeholder: "http://192.168.1.100:1234",
-      helpTitle: "BlueBubbles server URL",
+      helpTitle: "BlueBubbles 服务器 URL",
       helpLines: [
-        "Enter the BlueBubbles server URL (e.g., http://192.168.1.100:1234).",
-        "Find this in the BlueBubbles Server app under Connection.",
+        "输入 BlueBubbles 服务器 URL（例如 http://192.168.1.100:1234）。",
+        "在 BlueBubbles Server 应用的连接设置中查找。",
         `Docs: ${formatDocsLink("/channels/bluebubbles", "bluebubbles")}`,
       ],
       currentValue: ({ cfg, accountId }) => resolveBlueBubblesServerUrl(cfg, accountId),
@@ -316,7 +311,7 @@ export const blueBubblesSetupWizard: ChannelSetupWizard = {
     },
     {
       inputKey: "webhookPath",
-      message: "Webhook path",
+      message: "Webhook 路径",
       placeholder: DEFAULT_WEBHOOK_PATH,
       currentValue: ({ cfg, accountId }) => {
         const value = resolveBlueBubblesWebhookPath(cfg, accountId);
@@ -333,34 +328,34 @@ export const blueBubblesSetupWizard: ChannelSetupWizard = {
     },
   ],
   completionNote: {
-    title: "BlueBubbles next steps",
+    title: "BlueBubbles 后续步骤",
     lines: [
-      "Configure the webhook URL in BlueBubbles Server:",
-      "1. Open BlueBubbles Server -> Settings -> Webhooks",
-      "2. Add your OpenClaw gateway URL + webhook path",
-      `   Example: https://your-gateway-host:3000${DEFAULT_WEBHOOK_PATH}`,
-      "3. Enable the webhook and save",
+      "在 BlueBubbles Server 中配置 webhook URL：",
+      "1. 打开 BlueBubbles Server → 设置 → Webhooks",
+      "2. 添加你的 OpenClaw 网关地址 + webhook 路径",
+      `   示例：https://your-gateway-host:3000${DEFAULT_WEBHOOK_PATH}`,
+      "3. 启用 webhook 并保存",
       "",
       `Docs: ${formatDocsLink("/channels/bluebubbles", "bluebubbles")}`,
     ],
   },
   dmPolicy,
   allowFrom: {
-    helpTitle: "BlueBubbles allowlist",
+    helpTitle: "BlueBubbles 白名单",
     helpLines: [
-      "Allowlist BlueBubbles DMs by handle or chat target.",
-      "Examples:",
+      "通过句柄或聊天目标将 BlueBubbles 私信加入白名单。",
+      "示例：",
       "- +15555550123",
       "- user@example.com",
       "- chat_id:123",
       "- chat_guid:iMessage;-;+15555550123",
-      "Multiple entries: comma- or newline-separated.",
+      "多个条目：用逗号或换行分隔。",
       `Docs: ${formatDocsLink("/channels/bluebubbles", "bluebubbles")}`,
     ],
-    message: "BlueBubbles allowFrom (handle or chat_id)",
+    message: "BlueBubbles allowFrom（句柄或 chat_id）",
     placeholder: "+15555550123, user@example.com, chat_id:123",
     invalidWithoutCredentialNote:
-      "Use a BlueBubbles handle or chat target like +15555550123 or chat_id:123.",
+      "使用 BlueBubbles 句柄或聊天目标，如 +15555550123 或 chat_id:123。",
     parseInputs: parseBlueBubblesAllowFromInput,
     parseId: (raw) => validateBlueBubblesAllowFromEntry(raw),
     resolveEntries: async ({ entries }) =>

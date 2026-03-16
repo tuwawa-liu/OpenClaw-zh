@@ -135,9 +135,7 @@ export async function processGatewayAllowlist(
     requiresHeredocApproval ||
     obfuscation.detected;
   if (requiresHeredocApproval) {
-    params.warnings.push(
-      "Warning: heredoc execution requires explicit approval in allowlist mode.",
-    );
+    params.warnings.push("警告：heredoc 执行需要在允许列表模式下显式批准。");
   }
 
   if (requiresAsk) {

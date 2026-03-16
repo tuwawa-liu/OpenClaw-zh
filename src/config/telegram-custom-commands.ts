@@ -48,7 +48,7 @@ export function resolveTelegramCustomCommands(params: {
       issues.push({
         index,
         field: "command",
-        message: "Telegram custom command is missing a command name.",
+        message: "Telegram 自定义命令缺少命令名称。",
       });
       continue;
     }
@@ -56,7 +56,7 @@ export function resolveTelegramCustomCommands(params: {
       issues.push({
         index,
         field: "command",
-        message: `Telegram custom command "/${normalized}" is invalid (use a-z, 0-9, underscore; max 32 chars).`,
+        message: `Telegram 自定义命令 "/${normalized}" 无效（使用 a-z、0-9、下划线；最多 32 个字符）。`,
       });
       continue;
     }

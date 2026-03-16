@@ -195,7 +195,7 @@ export function stopWithText(text: string): CommandHandlerResult {
 }
 
 export function stopWithUnknownTargetError(error?: string): CommandHandlerResult {
-  return stopWithText(`⚠️ ${error ?? "Unknown subagent."}`);
+  return stopWithText(`⚠️ ${error ?? "未知子代理。"}`);
 }
 
 export function resolveSubagentTarget(
@@ -401,8 +401,8 @@ export async function resolveFocusTargetSession(params: {
 
 export function buildSubagentsHelp() {
   return [
-    "Subagents",
-    "Usage:",
+    "子代理",
+    "用法：",
     "- /subagents list",
     "- /subagents kill <id|#|all>",
     "- /subagents log <id|#> [limit] [tools]",
@@ -419,7 +419,7 @@ export function buildSubagentsHelp() {
     "- /steer <id|#> <message>",
     "- /tell <id|#> <message>",
     "",
-    "Ids: use the list index (#), runId/session prefix, label, or full session key.",
+    "ID：使用列表索引 (#)、runId/会话前缀、标签或完整会话密钥。",
   ].join("\n");
 }
 

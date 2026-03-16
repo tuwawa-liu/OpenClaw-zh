@@ -99,7 +99,7 @@ async function fetchProviderUsageSnapshot(params: {
         provider: params.auth.provider,
         displayName: PROVIDER_LABELS[params.auth.provider],
         windows: [],
-        error: "Unsupported provider",
+        error: "不支持的提供商",
       };
   }
 }

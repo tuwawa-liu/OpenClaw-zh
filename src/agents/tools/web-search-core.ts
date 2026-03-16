@@ -1788,7 +1788,7 @@ async function runWebSearch(params: {
   }
 
   if (params.provider !== "brave") {
-    throw new Error("Unsupported web search provider.");
+    throw new Error("不支持的网页搜索提供商。");
   }
 
   if (effectiveBraveMode === "llm-context") {

@@ -131,8 +131,8 @@ export function collectDiscordStatusIssues(
         channel: "discord",
         accountId,
         kind: "intent",
-        message: "Message Content Intent is disabled. Bot may not see normal channel messages.",
-        fix: "Enable Message Content Intent in Discord Dev Portal → Bot → Privileged Gateway Intents, or require mention-only operation.",
+        message: "Message Content Intent 已禁用。机器人可能无法读取普通频道消息。",
+        fix: "请在 Discord 开发者门户 → Bot → Privileged Gateway Intents 中启用 Message Content Intent，或仅使用提及模式。",
       });
     }
 
@@ -142,17 +142,17 @@ export function collectDiscordStatusIssues(
         channel: "discord",
         accountId,
         kind: "config",
-        message: `Some configured guild channels are not numeric IDs (unresolvedChannels=${audit.unresolvedChannels}). Permission audit can only check numeric channel IDs.`,
-        fix: "Use numeric channel IDs as keys in channels.discord.guilds.*.channels (then rerun channels status --probe).",
+        message: `部分已配置的公会频道不是数字 ID（unresolvedChannels=${audit.unresolvedChannels}）。权限审计只能检查数字频道 ID。`,
+        fix: "请在 channels.discord.guilds.*.channels 中使用数字频道 ID 作为键（然后重新运行 channels status --probe）。",
       });
     }
     for (const channel of audit.channels ?? []) {
       if (channel.ok === true) {
         continue;
       }
-      const missing = channel.missing?.length ? ` missing ${channel.missing.join(", ")}` : "";
+      const missing = channel.missing?.length ? ` 缺少 ${channel.missing.join(", ")}` : "";
       const error = channel.error ? `: ${channel.error}` : "";
-      const baseMessage = `Channel ${channel.channelId} permission check failed.${missing}${error}`;
+      const baseMessage = `频道 ${channel.channelId} 权限检查失败。${missing}${error}`;
       issues.push({
         channel: "discord",
         accountId,
@@ -161,7 +161,7 @@ export function collectDiscordStatusIssues(
           matchKey: channel.matchKey,
           matchSource: channel.matchSource,
         }),
-        fix: "Ensure the bot role can view + send in this channel (and that channel overrides don't deny it).",
+        fix: "请确保机器人角色可以查看和发送此频道的消息（并确保频道覆盖没有拒绝它）。",
       });
     }
   }

@@ -25,7 +25,7 @@ export async function probeZalo(
       return { ok: true, bot: response.result, elapsedMs };
     }
 
-    return { ok: false, error: "Invalid response from Zalo API", elapsedMs };
+    return { ok: false, error: "Zalo API 返回无效响应", elapsedMs };
   } catch (err) {
     const elapsedMs = Date.now() - startTime;
 

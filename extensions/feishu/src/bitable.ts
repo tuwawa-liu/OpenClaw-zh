@@ -111,7 +111,7 @@ async function getAppTokenFromWiki(client: Lark.Client, nodeToken: string): Prom
 async function getBitableMeta(client: Lark.Client, url: string) {
   const parsed = parseBitableUrl(url);
   if (!parsed) {
-    throw new Error("Invalid URL format. Expected /base/XXX or /wiki/XXX URL");
+    throw new Error("无效的 URL 格式。预期 /base/XXX 或 /wiki/XXX URL");
   }
 
   let appToken: string;
@@ -351,7 +351,7 @@ async function createApp(
 
   const appToken = res.data?.app?.app_token;
   if (!appToken) {
-    throw new Error("Failed to create Bitable: no app_token returned");
+    throw new Error("创建多维表格失败：未返回 app_token");
   }
 
   const log: CleanupLogger = logger ?? { debug: () => {}, warn: () => {} };
@@ -465,9 +465,7 @@ const ListRecordsSchema = Type.Object({
       maximum: 500,
     }),
   ),
-  page_token: Type.Optional(
-    Type.String({ description: "上一次响应中的分页令牌" }),
-  ),
+  page_token: Type.Optional(Type.String({ description: "上一次响应中的分页令牌" })),
 });
 
 const GetRecordSchema = Type.Object({

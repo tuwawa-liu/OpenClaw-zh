@@ -482,8 +482,8 @@ export async function resolveApiKeyForProfile(
       profileId,
     });
     throw new Error(
-      `OAuth token refresh failed for ${cred.provider}: ${message}. ` +
-        "Please try again or re-authenticate." +
+      `${cred.provider} 的 OAuth token 刷新失败：${message}。` +
+        "请重试或重新认证。" +
         (hint ? `\n\n${hint}` : ""),
       { cause: error },
     );

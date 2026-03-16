@@ -183,7 +183,7 @@ export function buildMSTeamsPollCard(params: {
     actions: [
       {
         type: "Action.Submit",
-        title: "Vote",
+        title: "投票",
         data: {
           openclawPollId: pollId,
           pollId,
@@ -191,7 +191,7 @@ export function buildMSTeamsPollCard(params: {
         msteams: {
           type: "messageBack",
           text: "openclaw poll vote",
-          displayText: "Vote recorded",
+          displayText: "已记录投票",
           value: { openclawPollId: pollId, pollId },
         },
       },

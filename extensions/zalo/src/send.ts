@@ -28,7 +28,7 @@ function toZaloSendResult(response: {
   if (response.ok && response.result) {
     return { ok: true, messageId: response.result.message_id };
   }
-  return { ok: false, error: "Failed to send message" };
+  return { ok: false, error: "发送消息失败" };
 }
 
 async function runZaloSend(
@@ -110,7 +110,7 @@ export async function sendMessageZalo(
     });
   }
 
-  return await runZaloSend("Failed to send message", () =>
+  return await runZaloSend("发送消息失败", () =>
     sendMessage(
       context.token,
       {
@@ -134,10 +134,10 @@ export async function sendPhotoZalo(
   const { context } = resolved;
 
   if (!photoUrl?.trim()) {
-    return { ok: false, error: "No photo URL provided" };
+    return { ok: false, error: "未提供图片 URL" };
   }
 
-  return await runZaloSend("Failed to send photo", () =>
+  return await runZaloSend("发送图片失败", () =>
     sendPhoto(
       context.token,
       {

@@ -49,7 +49,7 @@ export function createSynologyChatPlugin() {
       selectionLabel: "Synology Chat (Webhook)",
       detailLabel: "Synology Chat (Webhook)",
       docsPath: "/channels/synology-chat",
-      blurb: "Connect your Synology NAS Chat to OpenClaw",
+      blurb: "将你的群晖 NAS Chat 连接到 OpenClaw",
       order: 90,
     },
 
@@ -204,7 +204,7 @@ export function createSynologyChatPlugin() {
 
         const ok = await sendMessage(account.incomingUrl, text, to, account.allowInsecureSsl);
         if (!ok) {
-          throw new Error("Failed to send message to Synology Chat");
+          throw new Error("发送消息到 Synology Chat 失败");
         }
         return { channel: CHANNEL_ID, messageId: `sc-${Date.now()}`, chatId: to };
       },
@@ -221,7 +221,7 @@ export function createSynologyChatPlugin() {
 
         const ok = await sendFileUrl(account.incomingUrl, mediaUrl, to, account.allowInsecureSsl);
         if (!ok) {
-          throw new Error("Failed to send media to Synology Chat");
+          throw new Error("发送媒体到 Synology Chat 失败");
         }
         return { channel: CHANNEL_ID, messageId: `sc-${Date.now()}`, chatId: to };
       },

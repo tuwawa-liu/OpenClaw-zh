@@ -79,8 +79,8 @@ function formatDuplicateTelegramTokenReason(params: {
   ownerAccountId: string;
 }): string {
   return (
-    `Duplicate Telegram bot token: account "${params.accountId}" shares a token with ` +
-    `account "${params.ownerAccountId}". Keep one owner account per bot token.`
+    `Telegram 机器人令牌重复：账户 "${params.accountId}" 与` +
+    `账户 "${params.ownerAccountId}" 共享令牌。每个机器人令牌保留一个所有者账户。`
   );
 }
 
@@ -147,7 +147,7 @@ const telegramMessageActions: ChannelMessageActionAdapter = {
   handleAction: async (ctx) => {
     const ma = getTelegramRuntime().channel.telegram.messageActions;
     if (!ma?.handleAction) {
-      throw new Error("Telegram message actions not available");
+      throw new Error("Telegram 消息操作不可用");
     }
     return ma.handleAction(ctx);
   },
@@ -191,7 +191,7 @@ export const telegramPlugin: ChannelPlugin<ResolvedTelegramAccount, TelegramProb
     notifyApproval: async ({ cfg, id }) => {
       const { token } = getTelegramRuntime().channel.telegram.resolveTelegramToken(cfg);
       if (!token) {
-        throw new Error("telegram token not configured");
+        throw new Error("Telegram 令牌未配置");
       }
       await getTelegramRuntime().channel.telegram.sendMessageTelegram(
         id,
@@ -259,13 +259,13 @@ export const telegramPlugin: ChannelPlugin<ResolvedTelegramAccount, TelegramProb
             groupPolicy,
             routeAllowlistConfigured: Boolean(groupAllowlistConfigured),
             restrictSenders: {
-              surface: "Telegram groups",
+              surface: "Telegram 群组",
               openScope: "any member in allowed groups",
               groupPolicyPath: "channels.telegram.groupPolicy",
               groupAllowFromPath: "channels.telegram.groupAllowFrom",
             },
             noRouteAllowlist: {
-              surface: "Telegram groups",
+              surface: "Telegram 群组",
               routeAllowlistPath: "channels.telegram.groups",
               routeScope: "group",
               groupPolicyPath: "channels.telegram.groupPolicy",

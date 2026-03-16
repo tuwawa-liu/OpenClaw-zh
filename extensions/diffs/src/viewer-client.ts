@@ -190,9 +190,7 @@ function createToolbar(): HTMLElement {
 
   toolbar.append(
     createToolbarButton({
-      title: viewerState.backgroundEnabled
-        ? "隐藏背景高亮"
-        : "显示背景高亮",
+      title: viewerState.backgroundEnabled ? "隐藏背景高亮" : "显示背景高亮",
       active: viewerState.backgroundEnabled,
       iconMarkup: backgroundIcon(viewerState.backgroundEnabled),
       onClick: () => {
@@ -293,7 +291,7 @@ async function main(): Promise<void> {
     document.documentElement.dataset.openclawDiffsReady = "true";
   } catch (error) {
     document.documentElement.dataset.openclawDiffsError = "true";
-    console.error("Failed to hydrate diff viewer", error);
+    console.error("渲染 diff 查看器失败", error);
   }
 }
 

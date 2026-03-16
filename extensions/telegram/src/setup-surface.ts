@@ -29,18 +29,18 @@ import { fetchTelegramChatId } from "./api-fetch.js";
 const channel = "telegram" as const;
 
 const TELEGRAM_TOKEN_HELP_LINES = [
-  "1) Open Telegram and chat with @BotFather",
-  "2) Run /newbot (or /mybots)",
-  "3) Copy the token (looks like 123456:ABC...)",
-  "Tip: you can also set TELEGRAM_BOT_TOKEN in your env.",
+  "1) 打开 Telegram 并与 @BotFather 聊天",
+  "2) 运行 /newbot（或 /mybots）",
+  "3) 复制令牌（形如 123456:ABC...）",
+  "提示：你也可以在环境变量中设置 TELEGRAM_BOT_TOKEN。",
   `Docs: ${formatDocsLink("/telegram")}`,
   "Website: https://openclaw.ai",
 ];
 
 const TELEGRAM_USER_ID_HELP_LINES = [
-  `1) DM your bot, then read from.id in \`${formatCliCommand("openclaw logs --follow")}\` (safest)`,
-  "2) Or call https://api.telegram.org/bot<bot_token>/getUpdates and read message.from.id",
-  "3) Third-party: DM @userinfobot or @getidsbot",
+  `1) 给你的机器人发私信，然后在 \`${formatCliCommand("openclaw logs --follow")}\` 中查看 from.id（最安全）`,
+  "2) 或访问 https://api.telegram.org/bot<bot_token>/getUpdates 并查看 message.from.id",
+  "3) 第三方：给 @userinfobot 或 @getidsbot 发消息",
   `Docs: ${formatDocsLink("/telegram")}`,
   "Website: https://openclaw.ai",
 ];
@@ -91,24 +91,20 @@ async function promptTelegramAllowFromForAccount(params: {
     defaultAccountId: resolveDefaultTelegramAccountId(params.cfg),
   });
   const resolved = resolveTelegramAccount({ cfg: params.cfg, accountId });
-  await params.prompter.note(TELEGRAM_USER_ID_HELP_LINES.join("\n"), "Telegram user id");
+  await params.prompter.note(TELEGRAM_USER_ID_HELP_LINES.join("\n"), "Telegram 用户 ID");
   if (!resolved.token?.trim()) {
-    await params.prompter.note(
-      "Telegram token missing; username lookup is unavailable.",
-      "Telegram",
-    );
+    await params.prompter.note("Telegram 令牌缺失；用户名查找不可用。", "Telegram");
   }
   const unique = await promptResolvedAllowFrom({
     prompter: params.prompter,
     existing: resolved.config.allowFrom ?? [],
     token: resolved.token,
-    message: "Telegram allowFrom (numeric sender id; @username resolves to id)",
+    message: "Telegram allowFrom（数字发送者 ID；@用户名会解析为 ID）",
     placeholder: "@username",
-    label: "Telegram allowlist",
+    label: "Telegram 白名单",
     parseInputs: splitOnboardingEntries,
     parseId: parseTelegramAllowFromId,
-    invalidWithoutTokenNote:
-      "Telegram token missing; use numeric sender ids (usernames require a bot token).",
+    invalidWithoutTokenNote: "Telegram 令牌缺失；请使用数字发送者 ID（用户名需要机器人令牌）。",
     resolveEntries: async ({ entries, token }) =>
       resolveTelegramAllowFromEntries({
         credentialValue: token,
@@ -149,10 +145,10 @@ export const telegramSetupAdapter: ChannelSetupAdapter = {
     }),
   validateInput: ({ accountId, input }) => {
     if (input.useEnv && accountId !== DEFAULT_ACCOUNT_ID) {
-      return "TELEGRAM_BOT_TOKEN can only be used for the default account.";
+      return "TELEGRAM_BOT_TOKEN 只能用于默认账户。";
     }
     if (!input.useEnv && !input.token && !input.tokenFile) {
-      return "Telegram requires token or --token-file (or --use-env).";
+      return "Telegram 需要令牌或 --token-file（或 --use-env）。";
     }
     return null;
   },
@@ -217,10 +213,10 @@ export const telegramSetupAdapter: ChannelSetupAdapter = {
 export const telegramSetupWizard: ChannelSetupWizard = {
   channel,
   status: {
-    configuredLabel: "configured",
-    unconfiguredLabel: "needs token",
-    configuredHint: "recommended · configured",
-    unconfiguredHint: "recommended · newcomer-friendly",
+    configuredLabel: "已配置",
+    unconfiguredLabel: "需要令牌",
+    configuredHint: "推荐 · 已配置",
+    unconfiguredHint: "推荐 · 新手友好",
     configuredScore: 1,
     unconfiguredScore: 10,
     resolveConfigured: ({ cfg }) =>
@@ -233,13 +229,13 @@ export const telegramSetupWizard: ChannelSetupWizard = {
     {
       inputKey: "token",
       providerHint: channel,
-      credentialLabel: "Telegram bot token",
+      credentialLabel: "Telegram 机器人令牌",
       preferredEnvVar: "TELEGRAM_BOT_TOKEN",
-      helpTitle: "Telegram bot token",
+      helpTitle: "Telegram 机器人令牌",
       helpLines: TELEGRAM_TOKEN_HELP_LINES,
-      envPrompt: "TELEGRAM_BOT_TOKEN detected. Use env var?",
-      keepPrompt: "Telegram token already configured. Keep it?",
-      inputPrompt: "Enter Telegram bot token",
+      envPrompt: "检测到 TELEGRAM_BOT_TOKEN。使用环境变量？",
+      keepPrompt: "Telegram 令牌已配置。保留吗？",
+      inputPrompt: "输入 Telegram 机器人令牌",
       allowEnv: ({ accountId }) => accountId === DEFAULT_ACCOUNT_ID,
       inspect: ({ cfg, accountId }) => {
         const resolved = resolveTelegramAccount({ cfg, accountId });
@@ -259,13 +255,13 @@ export const telegramSetupWizard: ChannelSetupWizard = {
     },
   ],
   allowFrom: {
-    helpTitle: "Telegram user id",
+    helpTitle: "Telegram 用户 ID",
     helpLines: TELEGRAM_USER_ID_HELP_LINES,
     credentialInputKey: "token",
-    message: "Telegram allowFrom (numeric sender id; @username resolves to id)",
+    message: "Telegram allowFrom（数字发送者 ID；@用户名会解析为 ID）",
     placeholder: "@username",
     invalidWithoutCredentialNote:
-      "Telegram token missing; use numeric sender ids (usernames require a bot token).",
+      "Telegram 令牌缺失；请使用数字发送者 ID（用户名需要机器人令牌）。",
     parseInputs: splitOnboardingEntries,
     parseId: parseTelegramAllowFromId,
     resolveEntries: async ({ credentialValues, entries }) =>

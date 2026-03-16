@@ -94,13 +94,13 @@ export async function runNodeDaemonInstall(opts: NodeDaemonInstallOptions) {
   const config = await loadNodeHostConfig();
   const { host, port } = resolveNodeDefaults(opts, config);
   if (!Number.isFinite(port ?? NaN) || (port ?? 0) <= 0) {
-    fail("Invalid port");
+    fail("无效端口");
     return;
   }
 
   const runtimeRaw = opts.runtime ? String(opts.runtime) : DEFAULT_NODE_DAEMON_RUNTIME;
   if (!isNodeDaemonRuntime(runtimeRaw)) {
-    fail('Invalid --runtime (use "node" or "bun")');
+    fail('无效的 --runtime（使用 "node" 或 "bun"）');
     return;
   }
 

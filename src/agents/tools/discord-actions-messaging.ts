@@ -49,7 +49,7 @@ function parseDiscordMessageLink(link: string) {
   );
   if (!match) {
     throw new Error(
-      "Invalid Discord message link. Expected https://discord.com/channels/<guildId>/<channelId>/<messageId>.",
+      "无效的 Discord 消息链接。期望格式：https://discord.com/channels/<guildId>/<channelId>/<messageId>。",
     );
   }
   return {

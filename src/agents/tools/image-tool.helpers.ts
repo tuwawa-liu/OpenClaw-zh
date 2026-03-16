@@ -16,16 +16,16 @@ export function decodeDataUrl(dataUrl: string): {
   const trimmed = dataUrl.trim();
   const match = /^data:([^;,]+);base64,([a-z0-9+/=\r\n]+)$/i.exec(trimmed);
   if (!match) {
-    throw new Error("Invalid data URL (expected base64 data: URL).");
+    throw new Error("无效的 data URL（期望 base64 data: URL）。");
   }
   const mimeType = (match[1] ?? "").trim().toLowerCase();
   if (!mimeType.startsWith("image/")) {
-    throw new Error(`Unsupported data URL type: ${mimeType || "unknown"}`);
+    throw new Error(`不支持的 data URL 类型：${mimeType || "未知"}`);
   }
   const b64 = (match[2] ?? "").trim();
   const buffer = Buffer.from(b64, "base64");
   if (buffer.length === 0) {
-    throw new Error("Invalid data URL: empty payload.");
+    throw new Error("无效的 data URL：负载为空。");
   }
   return { buffer, mimeType, kind: "image" };
 }

@@ -220,7 +220,7 @@ export function createProfileTabOps({
     });
 
     if (!created.id) {
-      throw new Error("Failed to open tab (missing id)");
+      throw new Error("打开标签页失败（缺少 id）");
     }
     const profileState = getProfileState();
     profileState.lastTargetId = created.id;

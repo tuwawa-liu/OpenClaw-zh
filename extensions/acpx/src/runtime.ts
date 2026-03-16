@@ -74,7 +74,7 @@ type AcpxHealthCheckResult =
     };
 
 function formatPermissionModeGuidance(): string {
-  return "Configure plugins.entries.acpx.config.permissionMode to one of: approve-reads, approve-all, deny-all.";
+  return "请配置 plugins.entries.acpx.config.permissionMode 为以下之一：approve-reads、approve-all、deny-all。";
 }
 
 function formatAcpxExitMessage(params: {

@@ -66,7 +66,7 @@ async function readBody(req: IncomingMessage): Promise<
     return {
       ok: false,
       statusCode: 400,
-      error: "Invalid request body",
+      error: "无效的请求体",
     };
   }
 }
@@ -113,7 +113,7 @@ function parseJsonBody(body: string): Record<string, unknown> {
   if (!body.trim()) return {};
   const parsed = JSON.parse(body);
   if (!parsed || Array.isArray(parsed) || typeof parsed !== "object") {
-    throw new Error("Invalid JSON body");
+    throw new Error("无效的 JSON 请求体");
   }
   return parsed as Record<string, unknown>;
 }
@@ -257,14 +257,14 @@ export function createWebhookHandler(deps: WebhookHandlerDeps) {
   return async (req: IncomingMessage, res: ServerResponse) => {
     // Only accept POST
     if (req.method !== "POST") {
-      respondJson(res, 405, { error: "Method not allowed" });
+      respondJson(res, 405, { error: "不允许的方法" });
       return;
     }
 
     // Parse body
     const bodyResult = await readBody(req);
     if (!bodyResult.ok) {
-      log?.error("Failed to read request body", bodyResult.error);
+      log?.error("读取请求体失败", bodyResult.error);
       respondJson(res, bodyResult.statusCode, { error: bodyResult.error });
       return;
     }
@@ -274,19 +274,19 @@ export function createWebhookHandler(deps: WebhookHandlerDeps) {
     try {
       payload = parsePayload(req, bodyResult.body);
     } catch (err) {
-      log?.warn("Failed to parse webhook payload", err);
-      respondJson(res, 400, { error: "Invalid request body" });
+      log?.warn("解析 webhook 负载失败", err);
+      respondJson(res, 400, { error: "无效的请求体" });
       return;
     }
     if (!payload) {
-      respondJson(res, 400, { error: "Missing required fields (token, user_id, text)" });
+      respondJson(res, 400, { error: "缺少必填字段 (token, user_id, text)" });
       return;
     }
 
     // Token validation
     if (!validateToken(payload.token, account.token)) {
-      log?.warn(`Invalid token from ${req.socket?.remoteAddress}`);
-      respondJson(res, 401, { error: "Invalid token" });
+      log?.warn(`无效的令牌，来自 ${req.socket?.remoteAddress}`);
+      respondJson(res, 401, { error: "无效的令牌" });
       return;
     }
 
@@ -294,25 +294,25 @@ export function createWebhookHandler(deps: WebhookHandlerDeps) {
     const auth = authorizeUserForDm(payload.user_id, account.dmPolicy, account.allowedUserIds);
     if (!auth.allowed) {
       if (auth.reason === "disabled") {
-        respondJson(res, 403, { error: "DMs are disabled" });
+        respondJson(res, 403, { error: "私信已禁用" });
         return;
       }
       if (auth.reason === "allowlist-empty") {
         log?.warn("Synology Chat allowlist is empty while dmPolicy=allowlist; rejecting message");
         respondJson(res, 403, {
-          error: "Allowlist is empty. Configure allowedUserIds or use dmPolicy=open.",
+          error: "白名单为空。请配置 allowedUserIds 或使用 dmPolicy=open。",
         });
         return;
       }
-      log?.warn(`Unauthorized user: ${payload.user_id}`);
-      respondJson(res, 403, { error: "User not authorized" });
+      log?.warn(`未授权用户：${payload.user_id}`);
+      respondJson(res, 403, { error: "用户未授权" });
       return;
     }
 
     // Rate limit
     if (!rateLimiter.check(payload.user_id)) {
-      log?.warn(`Rate limit exceeded for user: ${payload.user_id}`);
-      respondJson(res, 429, { error: "Rate limit exceeded" });
+      log?.warn(`用户 ${payload.user_id} 速率限制已超出`);
+      respondJson(res, 429, { error: "速率限制已超出" });
       return;
     }
 

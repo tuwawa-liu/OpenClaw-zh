@@ -46,13 +46,13 @@ export const mattermostSetupAdapter: ChannelSetupAdapter = {
     const token = input.botToken ?? input.token;
     const baseUrl = normalizeMattermostBaseUrl(input.httpUrl);
     if (input.useEnv && accountId !== DEFAULT_ACCOUNT_ID) {
-      return "Mattermost env vars can only be used for the default account.";
+      return "Mattermost 环境变量只能用于默认账户。";
     }
     if (!input.useEnv && (!token || !baseUrl)) {
-      return "Mattermost requires --bot-token and --http-url (or --use-env).";
+      return "Mattermost 需要 --bot-token 和 --http-url（或 --use-env）。";
     }
     if (input.httpUrl && !baseUrl) {
-      return "Mattermost --http-url must include a valid base URL.";
+      return "Mattermost --http-url 必须包含有效的基础 URL。";
     }
     return null;
   },
@@ -89,10 +89,10 @@ export const mattermostSetupAdapter: ChannelSetupAdapter = {
 export const mattermostSetupWizard: ChannelSetupWizard = {
   channel,
   status: {
-    configuredLabel: "configured",
-    unconfiguredLabel: "needs token + url",
-    configuredHint: "configured",
-    unconfiguredHint: "needs setup",
+    configuredLabel: "已配置",
+    unconfiguredLabel: "需要令牌 + URL",
+    configuredHint: "已配置",
+    unconfiguredHint: "需要设置",
     configuredScore: 2,
     unconfiguredScore: 1,
     resolveConfigured: ({ cfg }) =>
@@ -101,19 +101,19 @@ export const mattermostSetupWizard: ChannelSetupWizard = {
       ),
   },
   introNote: {
-    title: "Mattermost bot token",
+    title: "Mattermost 机器人令牌",
     lines: [
-      "1) Mattermost System Console -> Integrations -> Bot Accounts",
-      "2) Create a bot + copy its token",
-      "3) Use your server base URL (e.g., https://chat.example.com)",
-      "Tip: the bot must be a member of any channel you want it to monitor.",
+      "1) Mattermost 系统控制台 -> 集成 -> 机器人账户",
+      "2) 创建机器人 + 复制其令牌",
+      "3) 使用你的服务器基础 URL（例如 https://chat.example.com）",
+      "提示：机器人必须是你想要监控的任何频道的成员。",
       `Docs: ${formatDocsLink("/mattermost", "mattermost")}`,
     ],
     shouldShow: ({ cfg, accountId }) =>
       !isMattermostConfigured(resolveMattermostAccountWithSecrets(cfg, accountId)),
   },
   envShortcut: {
-    prompt: "MATTERMOST_BOT_TOKEN + MATTERMOST_URL detected. Use env vars?",
+    prompt: "检测到 MATTERMOST_BOT_TOKEN + MATTERMOST_URL。使用环境变量？",
     preferredEnvVar: "MATTERMOST_BOT_TOKEN",
     isAvailable: ({ cfg, accountId }) => {
       if (accountId !== DEFAULT_ACCOUNT_ID) {
@@ -141,11 +141,11 @@ export const mattermostSetupWizard: ChannelSetupWizard = {
     {
       inputKey: "botToken",
       providerHint: channel,
-      credentialLabel: "bot token",
+      credentialLabel: "机器人令牌",
       preferredEnvVar: "MATTERMOST_BOT_TOKEN",
-      envPrompt: "MATTERMOST_BOT_TOKEN + MATTERMOST_URL detected. Use env vars?",
-      keepPrompt: "Mattermost bot token already configured. Keep it?",
-      inputPrompt: "Enter Mattermost bot token",
+      envPrompt: "检测到 MATTERMOST_BOT_TOKEN + MATTERMOST_URL。使用环境变量？",
+      keepPrompt: "Mattermost 机器人令牌已配置。保留吗？",
+      inputPrompt: "输入 Mattermost 机器人令牌",
       inspect: ({ cfg, accountId }) => {
         const resolvedAccount = resolveMattermostAccountWithSecrets(cfg, accountId);
         return {
@@ -158,7 +158,7 @@ export const mattermostSetupWizard: ChannelSetupWizard = {
   textInputs: [
     {
       inputKey: "httpUrl",
-      message: "Enter Mattermost base URL",
+      message: "输入 Mattermost 基础 URL",
       confirmCurrentValue: false,
       currentValue: ({ cfg, accountId }) =>
         resolveMattermostAccountWithSecrets(cfg, accountId).baseUrl ??
@@ -176,7 +176,7 @@ export const mattermostSetupWizard: ChannelSetupWizard = {
       validate: ({ value }) =>
         normalizeMattermostBaseUrl(value)
           ? undefined
-          : "Mattermost base URL must include a valid base URL.",
+          : "Mattermost 基础 URL 必须包含有效的基础 URL。",
       normalizeValue: ({ value }) => normalizeMattermostBaseUrl(value) ?? value.trim(),
     },
   ],

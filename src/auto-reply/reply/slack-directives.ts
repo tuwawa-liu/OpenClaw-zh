@@ -103,7 +103,7 @@ function buildSelectBlock(raw: string, index: number): SlackBlock | null {
     return null;
   }
   const [first, second] = parts;
-  const placeholder = parts.length >= 2 ? first : "Choose an option";
+  const placeholder = parts.length >= 2 ? first : "选择一个选项";
   const choices = parseChoices(parts.length >= 2 ? second : first, SLACK_SELECT_MAX_ITEMS);
   if (choices.length === 0) {
     return null;

@@ -42,49 +42,49 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
   {
     id: "read",
     label: "read",
-    description: "Read file contents",
+    description: "读取文件内容",
     sectionId: "fs",
     profiles: ["coding"],
   },
   {
     id: "write",
     label: "write",
-    description: "Create or overwrite files",
+    description: "创建或覆写文件",
     sectionId: "fs",
     profiles: ["coding"],
   },
   {
     id: "edit",
     label: "edit",
-    description: "Make precise edits",
+    description: "精确编辑",
     sectionId: "fs",
     profiles: ["coding"],
   },
   {
     id: "apply_patch",
     label: "apply_patch",
-    description: "Patch files (OpenAI)",
+    description: "补丁文件 (OpenAI)",
     sectionId: "fs",
     profiles: ["coding"],
   },
   {
     id: "exec",
     label: "exec",
-    description: "Run shell commands",
+    description: "运行 Shell 命令",
     sectionId: "runtime",
     profiles: ["coding"],
   },
   {
     id: "process",
     label: "process",
-    description: "Manage background processes",
+    description: "管理后台进程",
     sectionId: "runtime",
     profiles: ["coding"],
   },
   {
     id: "web_search",
     label: "web_search",
-    description: "Search the web",
+    description: "搜索网页",
     sectionId: "web",
     profiles: ["coding"],
     includeInOpenClawGroup: true,
@@ -92,7 +92,7 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
   {
     id: "web_fetch",
     label: "web_fetch",
-    description: "Fetch web content",
+    description: "获取网页内容",
     sectionId: "web",
     profiles: ["coding"],
     includeInOpenClawGroup: true,
@@ -100,7 +100,7 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
   {
     id: "memory_search",
     label: "memory_search",
-    description: "Semantic search",
+    description: "语义搜索",
     sectionId: "memory",
     profiles: ["coding"],
     includeInOpenClawGroup: true,
@@ -108,7 +108,7 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
   {
     id: "memory_get",
     label: "memory_get",
-    description: "Read memory files",
+    description: "读取记忆文件",
     sectionId: "memory",
     profiles: ["coding"],
     includeInOpenClawGroup: true,
@@ -116,7 +116,7 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
   {
     id: "sessions_list",
     label: "sessions_list",
-    description: "List sessions",
+    description: "列出会话",
     sectionId: "sessions",
     profiles: ["coding", "messaging"],
     includeInOpenClawGroup: true,
@@ -124,7 +124,7 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
   {
     id: "sessions_history",
     label: "sessions_history",
-    description: "Session history",
+    description: "会话历史",
     sectionId: "sessions",
     profiles: ["coding", "messaging"],
     includeInOpenClawGroup: true,
@@ -132,7 +132,7 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
   {
     id: "sessions_send",
     label: "sessions_send",
-    description: "Send to session",
+    description: "发送到会话",
     sectionId: "sessions",
     profiles: ["coding", "messaging"],
     includeInOpenClawGroup: true,
@@ -140,7 +140,7 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
   {
     id: "sessions_spawn",
     label: "sessions_spawn",
-    description: "Spawn sub-agent",
+    description: "生成子代理",
     sectionId: "sessions",
     profiles: ["coding"],
     includeInOpenClawGroup: true,
@@ -148,7 +148,7 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
   {
     id: "sessions_yield",
     label: "sessions_yield",
-    description: "End turn to receive sub-agent results",
+    description: "结束回合以接收子代理结果",
     sectionId: "sessions",
     profiles: ["coding"],
     includeInOpenClawGroup: true,
@@ -156,7 +156,7 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
   {
     id: "subagents",
     label: "subagents",
-    description: "Manage sub-agents",
+    description: "管理子代理",
     sectionId: "sessions",
     profiles: ["coding"],
     includeInOpenClawGroup: true,
@@ -164,7 +164,7 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
   {
     id: "session_status",
     label: "session_status",
-    description: "Session status",
+    description: "会话状态",
     sectionId: "sessions",
     profiles: ["minimal", "coding", "messaging"],
     includeInOpenClawGroup: true,
@@ -172,7 +172,7 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
   {
     id: "browser",
     label: "browser",
-    description: "Control web browser",
+    description: "控制网页浏览器",
     sectionId: "ui",
     profiles: [],
     includeInOpenClawGroup: true,
@@ -180,7 +180,7 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
   {
     id: "canvas",
     label: "canvas",
-    description: "Control canvases",
+    description: "控制画布",
     sectionId: "ui",
     profiles: [],
     includeInOpenClawGroup: true,
@@ -188,7 +188,7 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
   {
     id: "message",
     label: "message",
-    description: "Send messages",
+    description: "发送消息",
     sectionId: "messaging",
     profiles: ["messaging"],
     includeInOpenClawGroup: true,
@@ -196,7 +196,7 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
   {
     id: "cron",
     label: "cron",
-    description: "Schedule tasks",
+    description: "调度任务",
     sectionId: "automation",
     profiles: ["coding"],
     includeInOpenClawGroup: true,
@@ -204,7 +204,7 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
   {
     id: "gateway",
     label: "gateway",
-    description: "Gateway control",
+    description: "网关控制",
     sectionId: "automation",
     profiles: [],
     includeInOpenClawGroup: true,
@@ -212,7 +212,7 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
   {
     id: "nodes",
     label: "nodes",
-    description: "Nodes + devices",
+    description: "节点 + 设备",
     sectionId: "nodes",
     profiles: [],
     includeInOpenClawGroup: true,
@@ -220,7 +220,7 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
   {
     id: "agents_list",
     label: "agents_list",
-    description: "List agents",
+    description: "列出代理",
     sectionId: "agents",
     profiles: [],
     includeInOpenClawGroup: true,
@@ -228,7 +228,7 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
   {
     id: "image",
     label: "image",
-    description: "Image understanding",
+    description: "图像理解",
     sectionId: "media",
     profiles: ["coding"],
     includeInOpenClawGroup: true,
@@ -236,7 +236,7 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
   {
     id: "tts",
     label: "tts",
-    description: "Text-to-speech conversion",
+    description: "文字转语音",
     sectionId: "media",
     profiles: [],
     includeInOpenClawGroup: true,

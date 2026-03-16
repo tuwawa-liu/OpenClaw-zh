@@ -119,7 +119,7 @@ async function promptMatrixAllowFrom(params: {
     if (unresolved.length > 0) {
       const details = unresolvedNotes.length > 0 ? unresolvedNotes : unresolved;
       await prompter.note(
-        `Could not resolve:\n${details.join("\n")}\nUse full @user:server IDs.`,
+        `无法解析：\n${details.join("\n")}\n请使用完整的 @user:server ID。`,
         "Matrix 白名单",
       );
       continue;
@@ -187,9 +187,7 @@ export const matrixOnboardingAdapter: ChannelOnboardingAdapter = {
     return {
       channel,
       configured,
-      statusLines: [
-        `Matrix：${configured ? "已配置" : "需要主服务器 + 访问令牌或密码"}`,
-      ],
+      statusLines: [`Matrix：${configured ? "已配置" : "需要主服务器 + 访问令牌或密码"}`],
       selectionHint: !sdkReady
         ? "安装 @vector-im/matrix-bot-sdk"
         : configured
@@ -438,10 +436,7 @@ export const matrixOnboardingAdapter: ChannelOnboardingAdapter = {
               await prompter.note(resolution, "Matrix 房间");
             }
           } catch (err) {
-            await prompter.note(
-              `Room lookup failed; keeping entries as typed. ${String(err)}`,
-              "Matrix 房间",
-            );
+            await prompter.note(`房间查找失败；保留原始输入。${String(err)}`, "Matrix 房间");
           }
         }
         next = setMatrixGroupPolicy(next, "allowlist");

@@ -173,7 +173,7 @@ export const matrixPlugin: ChannelPlugin<ResolvedMatrixAccount> = {
           groupPolicy === "open"
             ? [
                 buildOpenGroupPolicyWarning({
-                  surface: "Matrix rooms",
+                  surface: "Matrix 房间",
                   openBehavior: "allows any room to trigger (mention-gated)",
                   remediation:
                     'Set channels.matrix.groupPolicy="allowlist" + channels.matrix.groups (and optionally channels.matrix.groupAllowFrom) to restrict rooms',
@@ -330,20 +330,20 @@ export const matrixPlugin: ChannelPlugin<ResolvedMatrixAccount> = {
         return null;
       }
       if (!input.homeserver?.trim()) {
-        return "Matrix requires --homeserver";
+        return "Matrix 需要 --homeserver";
       }
       const accessToken = input.accessToken?.trim();
       const password = normalizeSecretInputString(input.password);
       const userId = input.userId?.trim();
       if (!accessToken && !password) {
-        return "Matrix requires --access-token or --password";
+        return "Matrix 需要 --access-token 或 --password";
       }
       if (!accessToken) {
         if (!userId) {
-          return "Matrix requires --user-id when using --password";
+          return "Matrix 使用 --password 时需要 --user-id";
         }
         if (!password) {
-          return "Matrix requires --password when using --user-id";
+          return "Matrix 使用 --user-id 时需要 --password";
         }
       }
       return null;

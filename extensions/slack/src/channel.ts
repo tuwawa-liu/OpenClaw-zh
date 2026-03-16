@@ -203,13 +203,13 @@ export const slackPlugin: ChannelPlugin<ResolvedSlackAccount> = {
             groupPolicy,
             routeAllowlistConfigured: channelAllowlistConfigured,
             configureRouteAllowlist: {
-              surface: "Slack channels",
+              surface: "Slack 频道",
               openScope: "any channel not explicitly denied",
               groupPolicyPath: "channels.slack.groupPolicy",
               routeAllowlistPath: "channels.slack.channels",
             },
             missingRouteAllowlist: {
-              surface: "Slack channels",
+              surface: "Slack 频道",
               openBehavior: "with no channel allowlist; any channel can trigger (mention-gated)",
               remediation:
                 'Set channels.slack.groupPolicy="allowlist" and configure channels.slack.channels',

@@ -55,7 +55,7 @@ function buildSlackManifest(botName: string) {
       slash_commands: [
         {
           command: "/openclaw",
-          description: "Send a message to OpenClaw",
+          description: "发送消息到 OpenClaw",
           should_escape: false,
         },
       ],
@@ -107,12 +107,12 @@ function buildSlackManifest(botName: string) {
 
 function buildSlackSetupLines(botName = "OpenClaw"): string[] {
   return [
-    "1) Slack API -> Create App -> From scratch or From manifest (with the JSON below)",
-    "2) Add Socket Mode + enable it to get the app-level token (xapp-...)",
-    "3) Install App to workspace to get the xoxb- bot token",
-    "4) Enable Event Subscriptions (socket) for message events",
-    "5) App Home -> enable the Messages tab for DMs",
-    "Tip: set SLACK_BOT_TOKEN + SLACK_APP_TOKEN in your env.",
+    "1) Slack API -> 创建应用 -> 从头创建或使用 Manifest（使用下方 JSON）",
+    "2) 添加 Socket Mode 并启用以获取应用级别令牌 (xapp-...)",
+    "3) 将应用安装到工作区以获取 xoxb- 机器人令牌",
+    "4) 启用事件订阅（socket）以接收消息事件",
+    "5) App Home -> 启用消息标签以支持私信",
+    "提示：在环境变量中设置 SLACK_BOT_TOKEN + SLACK_APP_TOKEN。",
     `Docs: ${formatDocsLink("/slack", "slack")}`,
     "",
     "Manifest (JSON):",
@@ -193,19 +193,19 @@ async function promptSlackAllowFrom(params: {
     prompter: params.prompter,
     existing,
     token,
-    noteTitle: "Slack allowlist",
+    noteTitle: "Slack 白名单",
     noteLines: [
-      "Allowlist Slack DMs by username (we resolve to user ids).",
-      "Examples:",
+      "通过用户名将 Slack 私聊加入白名单（我们会解析为用户 ID）。",
+      "示例：",
       "- U12345678",
       "- @alice",
-      "Multiple entries: comma-separated.",
+      "多个条目：用逗号分隔。",
       `Docs: ${formatDocsLink("/slack", "slack")}`,
     ],
-    message: "Slack allowFrom (usernames or ids)",
+    message: "Slack allowFrom（用户名或 ID）",
     placeholder: "@alice, U12345678",
     parseId,
-    invalidWithoutTokenNote: "Slack token missing; use user ids (or mention form) only.",
+    invalidWithoutTokenNote: "缺少 Slack 令牌；请仅使用用户 ID（或 @提及格式）。",
     resolveEntries: ({ token, entries }) =>
       resolveSlackUserAllowlist({
         token,
@@ -249,10 +249,10 @@ export const slackSetupAdapter: ChannelSetupAdapter = {
     }),
   validateInput: ({ accountId, input }) => {
     if (input.useEnv && accountId !== DEFAULT_ACCOUNT_ID) {
-      return "Slack env tokens can only be used for the default account.";
+      return "Slack 环境变量令牌只能用于默认账户。";
     }
     if (!input.useEnv && (!input.botToken || !input.appToken)) {
-      return "Slack requires --bot-token and --app-token (or --use-env).";
+      return "Slack 需要 --bot-token 和 --app-token（或 --use-env）。";
     }
     return null;
   },
@@ -313,10 +313,10 @@ export const slackSetupAdapter: ChannelSetupAdapter = {
 export const slackSetupWizard: ChannelSetupWizard = {
   channel,
   status: {
-    configuredLabel: "configured",
-    unconfiguredLabel: "needs tokens",
-    configuredHint: "configured",
-    unconfiguredHint: "needs tokens",
+    configuredLabel: "已配置",
+    unconfiguredLabel: "需要令牌",
+    configuredHint: "已配置",
+    unconfiguredHint: "需要令牌",
     configuredScore: 2,
     unconfiguredScore: 1,
     resolveConfigured: ({ cfg }) =>
@@ -326,13 +326,13 @@ export const slackSetupWizard: ChannelSetupWizard = {
       }),
   },
   introNote: {
-    title: "Slack socket mode tokens",
+    title: "Slack Socket Mode 令牌",
     lines: buildSlackSetupLines(),
     shouldShow: ({ cfg, accountId }) =>
       !isSlackAccountConfigured(resolveSlackAccount({ cfg, accountId })),
   },
   envShortcut: {
-    prompt: "SLACK_BOT_TOKEN + SLACK_APP_TOKEN detected. Use env vars?",
+    prompt: "检测到 SLACK_BOT_TOKEN + SLACK_APP_TOKEN。使用环境变量？",
     preferredEnvVar: "SLACK_BOT_TOKEN",
     isAvailable: ({ cfg, accountId }) =>
       accountId === DEFAULT_ACCOUNT_ID &&
@@ -345,11 +345,11 @@ export const slackSetupWizard: ChannelSetupWizard = {
     {
       inputKey: "botToken",
       providerHint: "slack-bot",
-      credentialLabel: "Slack bot token",
+      credentialLabel: "Slack 机器人令牌",
       preferredEnvVar: "SLACK_BOT_TOKEN",
-      envPrompt: "SLACK_BOT_TOKEN detected. Use env var?",
-      keepPrompt: "Slack bot token already configured. Keep it?",
-      inputPrompt: "Enter Slack bot token (xoxb-...)",
+      envPrompt: "检测到 SLACK_BOT_TOKEN。使用环境变量？",
+      keepPrompt: "Slack 机器人令牌已配置。保留吗？",
+      inputPrompt: "输入 Slack 机器人令牌 (xoxb-...)",
       allowEnv: ({ accountId }) => accountId === DEFAULT_ACCOUNT_ID,
       inspect: ({ cfg, accountId }) => {
         const resolved = resolveSlackAccount({ cfg, accountId });
@@ -377,11 +377,11 @@ export const slackSetupWizard: ChannelSetupWizard = {
     {
       inputKey: "appToken",
       providerHint: "slack-app",
-      credentialLabel: "Slack app token",
+      credentialLabel: "Slack 应用令牌",
       preferredEnvVar: "SLACK_APP_TOKEN",
-      envPrompt: "SLACK_APP_TOKEN detected. Use env var?",
-      keepPrompt: "Slack app token already configured. Keep it?",
-      inputPrompt: "Enter Slack app token (xapp-...)",
+      envPrompt: "检测到 SLACK_APP_TOKEN。使用环境变量？",
+      keepPrompt: "Slack 应用令牌已配置。保留吗？",
+      inputPrompt: "输入 Slack 应用令牌 (xapp-...)",
       allowEnv: ({ accountId }) => accountId === DEFAULT_ACCOUNT_ID,
       inspect: ({ cfg, accountId }) => {
         const resolved = resolveSlackAccount({ cfg, accountId });
@@ -409,19 +409,19 @@ export const slackSetupWizard: ChannelSetupWizard = {
   ],
   dmPolicy: slackDmPolicy,
   allowFrom: {
-    helpTitle: "Slack allowlist",
+    helpTitle: "Slack 白名单",
     helpLines: [
-      "Allowlist Slack DMs by username (we resolve to user ids).",
-      "Examples:",
+      "通过用户名将 Slack 私聊加入白名单（我们会解析为用户 ID）。",
+      "示例：",
       "- U12345678",
       "- @alice",
-      "Multiple entries: comma-separated.",
+      "多个条目：用逗号分隔。",
       `Docs: ${formatDocsLink("/slack", "slack")}`,
     ],
     credentialInputKey: "botToken",
-    message: "Slack allowFrom (usernames or ids)",
+    message: "Slack allowFrom（用户名或 ID）",
     placeholder: "@alice, U12345678",
-    invalidWithoutCredentialNote: "Slack token missing; use user ids (or mention form) only.",
+    invalidWithoutCredentialNote: "缺少 Slack 令牌；请仅使用用户 ID（或 @提及格式）。",
     parseId: (value) =>
       parseMentionOrPrefixedId({
         value,
@@ -444,7 +444,7 @@ export const slackSetupWizard: ChannelSetupWizard = {
       }),
   },
   groupAccess: {
-    label: "Slack channels",
+    label: "Slack 频道",
     placeholder: "#general, #private, C123",
     currentPolicy: ({ cfg, accountId }) =>
       resolveSlackAccount({ cfg, accountId }).config.groupPolicy ?? "allowlist",
@@ -483,14 +483,14 @@ export const slackSetupWizard: ChannelSetupWizard = {
           keys = [...resolvedKeys, ...unresolved.map((entry) => entry.trim()).filter(Boolean)];
           await noteChannelLookupSummary({
             prompter,
-            label: "Slack channels",
-            resolvedSections: [{ title: "Resolved", values: resolvedKeys }],
+            label: "Slack 频道",
+            resolvedSections: [{ title: "已解析", values: resolvedKeys }],
             unresolved,
           });
         } catch (error) {
           await noteChannelLookupFailure({
             prompter,
-            label: "Slack channels",
+            label: "Slack 频道",
             error,
           });
         }

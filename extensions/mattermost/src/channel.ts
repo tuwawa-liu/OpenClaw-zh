@@ -87,7 +87,7 @@ const mattermostMessageActions: ChannelMessageActionAdapter = {
       const baseActions = mmBase?.actions as { reactions?: boolean } | undefined;
       const reactionsEnabled = acctActions?.reactions ?? baseActions?.reactions ?? true;
       if (!reactionsEnabled) {
-        throw new Error("Mattermost reactions are disabled in config");
+        throw new Error("Mattermost 反应已在配置中禁用");
       }
 
       const postIdRaw =
@@ -98,13 +98,13 @@ const mattermostMessageActions: ChannelMessageActionAdapter = {
             : "";
       const postId = postIdRaw.trim();
       if (!postId) {
-        throw new Error("Mattermost react requires messageId (post id)");
+        throw new Error("Mattermost 反应需要 messageId (post id)");
       }
 
       const emojiRaw = typeof (params as any)?.emoji === "string" ? (params as any).emoji : "";
       const emojiName = emojiRaw.trim().replace(/^:+|:+$/g, "");
       if (!emojiName) {
-        throw new Error("Mattermost react requires emoji");
+        throw new Error("Mattermost 反应需要指定表情");
       }
 
       const remove = (params as any)?.remove === true;
@@ -330,7 +330,7 @@ export const mattermostPlugin: ChannelPlugin<ResolvedMattermostAccount> = {
         cfg,
         providerConfigPresent: cfg.channels?.mattermost !== undefined,
         configuredGroupPolicy: account.config.groupPolicy,
-        surface: "Mattermost channels",
+        surface: "Mattermost 频道",
         openScope: "any member",
         groupPolicyPath: "channels.mattermost.groupPolicy",
         groupAllowFromPath: "channels.mattermost.groupAllowFrom",
@@ -435,7 +435,7 @@ export const mattermostPlugin: ChannelPlugin<ResolvedMattermostAccount> = {
       const token = account.botToken?.trim();
       const baseUrl = account.baseUrl?.trim();
       if (!token || !baseUrl) {
-        return { ok: false, error: "bot token or baseUrl missing" };
+        return { ok: false, error: "缺少机器人令牌或 baseUrl" };
       }
       return await probeMattermost(baseUrl, token, timeoutMs);
     },

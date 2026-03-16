@@ -135,13 +135,13 @@ export const nextcloudTalkPlugin: ChannelPlugin<ResolvedNextcloudTalkAccount> = 
             groupPolicy,
             routeAllowlistConfigured: Boolean(roomAllowlistConfigured),
             restrictSenders: {
-              surface: "Nextcloud Talk rooms",
+              surface: "Nextcloud Talk 房间",
               openScope: "any member in allowed rooms",
               groupPolicyPath: "channels.nextcloud-talk.groupPolicy",
               groupAllowFromPath: "channels.nextcloud-talk.groupAllowFrom",
             },
             noRouteAllowlist: {
-              surface: "Nextcloud Talk rooms",
+              surface: "Nextcloud Talk 房间",
               routeAllowlistPath: "channels.nextcloud-talk.rooms",
               routeScope: "room",
               groupPolicyPath: "channels.nextcloud-talk.groupPolicy",

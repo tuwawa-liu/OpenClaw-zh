@@ -547,7 +547,7 @@ export async function createAcpClient(opts: AcpClientOptions = {}): Promise<AcpC
   });
 
   if (!agent.stdin || !agent.stdout) {
-    throw new Error("Failed to create ACP stdio pipes");
+    throw new Error("创建 ACP stdio 管道失败");
   }
 
   const input = Writable.toWeb(agent.stdin);

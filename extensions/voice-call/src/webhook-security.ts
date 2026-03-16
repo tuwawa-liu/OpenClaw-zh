@@ -523,12 +523,12 @@ export function verifyTelnyxWebhook(
   const timestamp = getHeader(ctx.headers, "telnyx-timestamp");
 
   if (!signature || !timestamp) {
-    return { ok: false, reason: "Missing signature or timestamp header" };
+    return { ok: false, reason: "缺少签名或时间戳头" };
   }
 
   const eventTimeSec = parseInt(timestamp, 10);
   if (!Number.isFinite(eventTimeSec)) {
-    return { ok: false, reason: "Invalid timestamp header" };
+    return { ok: false, reason: "无效的时间戳头" };
   }
 
   try {
@@ -538,14 +538,14 @@ export function verifyTelnyxWebhook(
 
     const isValid = crypto.verify(null, Buffer.from(signedPayload), key, signatureBuffer);
     if (!isValid) {
-      return { ok: false, reason: "Invalid signature" };
+      return { ok: false, reason: "无效的签名" };
     }
 
     const maxSkewMs = options?.maxSkewMs ?? 5 * 60 * 1000;
     const eventTimeMs = eventTimeSec * 1000;
     const now = Date.now();
     if (Math.abs(now - eventTimeMs) > maxSkewMs) {
-      return { ok: false, reason: "Timestamp too old" };
+      return { ok: false, reason: "时间戳过旧" };
     }
 
     const replayKey = `telnyx:${sha256Hex(`${timestamp}\n${signature}\n${ctx.rawBody}`)}`;
@@ -944,7 +944,7 @@ export function verifyPlivoWebhook(
         ok: false,
         version: "v3",
         verificationUrl,
-        reason: "Invalid Plivo V3 signature",
+        reason: "无效的 Plivo V3 签名",
       };
     }
     const replayKey = `plivo:v3:${sha256Hex(`${verificationUrl}\n${nonceV3}`)}`;
@@ -964,7 +964,7 @@ export function verifyPlivoWebhook(
         ok: false,
         version: "v2",
         verificationUrl,
-        reason: "Invalid Plivo V2 signature",
+        reason: "无效的 Plivo V2 签名",
       };
     }
     const replayKey = `plivo:v2:${sha256Hex(`${verificationUrl}\n${nonceV2}`)}`;

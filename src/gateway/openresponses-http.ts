@@ -292,7 +292,7 @@ export async function handleOpenResponsesHttpRequest(
   const parseResult = CreateResponseBodySchema.safeParse(handled.body);
   if (!parseResult.success) {
     const issue = parseResult.error.issues[0];
-    const message = issue ? `${issue.path.join(".")}: ${issue.message}` : "Invalid request body";
+    const message = issue ? `${issue.path.join(".")}: ${issue.message}` : "无效的请求体";
     sendJson(res, 400, {
       error: { message, type: "invalid_request_error" },
     });

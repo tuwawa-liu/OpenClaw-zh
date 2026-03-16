@@ -810,7 +810,7 @@ export async function createPageViaPlaywright(opts: {
   // Get the targetId for this page
   const tid = await pageTargetId(page).catch(() => null);
   if (!tid) {
-    throw new Error("Failed to get targetId for new page");
+    throw new Error("无法获取新页面的 targetId");
   }
 
   return {

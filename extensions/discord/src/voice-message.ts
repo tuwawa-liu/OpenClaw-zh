@@ -283,7 +283,7 @@ export async function sendDiscordVoiceMessage(
           global?: boolean;
         };
         throw new RateLimitError(res, {
-          message: retryData.message ?? "You are being rate limited.",
+          message: retryData.message ?? "你被速率限制了。",
           retry_after: retryData.retry_after ?? 1,
           global: retryData.global ?? false,
         });

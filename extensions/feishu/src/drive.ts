@@ -21,7 +21,7 @@ async function getRootFolderToken(client: Lark.Client): Promise<string> {
     `${domain}/open-apis/drive/explorer/v2/root_folder/meta`,
   )) as { code: number; msg?: string; data?: { token?: string } };
   if (res.code !== 0) {
-    throw new Error(res.msg ?? "Failed to get root folder");
+    throw new Error(res.msg ?? "获取根文件夹失败");
   }
   const token = res.data?.token;
   if (!token) {

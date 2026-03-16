@@ -285,7 +285,7 @@ export function validatePrivateKey(key: string): Uint8Array {
   if (trimmed.startsWith("nsec1")) {
     const decoded = nip19.decode(trimmed);
     if (decoded.type !== "nsec") {
-      throw new Error("Invalid nsec key: wrong type");
+      throw new Error("无效的 nsec 密钥：类型错误");
     }
     return decoded.data;
   }
@@ -438,7 +438,7 @@ export async function startNostrBus(options: NostrBusOptions): Promise<NostrBusH
       // Verify signature (must pass before we trust the event)
       if (!verifyEvent(event)) {
         metrics.emit("event.rejected.invalid_signature");
-        onError?.(new Error("Invalid signature"), `event ${event.id}`);
+        onError?.(new Error("无效的签名"), `event ${event.id}`);
         return;
       }
 
@@ -694,7 +694,7 @@ export function normalizePubkey(input: string): string {
   if (trimmed.startsWith("npub1")) {
     const decoded = nip19.decode(trimmed);
     if (decoded.type !== "npub") {
-      throw new Error("Invalid npub key");
+      throw new Error("无效的 npub 密钥");
     }
     // Convert Uint8Array to hex string
     return Array.from(decoded.data as unknown as Uint8Array)

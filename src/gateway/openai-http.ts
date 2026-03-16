@@ -448,7 +448,7 @@ export async function handleOpenAiHttpRequest(
     logWarn(`openai-compat: invalid image_url content: ${String(err)}`);
     sendJson(res, 400, {
       error: {
-        message: "Invalid image_url content in `messages`.",
+        message: "无效的 image_url 内容（在 `messages` 中）。",
         type: "invalid_request_error",
       },
     });

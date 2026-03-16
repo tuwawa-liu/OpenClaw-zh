@@ -277,7 +277,7 @@ async function ensureUvInstalled(params: {
   }
 
   return createInstallFailure({
-    message: "Failed to install uv (brew)",
+    message: "安装 uv 失败 (brew)",
     ...brewResult,
   });
 }
@@ -286,7 +286,7 @@ async function installGoViaApt(timeoutMs: number): Promise<SkillInstallResult | 
   const aptInstallArgv = ["apt-get", "install", "-y", "golang-go"];
   const aptUpdateArgv = ["apt-get", "update", "-qq"];
   const aptFailureMessage =
-    "go not installed — automatic install via apt failed. Install manually: https://go.dev/doc/install";
+    "go 未安装 — 通过 apt 自动安装失败。请手动安装：https://go.dev/doc/install";
 
   const isRoot = typeof process.getuid === "function" && process.getuid() === 0;
   if (isRoot) {
@@ -352,7 +352,7 @@ async function ensureGoInstalled(params: {
       return undefined;
     }
     return createInstallFailure({
-      message: "Failed to install go (brew)",
+      message: "安装 go 失败 (brew)",
       ...brewResult,
     });
   }
@@ -362,7 +362,7 @@ async function ensureGoInstalled(params: {
   }
 
   return createInstallFailure({
-    message: "go not installed — install manually: https://go.dev/doc/install",
+    message: "go 未安装 — 请手动安装：https://go.dev/doc/install",
   });
 }
 

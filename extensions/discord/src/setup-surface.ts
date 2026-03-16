@@ -36,10 +36,10 @@ import { resolveDiscordUserAllowlist } from "./resolve-users.js";
 const channel = "discord" as const;
 
 const DISCORD_TOKEN_HELP_LINES = [
-  "1) Discord Developer Portal -> Applications -> New Application",
-  "2) Bot -> Add Bot -> Reset Token -> copy token",
-  "3) OAuth2 -> URL Generator -> scope 'bot' -> invite to your server",
-  "Tip: enable Message Content Intent if you need message text. (Bot -> Privileged Gateway Intents -> Message Content Intent)",
+  "1) Discord 开发者门户 -> 应用 -> 新建应用",
+  "2) Bot -> 添加 Bot -> 重置令牌 -> 复制令牌",
+  "3) OAuth2 -> URL 生成器 -> scope 'bot' -> 邀请到你的服务器",
+  "提示：如需获取消息文本，请启用 Message Content Intent。(Bot -> Privileged Gateway Intents -> Message Content Intent)",
   `Docs: ${formatDocsLink("/discord", "discord")}`,
 ];
 
@@ -119,20 +119,20 @@ async function promptDiscordAllowFrom(params: {
     prompter: params.prompter,
     existing: resolved.config.allowFrom ?? resolved.config.dm?.allowFrom ?? [],
     token: resolved.token,
-    noteTitle: "Discord allowlist",
+    noteTitle: "Discord 白名单",
     noteLines: [
-      "Allowlist Discord DMs by username (we resolve to user ids).",
-      "Examples:",
+      "通过用户名将 Discord 私聊加入白名单（我们会解析为用户 ID）。",
+      "示例：",
       "- 123456789012345678",
       "- @alice",
       "- alice#1234",
-      "Multiple entries: comma-separated.",
+      "多个条目：用逗号分隔。",
       `Docs: ${formatDocsLink("/discord", "discord")}`,
     ],
-    message: "Discord allowFrom (usernames or ids)",
+    message: "Discord allowFrom（用户名或 ID）",
     placeholder: "@alice, 123456789012345678",
     parseId: parseDiscordAllowFromId,
-    invalidWithoutTokenNote: "Bot token missing; use numeric user ids (or mention form) only.",
+    invalidWithoutTokenNote: "缺少 Bot 令牌；请仅使用数字用户 ID（或 @提及格式）。",
     resolveEntries: ({ token, entries }) =>
       resolveDiscordUserAllowlist({
         token,
@@ -168,10 +168,10 @@ export const discordSetupAdapter: ChannelSetupAdapter = {
     }),
   validateInput: ({ accountId, input }) => {
     if (input.useEnv && accountId !== DEFAULT_ACCOUNT_ID) {
-      return "DISCORD_BOT_TOKEN can only be used for the default account.";
+      return "DISCORD_BOT_TOKEN 只能用于默认账户。";
     }
     if (!input.useEnv && !input.token) {
-      return "Discord requires token (or --use-env).";
+      return "Discord 需要令牌（或 --use-env）。";
     }
     return null;
   },
@@ -226,10 +226,10 @@ export const discordSetupAdapter: ChannelSetupAdapter = {
 export const discordSetupWizard: ChannelSetupWizard = {
   channel,
   status: {
-    configuredLabel: "configured",
-    unconfiguredLabel: "needs token",
-    configuredHint: "configured",
-    unconfiguredHint: "needs token",
+    configuredLabel: "已配置",
+    unconfiguredLabel: "需要令牌",
+    configuredHint: "已配置",
+    unconfiguredHint: "需要令牌",
     configuredScore: 2,
     unconfiguredScore: 1,
     resolveConfigured: ({ cfg }) =>
@@ -241,13 +241,13 @@ export const discordSetupWizard: ChannelSetupWizard = {
     {
       inputKey: "token",
       providerHint: channel,
-      credentialLabel: "Discord bot token",
+      credentialLabel: "Discord 机器人令牌",
       preferredEnvVar: "DISCORD_BOT_TOKEN",
-      helpTitle: "Discord bot token",
+      helpTitle: "Discord 机器人令牌",
       helpLines: DISCORD_TOKEN_HELP_LINES,
-      envPrompt: "DISCORD_BOT_TOKEN detected. Use env var?",
-      keepPrompt: "Discord token already configured. Keep it?",
-      inputPrompt: "Enter Discord bot token",
+      envPrompt: "检测到 DISCORD_BOT_TOKEN。使用环境变量？",
+      keepPrompt: "Discord 令牌已配置。保留吗？",
+      inputPrompt: "输入 Discord 机器人令牌",
       allowEnv: ({ accountId }) => accountId === DEFAULT_ACCOUNT_ID,
       inspect: ({ cfg, accountId }) => {
         const account = inspectDiscordAccount({ cfg, accountId });
@@ -264,7 +264,7 @@ export const discordSetupWizard: ChannelSetupWizard = {
     },
   ],
   groupAccess: {
-    label: "Discord channels",
+    label: "Discord 频道",
     placeholder: "My Server/#general, guildId/channelId, #support",
     currentPolicy: ({ cfg, accountId }) =>
       resolveDiscordAccount({ cfg, accountId }).config.groupPolicy ?? "allowlist",
@@ -312,16 +312,16 @@ export const discordSetupWizard: ChannelSetupWizard = {
         const unresolved = resolved.filter((entry) => !entry.resolved).map((entry) => entry.input);
         await noteChannelLookupSummary({
           prompter,
-          label: "Discord channels",
+          label: "Discord 频道",
           resolvedSections: [
             {
-              title: "Resolved channels",
+              title: "已解析频道",
               values: resolvedChannels
                 .map((entry) => entry.channelId)
                 .filter((value): value is string => Boolean(value)),
             },
             {
-              title: "Resolved guilds",
+              title: "已解析公会",
               values: resolvedGuilds
                 .map((entry) => entry.guildId)
                 .filter((value): value is string => Boolean(value)),
@@ -332,7 +332,7 @@ export const discordSetupWizard: ChannelSetupWizard = {
       } catch (error) {
         await noteChannelLookupFailure({
           prompter,
-          label: "Discord channels",
+          label: "Discord 频道",
           error,
         });
       }
@@ -358,19 +358,19 @@ export const discordSetupWizard: ChannelSetupWizard = {
   },
   allowFrom: {
     credentialInputKey: "token",
-    helpTitle: "Discord allowlist",
+    helpTitle: "Discord 白名单",
     helpLines: [
-      "Allowlist Discord DMs by username (we resolve to user ids).",
-      "Examples:",
+      "通过用户名将 Discord 私聊加入白名单（我们会解析为用户 ID）。",
+      "示例：",
       "- 123456789012345678",
       "- @alice",
       "- alice#1234",
-      "Multiple entries: comma-separated.",
+      "多个条目：用逗号分隔。",
       `Docs: ${formatDocsLink("/discord", "discord")}`,
     ],
-    message: "Discord allowFrom (usernames or ids)",
+    message: "Discord allowFrom（用户名或 ID）",
     placeholder: "@alice, 123456789012345678",
-    invalidWithoutCredentialNote: "Bot token missing; use numeric user ids (or mention form) only.",
+    invalidWithoutCredentialNote: "缺少 Bot 令牌；请仅使用数字用户 ID（或 @提及格式）。",
     parseId: parseDiscordAllowFromId,
     resolveEntries: async ({ cfg, accountId, credentialValues, entries }) =>
       await resolveDiscordAllowFromEntries({

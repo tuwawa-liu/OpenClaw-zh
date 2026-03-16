@@ -217,7 +217,7 @@ export const OpenClawSchema = z
             z.number().transform((n, ctx) => {
               const d = new Date(n);
               if (Number.isNaN(d.getTime())) {
-                ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid timestamp" });
+                ctx.addIssue({ code: z.ZodIssueCode.custom, message: "无效时间戳" });
                 return z.NEVER;
               }
               return d.toISOString();
@@ -374,7 +374,7 @@ export const OpenClawSchema = z
               .refine(
                 (value) => value.driver === "existing-session" || value.cdpPort || value.cdpUrl,
                 {
-                  message: "Profile must set cdpPort or cdpUrl",
+                  message: "Profile 必须设置 cdpPort 或 cdpUrl",
                 },
               ),
           )

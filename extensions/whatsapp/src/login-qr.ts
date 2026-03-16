@@ -85,9 +85,7 @@ async function restartLoginSocket(login: ActiveLogin, runtime: RuntimeEnv) {
     return false;
   }
   login.restartAttempted = true;
-  runtime.log(
-    info("WhatsApp 配对后要求重启（代码 515）；正在重试连接…"),
-  );
+  runtime.log(info("WhatsApp 配对后要求重启（代码 515）；正在重试连接…"));
   closeSocket(login.sock);
   await waitForCredsSaveQueueWithTimeout(login.authDir);
   try {
@@ -124,7 +122,7 @@ export async function startWebLoginWithQr(
   if (hasWeb && !opts.force) {
     const who = selfId.e164 ?? selfId.jid ?? "unknown";
     return {
-      message: `WhatsApp is already linked (${who}). Say “relink” if you want a fresh QR.`,
+      message: `WhatsApp 已关联（${who}）。如需重新关联，请说“relink”。`,
     };
   }
 
@@ -175,7 +173,7 @@ export async function startWebLoginWithQr(
     clearTimeout(qrTimer);
     await resetActiveLogin(account.accountId);
     return {
-      message: `Failed to start WhatsApp login: ${String(err)}`,
+      message: `启动 WhatsApp 登录失败：${String(err)}`,
     };
   }
   const login: ActiveLogin = {
@@ -203,7 +201,7 @@ export async function startWebLoginWithQr(
     clearTimeout(qrTimer);
     await resetActiveLogin(account.accountId);
     return {
-      message: `Failed to get QR: ${String(err)}`,
+      message: `获取 QR 码失败：${String(err)}`,
     };
   }
 
@@ -267,8 +265,7 @@ export async function waitForWebLogin(
           isLegacyAuthDir: login.isLegacyAuthDir,
           runtime,
         });
-        const message =
-          "WhatsApp 报告会话已注销。已清除缓存的 Web 会话；请扫描新的 QR 码。";
+        const message = "WhatsApp 报告会话已注销。已清除缓存的 Web 会话；请扫描新的 QR 码。";
         await resetActiveLogin(account.accountId, message);
         runtime.log(danger(message));
         return { connected: false, message };
@@ -279,14 +276,14 @@ export async function waitForWebLogin(
           continue;
         }
       }
-      const message = `WhatsApp login failed: ${login.error}`;
+      const message = `WhatsApp 登录失败：${login.error}`;
       await resetActiveLogin(account.accountId, message);
       runtime.log(danger(message));
       return { connected: false, message };
     }
 
     if (login.connected) {
-      const message = "✅ Linked! WhatsApp is ready.";
+      const message = "✅ 关联成功！WhatsApp 已就绪。";
       runtime.log(success(message));
       await resetActiveLogin(account.accountId);
       return { connected: true, message };

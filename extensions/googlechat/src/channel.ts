@@ -191,7 +191,7 @@ export const googlechatPlugin: ChannelPlugin<ResolvedGoogleChatAccount> = {
           groupPolicy === "open"
             ? [
                 buildOpenGroupPolicyConfigureRouteAllowlistWarning({
-                  surface: "Google Chat spaces",
+                  surface: "Google Chat 空间",
                   openScope: "any space",
                   groupPolicyPath: "channels.googlechat.groupPolicy",
                   routeAllowlistPath: "channels.googlechat.groups",

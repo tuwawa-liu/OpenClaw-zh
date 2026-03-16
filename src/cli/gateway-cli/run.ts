@@ -206,7 +206,7 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
   }
   const port = portOverride ?? resolveGatewayPort(cfg);
   if (!Number.isFinite(port) || port <= 0) {
-    defaultRuntime.error("Invalid port");
+    defaultRuntime.error("无效端口");
     defaultRuntime.exit(1);
   }
   const bindRaw = toOptionString(opts.bind) ?? cfg.gateway?.bind ?? "loopback";
@@ -219,7 +219,7 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
       ? bindRaw
       : null;
   if (!bind) {
-    defaultRuntime.error('Invalid --bind (use "loopback", "lan", "tailnet", "auto", or "custom")');
+    defaultRuntime.error('无效的 --bind（使用 "loopback"、"lan"、"tailnet"、"auto" 或 "custom"）');
     defaultRuntime.exit(1);
     return;
   }
@@ -388,9 +388,7 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
     return;
   }
   if (resolvedAuthMode === "none") {
-    gatewayLog.warn(
-      "网关认证模式=none 已明确配置；所有网关连接均未认证。",
-    );
+    gatewayLog.warn("网关认证模式=none 已明确配置；所有网关连接均未认证。");
   }
   if (
     bind !== "loopback" &&

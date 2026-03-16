@@ -279,7 +279,7 @@ export const bluebubblesPlugin: ChannelPlugin<ResolvedBlueBubblesAccount> = {
       if (!trimmed) {
         return {
           ok: false,
-          error: new Error("Delivering to BlueBubbles requires --to <handle|chat_guid:GUID>"),
+          error: new Error("发送到 BlueBubbles 需要 --to <句柄|chat_guid:GUID>"),
         };
       }
       return { ok: true, to: trimmed };

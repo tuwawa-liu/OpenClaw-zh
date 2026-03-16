@@ -74,12 +74,12 @@ export async function handleSubagentsFocusAction(
   const { params, runs, restTokens } = ctx;
   const channel = resolveCommandSurfaceChannel(params);
   if (channel !== "discord" && channel !== "telegram") {
-    return stopWithText("⚠️ /focus is only available on Discord and Telegram.");
+    return stopWithText("⚠️ /focus 仅在 Discord 和 Telegram 上可用。");
   }
 
   const token = restTokens.join(" ").trim();
   if (!token) {
-    return stopWithText("Usage: /focus <subagent-label|session-key|session-id|session-label>");
+    return stopWithText("用法：/focus <subagent-label|session-key|session-id|session-label>");
   }
 
   const accountId = resolveChannelAccountId(params);
@@ -89,23 +89,21 @@ export async function handleSubagentsFocusAction(
     accountId,
   });
   if (!capabilities.adapterAvailable || !capabilities.bindSupported) {
-    const label = channel === "discord" ? "Discord thread" : "Telegram conversation";
-    return stopWithText(`⚠️ ${label} bindings are unavailable for this account.`);
+    const label = channel === "discord" ? "Discord 线程" : "Telegram 对话";
+    return stopWithText(`⚠️ 此账号不支持 ${label} 绑定。`);
   }
 
   const focusTarget = await resolveFocusTargetSession({ runs, token });
   if (!focusTarget) {
-    return stopWithText(`⚠️ Unable to resolve focus target: ${token}`);
+    return stopWithText(`⚠️ 无法解析聚焦目标：${token}`);
   }
 
   const bindingContext = resolveFocusBindingContext(params);
   if (!bindingContext) {
     if (channel === "telegram") {
-      return stopWithText(
-        "⚠️ /focus on Telegram requires a topic context in groups, or a direct-message conversation.",
-      );
+      return stopWithText("⚠️ 在 Telegram 上使用 /focus 需要群组中的主题上下文，或私聊对话。");
     }
-    return stopWithText("⚠️ Could not resolve a Discord channel for /focus.");
+    return stopWithText("⚠️ 无法解析用于 /focus 的 Discord 频道。");
   }
 
   const senderId = params.command.senderId?.trim() || "";
@@ -119,7 +117,7 @@ export async function handleSubagentsFocusAction(
       ? existingBinding.metadata.boundBy.trim()
       : "";
   if (existingBinding && boundBy && boundBy !== "system" && senderId && senderId !== boundBy) {
-    return stopWithText(`⚠️ Only ${boundBy} can refocus this ${bindingContext.labelNoun}.`);
+    return stopWithText(`⚠️ 只有 ${boundBy} 可以重新聚焦此 ${bindingContext.labelNoun}。`);
   }
 
   const label = focusTarget.label || token;

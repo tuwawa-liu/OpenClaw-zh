@@ -141,20 +141,20 @@ async function promptIrcAllowFrom(params: {
 
   await params.prompter.note(
     [
-      "Allowlist IRC DMs by sender.",
-      "Examples:",
+      "通过发送者将 IRC 私信加入白名单。",
+      "示例：",
       "- alice",
       "- alice!ident@example.org",
-      "Multiple entries: comma-separated.",
+      "多个条目：用逗号分隔。",
     ].join("\n"),
-    "IRC allowlist",
+    "IRC 白名单",
   );
 
   const raw = await params.prompter.text({
-    message: "IRC allowFrom (nick or nick!user@host)",
+    message: "IRC allowFrom（昵称或 昵称!用户@主机）",
     placeholder: "alice, bob!ident@example.org",
     initialValue: existing[0] ? String(existing[0]) : undefined,
-    validate: (value) => (String(value ?? "").trim() ? undefined : "Required"),
+    validate: (value) => (String(value ?? "").trim() ? undefined : "必填"),
   });
 
   const parsed = parseListInput(String(raw));
@@ -178,7 +178,7 @@ async function promptIrcNickServConfig(params: {
   const existing = resolved.config.nickserv;
   const hasExisting = Boolean(existing?.password || existing?.passwordFile);
   const wants = await params.prompter.confirm({
-    message: hasExisting ? "Update NickServ settings?" : "Configure NickServ identify/register?",
+    message: hasExisting ? "更新 NickServ 设置？" : "配置 NickServ 身份验证/注册？",
     initialValue: hasExisting,
   });
   if (!wants) {
@@ -187,9 +187,9 @@ async function promptIrcNickServConfig(params: {
 
   const service = String(
     await params.prompter.text({
-      message: "NickServ service nick",
+      message: "NickServ 服务昵称",
       initialValue: existing?.service || "NickServ",
-      validate: (value) => (String(value ?? "").trim() ? undefined : "Required"),
+      validate: (value) => (String(value ?? "").trim() ? undefined : "必填"),
     }),
   ).trim();
 
@@ -198,7 +198,7 @@ async function promptIrcNickServConfig(params: {
     Boolean(process.env.IRC_NICKSERV_PASSWORD?.trim()) &&
     !(existing?.password || existing?.passwordFile)
       ? await params.prompter.confirm({
-          message: "IRC_NICKSERV_PASSWORD detected. Use env var?",
+          message: "检测到 IRC_NICKSERV_PASSWORD。使用环境变量？",
           initialValue: true,
         })
       : false;
@@ -207,7 +207,7 @@ async function promptIrcNickServConfig(params: {
     ? undefined
     : String(
         await params.prompter.text({
-          message: "NickServ password (blank to disable NickServ auth)",
+          message: "NickServ 密码（留空以禁用 NickServ 认证）",
           validate: () => undefined,
         }),
       ).trim();
@@ -220,19 +220,19 @@ async function promptIrcNickServConfig(params: {
   }
 
   const register = await params.prompter.confirm({
-    message: "Send NickServ REGISTER on connect?",
+    message: "连接时发送 NickServ REGISTER？",
     initialValue: existing?.register ?? false,
   });
   const registerEmail = register
     ? String(
         await params.prompter.text({
-          message: "NickServ register email",
+          message: "NickServ 注册邮箱",
           initialValue:
             existing?.registerEmail ||
             (params.accountId === DEFAULT_ACCOUNT_ID
               ? process.env.IRC_NICKSERV_REGISTER_EMAIL
               : undefined),
-          validate: (value) => (String(value ?? "").trim() ? undefined : "Required"),
+          validate: (value) => (String(value ?? "").trim() ? undefined : "必填"),
         }),
       ).trim()
     : undefined;
@@ -276,10 +276,10 @@ export const ircSetupAdapter: ChannelSetupAdapter = {
   validateInput: ({ input }) => {
     const setupInput = input as IrcSetupInput;
     if (!setupInput.host?.trim()) {
-      return "IRC requires host.";
+      return "IRC 需要主机。";
     }
     if (!setupInput.nick?.trim()) {
-      return "IRC requires nick.";
+      return "IRC 需要昵称。";
     }
     return null;
   },
@@ -316,29 +316,27 @@ export const ircSetupAdapter: ChannelSetupAdapter = {
 export const ircSetupWizard: ChannelSetupWizard = {
   channel,
   status: {
-    configuredLabel: "configured",
-    unconfiguredLabel: "needs host + nick",
-    configuredHint: "configured",
-    unconfiguredHint: "needs host + nick",
+    configuredLabel: "已配置",
+    unconfiguredLabel: "需要主机 + 昵称",
+    configuredHint: "已配置",
+    unconfiguredHint: "需要主机 + 昵称",
     configuredScore: 1,
     unconfiguredScore: 0,
     resolveConfigured: ({ cfg }) =>
       listIrcAccountIds(cfg as CoreConfig).some(
         (accountId) => resolveIrcAccount({ cfg: cfg as CoreConfig, accountId }).configured,
       ),
-    resolveStatusLines: ({ configured }) => [
-      `IRC: ${configured ? "configured" : "needs host + nick"}`,
-    ],
+    resolveStatusLines: ({ configured }) => [`IRC：${configured ? "已配置" : "需要主机 + 昵称"}`],
   },
   introNote: {
-    title: "IRC setup",
+    title: "IRC 设置",
     lines: [
-      "IRC needs server host + bot nick.",
-      "Recommended: TLS on port 6697.",
-      "Optional: NickServ identify/register can be configured after the basic account fields.",
-      'Set channels.irc.groupPolicy="allowlist" and channels.irc.groups for tighter channel control.',
-      'Note: IRC channels are mention-gated by default. To allow unmentioned replies, set channels.irc.groups["#channel"].requireMention=false (or "*" for all).',
-      "Env vars supported: IRC_HOST, IRC_PORT, IRC_TLS, IRC_NICK, IRC_USERNAME, IRC_REALNAME, IRC_PASSWORD, IRC_CHANNELS, IRC_NICKSERV_PASSWORD, IRC_NICKSERV_REGISTER_EMAIL.",
+      "IRC 需要服务器主机 + 机器人昵称。",
+      "推荐：在端口 6697 上使用 TLS。",
+      "可选：NickServ 身份验证/注册可在基本账户字段后配置。",
+      '设置 channels.irc.groupPolicy="allowlist" 和 channels.irc.groups 以更严格地控制频道。',
+      '注意：IRC 频道默认需要被提及才回复。如需允许未提及的回复，请设置 channels.irc.groups["#channel"].requireMention=false（或 "*" 对全部生效）。',
+      "支持的环境变量：IRC_HOST, IRC_PORT, IRC_TLS, IRC_NICK, IRC_USERNAME, IRC_REALNAME, IRC_PASSWORD, IRC_CHANNELS, IRC_NICKSERV_PASSWORD, IRC_NICKSERV_REGISTER_EMAIL。",
       `Docs: ${formatDocsLink("/channels/irc", "channels/irc")}`,
     ],
     shouldShow: ({ cfg, accountId }) =>
@@ -353,7 +351,7 @@ export const ircSetupWizard: ChannelSetupWizard = {
 
     if (envReady) {
       const useEnv = await prompter.confirm({
-        message: "IRC_HOST and IRC_NICK detected. Use env vars?",
+        message: "检测到 IRC_HOST 和 IRC_NICK。使用环境变量？",
         initialValue: true,
       });
       if (useEnv) {
@@ -368,7 +366,7 @@ export const ircSetupWizard: ChannelSetupWizard = {
     }
 
     const tls = await prompter.confirm({
-      message: "Use TLS for IRC?",
+      message: "IRC 使用 TLS？",
       initialValue: resolved.config.tls ?? true,
     });
     return {
@@ -387,11 +385,11 @@ export const ircSetupWizard: ChannelSetupWizard = {
   textInputs: [
     {
       inputKey: "httpHost",
-      message: "IRC server host",
+      message: "IRC 服务器主机",
       currentValue: ({ cfg, accountId }) =>
         resolveIrcAccount({ cfg: cfg as CoreConfig, accountId }).config.host || undefined,
       shouldPrompt: ({ credentialValues }) => credentialValues[USE_ENV_FLAG] !== "1",
-      validate: ({ value }) => (String(value ?? "").trim() ? undefined : "Required"),
+      validate: ({ value }) => (String(value ?? "").trim() ? undefined : "必填"),
       normalizeValue: ({ value }) => String(value).trim(),
       applySet: async ({ cfg, accountId, value }) =>
         updateIrcAccountConfig(cfg as CoreConfig, accountId, {
@@ -401,7 +399,7 @@ export const ircSetupWizard: ChannelSetupWizard = {
     },
     {
       inputKey: "httpPort",
-      message: "IRC server port",
+      message: "IRC 服务器端口",
       currentValue: ({ cfg, accountId }) =>
         String(resolveIrcAccount({ cfg: cfg as CoreConfig, accountId }).config.port ?? ""),
       shouldPrompt: ({ credentialValues }) => credentialValues[USE_ENV_FLAG] !== "1",
@@ -415,7 +413,7 @@ export const ircSetupWizard: ChannelSetupWizard = {
         const parsed = Number.parseInt(String(value ?? "").trim(), 10);
         return Number.isFinite(parsed) && parsed >= 1 && parsed <= 65535
           ? undefined
-          : "Use a port between 1 and 65535";
+          : "请使用 1 到 65535 之间的端口";
       },
       normalizeValue: ({ value }) => String(parsePort(String(value), 6697)),
       applySet: async ({ cfg, accountId, value }) =>
@@ -426,11 +424,11 @@ export const ircSetupWizard: ChannelSetupWizard = {
     },
     {
       inputKey: "token",
-      message: "IRC nick",
+      message: "IRC 昵称",
       currentValue: ({ cfg, accountId }) =>
         resolveIrcAccount({ cfg: cfg as CoreConfig, accountId }).config.nick || undefined,
       shouldPrompt: ({ credentialValues }) => credentialValues[USE_ENV_FLAG] !== "1",
-      validate: ({ value }) => (String(value ?? "").trim() ? undefined : "Required"),
+      validate: ({ value }) => (String(value ?? "").trim() ? undefined : "必填"),
       normalizeValue: ({ value }) => String(value).trim(),
       applySet: async ({ cfg, accountId, value }) =>
         updateIrcAccountConfig(cfg as CoreConfig, accountId, {
@@ -440,7 +438,7 @@ export const ircSetupWizard: ChannelSetupWizard = {
     },
     {
       inputKey: "userId",
-      message: "IRC username",
+      message: "IRC 用户名",
       currentValue: ({ cfg, accountId }) =>
         resolveIrcAccount({ cfg: cfg as CoreConfig, accountId }).config.username || undefined,
       shouldPrompt: ({ credentialValues }) => credentialValues[USE_ENV_FLAG] !== "1",
@@ -448,7 +446,7 @@ export const ircSetupWizard: ChannelSetupWizard = {
         resolveIrcAccount({ cfg: cfg as CoreConfig, accountId }).config.username ||
         credentialValues.token ||
         "openclaw",
-      validate: ({ value }) => (String(value ?? "").trim() ? undefined : "Required"),
+      validate: ({ value }) => (String(value ?? "").trim() ? undefined : "必填"),
       normalizeValue: ({ value }) => String(value).trim(),
       applySet: async ({ cfg, accountId, value }) =>
         updateIrcAccountConfig(cfg as CoreConfig, accountId, {
@@ -464,7 +462,7 @@ export const ircSetupWizard: ChannelSetupWizard = {
       shouldPrompt: ({ credentialValues }) => credentialValues[USE_ENV_FLAG] !== "1",
       initialValue: ({ cfg, accountId }) =>
         resolveIrcAccount({ cfg: cfg as CoreConfig, accountId }).config.realname || "OpenClaw",
-      validate: ({ value }) => (String(value ?? "").trim() ? undefined : "Required"),
+      validate: ({ value }) => (String(value ?? "").trim() ? undefined : "必填"),
       normalizeValue: ({ value }) => String(value).trim(),
       applySet: async ({ cfg, accountId, value }) =>
         updateIrcAccountConfig(cfg as CoreConfig, accountId, {
@@ -500,7 +498,7 @@ export const ircSetupWizard: ChannelSetupWizard = {
     },
   ],
   groupAccess: {
-    label: "IRC channels",
+    label: "IRC 频道",
     placeholder: "#openclaw, #ops, *",
     currentPolicy: ({ cfg, accountId }) =>
       resolveIrcAccount({ cfg: cfg as CoreConfig, accountId }).config.groupPolicy ?? "allowlist",
@@ -516,17 +514,17 @@ export const ircSetupWizard: ChannelSetupWizard = {
       setIrcGroupAccess(cfg as CoreConfig, accountId, "allowlist", resolved as string[]),
   },
   allowFrom: {
-    helpTitle: "IRC allowlist",
+    helpTitle: "IRC 白名单",
     helpLines: [
-      "Allowlist IRC DMs by sender.",
-      "Examples:",
+      "通过发送者将 IRC 私信加入白名单。",
+      "示例：",
       "- alice",
       "- alice!ident@example.org",
-      "Multiple entries: comma-separated.",
+      "多个条目：用逗号分隔。",
     ],
-    message: "IRC allowFrom (nick or nick!user@host)",
+    message: "IRC allowFrom（昵称或 昵称!用户@主机）",
     placeholder: "alice, bob!ident@example.org",
-    invalidWithoutCredentialNote: "Use an IRC nick or nick!user@host entry.",
+    invalidWithoutCredentialNote: "使用 IRC 昵称或 昵称!用户@主机 条目。",
     parseId: (raw) => {
       const normalized = normalizeIrcAllowEntry(raw);
       return normalized || null;
@@ -550,7 +548,7 @@ export const ircSetupWizard: ChannelSetupWizard = {
       const groupKeys = Object.keys(resolvedAfterGroups.config.groups ?? {});
       if (groupKeys.length > 0) {
         const wantsMentions = await prompter.confirm({
-          message: "Require @mention to reply in IRC channels?",
+          message: "在 IRC 频道中需要 @提及才回复？",
           initialValue: true,
         });
         if (!wantsMentions) {
@@ -574,10 +572,10 @@ export const ircSetupWizard: ChannelSetupWizard = {
     return { cfg: next };
   },
   completionNote: {
-    title: "IRC next steps",
+    title: "IRC 后续步骤",
     lines: [
-      "Next: restart gateway and verify status.",
-      "Command: openclaw channels status --probe",
+      "下一步：重启网关并验证状态。",
+      "命令：openclaw channels status --probe",
       `Docs: ${formatDocsLink("/channels/irc", "channels/irc")}`,
     ],
   },

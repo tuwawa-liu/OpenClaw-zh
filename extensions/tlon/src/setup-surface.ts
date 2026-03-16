@@ -97,13 +97,13 @@ export const tlonSetupAdapter: ChannelSetupAdapter = {
     const url = setupInput.url?.trim() || resolved.url;
     const code = setupInput.code?.trim() || resolved.code;
     if (!ship) {
-      return "Tlon requires --ship.";
+      return "Tlon 需要 --ship。";
     }
     if (!url) {
-      return "Tlon requires --url.";
+      return "Tlon 需要 --url。";
     }
     if (!code) {
-      return "Tlon requires --code.";
+      return "Tlon 需要 --code。";
     }
     return null;
   },
@@ -118,10 +118,10 @@ export const tlonSetupAdapter: ChannelSetupAdapter = {
 export const tlonSetupWizard: ChannelSetupWizard = {
   channel,
   status: {
-    configuredLabel: "configured",
-    unconfiguredLabel: "needs setup",
-    configuredHint: "configured",
-    unconfiguredHint: "urbit messenger",
+    configuredLabel: "已配置",
+    unconfiguredLabel: "需要设置",
+    configuredHint: "已配置",
+    unconfiguredHint: "Urbit 即时通讯",
     configuredScore: 1,
     unconfiguredScore: 4,
     resolveConfigured: ({ cfg }) => {
@@ -136,16 +136,16 @@ export const tlonSetupWizard: ChannelSetupWizard = {
         accountIds.length > 0
           ? accountIds.some((accountId) => isConfigured(resolveTlonAccount(cfg, accountId)))
           : isConfigured(resolveTlonAccount(cfg, DEFAULT_ACCOUNT_ID));
-      return [`Tlon: ${configured ? "configured" : "needs setup"}`];
+      return [`Tlon：${configured ? "已配置" : "需要设置"}`];
     },
   },
   introNote: {
-    title: "Tlon setup",
+    title: "Tlon 设置",
     lines: [
-      "You need your Urbit ship URL and login code.",
-      "Example URL: https://your-ship-host",
-      "Example ship: ~sampel-palnet",
-      "If your ship URL is on a private network (LAN/localhost), you must explicitly allow it during setup.",
+      "你需要你的 Urbit ship URL 和登录码。",
+      "示例 URL：https://your-ship-host",
+      "示例 ship：~sampel-palnet",
+      "如果你的 ship URL 在私有网络（LAN/localhost）上，你必须在设置期间明确允许。",
       `Docs: ${formatDocsLink("/channels/tlon", "channels/tlon")}`,
     ],
   },
@@ -153,10 +153,10 @@ export const tlonSetupWizard: ChannelSetupWizard = {
   textInputs: [
     {
       inputKey: "ship",
-      message: "Ship name",
+      message: "Ship 名称",
       placeholder: "~sampel-palnet",
       currentValue: ({ cfg, accountId }) => resolveTlonAccount(cfg, accountId).ship ?? undefined,
-      validate: ({ value }) => (String(value ?? "").trim() ? undefined : "Required"),
+      validate: ({ value }) => (String(value ?? "").trim() ? undefined : "必填"),
       normalizeValue: ({ value }) => normalizeShip(String(value).trim()),
       applySet: async ({ cfg, accountId, value }) =>
         applyTlonSetupConfig({
@@ -187,10 +187,10 @@ export const tlonSetupWizard: ChannelSetupWizard = {
     },
     {
       inputKey: "code",
-      message: "Login code",
+      message: "登录码",
       placeholder: "lidlut-tabwed-pillex-ridrup",
       currentValue: ({ cfg, accountId }) => resolveTlonAccount(cfg, accountId).code ?? undefined,
-      validate: ({ value }) => (String(value ?? "").trim() ? undefined : "Required"),
+      validate: ({ value }) => (String(value ?? "").trim() ? undefined : "必填"),
       normalizeValue: ({ value }) => String(value).trim(),
       applySet: async ({ cfg, accountId, value }) =>
         applyTlonSetupConfig({
@@ -211,12 +211,11 @@ export const tlonSetupWizard: ChannelSetupWizard = {
     let allowPrivateNetwork = resolved.allowPrivateNetwork ?? false;
     if (isBlockedUrbitHostname(validatedUrl.hostname)) {
       allowPrivateNetwork = await prompter.confirm({
-        message:
-          "Ship URL looks like a private/internal host. Allow private network access? (SSRF risk)",
+        message: "Ship URL 看起来是私有/内部主机。允许私有网络访问？（SSRF 风险）",
         initialValue: allowPrivateNetwork,
       });
       if (!allowPrivateNetwork) {
-        throw new Error("Refusing private/internal Ship URL without explicit approval");
+        throw new Error("拒绝未经明确批准的私有/内部 Ship URL");
       }
     }
     next = applyTlonSetupConfig({
@@ -227,12 +226,12 @@ export const tlonSetupWizard: ChannelSetupWizard = {
 
     const currentGroups = resolved.groupChannels;
     const wantsGroupChannels = await prompter.confirm({
-      message: "Add group channels manually? (optional)",
+      message: "手动添加群组频道？（可选）",
       initialValue: currentGroups.length > 0,
     });
     if (wantsGroupChannels) {
       const entry = await prompter.text({
-        message: "Group channels (comma-separated)",
+        message: "群组频道（逗号分隔）",
         placeholder: "chat/~host-ship/general, chat/~host-ship/support",
         initialValue: currentGroups.join(", ") || undefined,
       });
@@ -245,12 +244,12 @@ export const tlonSetupWizard: ChannelSetupWizard = {
 
     const currentAllowlist = resolved.dmAllowlist;
     const wantsAllowlist = await prompter.confirm({
-      message: "Restrict DMs with an allowlist?",
+      message: "使用白名单限制私信？",
       initialValue: currentAllowlist.length > 0,
     });
     if (wantsAllowlist) {
       const entry = await prompter.text({
-        message: "DM allowlist (comma-separated ship names)",
+        message: "私信白名单（逗号分隔的 ship 名称）",
         placeholder: "~zod, ~nec",
         initialValue: currentAllowlist.join(", ") || undefined,
       });
@@ -264,7 +263,7 @@ export const tlonSetupWizard: ChannelSetupWizard = {
     }
 
     const autoDiscoverChannels = await prompter.confirm({
-      message: "Enable auto-discovery of group channels?",
+      message: "启用群组频道自动发现？",
       initialValue: resolved.autoDiscoverChannels ?? true,
     });
     next = applyTlonSetupConfig({

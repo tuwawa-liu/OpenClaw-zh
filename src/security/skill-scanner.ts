@@ -148,26 +148,26 @@ const LINE_RULES: LineRule[] = [
   {
     ruleId: "dangerous-exec",
     severity: "critical",
-    message: "Shell command execution detected (child_process)",
+    message: "检测到 Shell 命令执行 (child_process)",
     pattern: /\b(exec|execSync|spawn|spawnSync|execFile|execFileSync)\s*\(/,
     requiresContext: /child_process/,
   },
   {
     ruleId: "dynamic-code-execution",
     severity: "critical",
-    message: "Dynamic code execution detected",
+    message: "检测到动态代码执行",
     pattern: /\beval\s*\(|new\s+Function\s*\(/,
   },
   {
     ruleId: "crypto-mining",
     severity: "critical",
-    message: "Possible crypto-mining reference detected",
+    message: "检测到可能的加密货币挖矿引用",
     pattern: /stratum\+tcp|stratum\+ssl|coinhive|cryptonight|xmrig/i,
   },
   {
     ruleId: "suspicious-network",
     severity: "warn",
-    message: "WebSocket connection to non-standard port",
+    message: "WebSocket 连接到非标准端口",
     pattern: /new\s+WebSocket\s*\(\s*["']wss?:\/\/[^"']*:(\d+)/,
   },
 ];
@@ -178,27 +178,26 @@ const SOURCE_RULES: SourceRule[] = [
   {
     ruleId: "potential-exfiltration",
     severity: "warn",
-    message: "File read combined with network send — possible data exfiltration",
+    message: "文件读取结合网络发送 — 可能的数据泄露",
     pattern: /readFileSync|readFile/,
     requiresContext: /\bfetch\b|\bpost\b|http\.request/i,
   },
   {
     ruleId: "obfuscated-code",
     severity: "warn",
-    message: "Hex-encoded string sequence detected (possible obfuscation)",
+    message: "检测到十六进制编码字符串序列（可能的混淆）",
     pattern: /(\\x[0-9a-fA-F]{2}){6,}/,
   },
   {
     ruleId: "obfuscated-code",
     severity: "warn",
-    message: "Large base64 payload with decode call detected (possible obfuscation)",
+    message: "检测到带解码调用的大型 base64 负载（可能的混淆）",
     pattern: /(?:atob|Buffer\.from)\s*\(\s*["'][A-Za-z0-9+/=]{200,}["']/,
   },
   {
     ruleId: "env-harvesting",
     severity: "critical",
-    message:
-      "Environment variable access combined with network send — possible credential harvesting",
+    message: "环境变量访问结合网络发送 — 可能的凭证窃取",
     pattern: /process\.env/,
     requiresContext: /\bfetch\b|\bpost\b|http\.request/i,
   },

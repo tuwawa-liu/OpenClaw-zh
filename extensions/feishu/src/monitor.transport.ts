@@ -174,12 +174,12 @@ export async function monitorWebhook({
         }
         if (!bodyResult.ok) {
           if (bodyResult.code === "INVALID_JSON") {
-            respondText(res, 400, "Invalid JSON");
+            respondText(res, 400, "无效的 JSON");
           }
           return;
         }
         if (!isFeishuWebhookPayload(bodyResult.value)) {
-          respondText(res, 400, "Invalid JSON");
+          respondText(res, 400, "无效的 JSON");
           return;
         }
 
@@ -191,7 +191,7 @@ export async function monitorWebhook({
             encryptKey: account.encryptKey,
           })
         ) {
-          respondText(res, 401, "Invalid signature");
+          respondText(res, 401, "无效的签名");
           return;
         }
 

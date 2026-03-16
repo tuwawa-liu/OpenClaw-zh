@@ -285,7 +285,7 @@ const zalouserMessageActions: ChannelMessageActionAdapter = {
       remove: params.remove === true,
     });
     if (!result.ok) {
-      throw new Error(result.error || "Failed to react on Zalo message");
+      throw new Error(result.error || "在 Zalo 消息上添加反应失败");
     }
     return {
       content: [

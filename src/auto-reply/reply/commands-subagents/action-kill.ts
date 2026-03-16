@@ -19,7 +19,7 @@ export async function handleSubagentsKillAction(
   const target = restTokens[0];
   if (!target) {
     return stopWithText(
-      handledPrefix === COMMAND ? "Usage: /subagents kill <id|#|all>" : "Usage: /kill <id|#|all>",
+      handledPrefix === COMMAND ? "用法：/subagents kill <id|#|all>" : "用法：/kill <id|#|all>",
     );
   }
 
@@ -44,7 +44,7 @@ export async function handleSubagentsKillAction(
     return targetResolution.reply;
   }
   if (targetResolution.entry.endedAt) {
-    return stopWithText(`${formatRunLabel(targetResolution.entry)} is already finished.`);
+    return stopWithText(`${formatRunLabel(targetResolution.entry)} 已经结束。`);
   }
 
   const controller = resolveCommandSubagentController(params, requesterKey);

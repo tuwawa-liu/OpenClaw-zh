@@ -761,13 +761,13 @@ export async function promptResolvedAllowFrom(params: {
       })
       .catch(() => null);
     if (!results) {
-      await params.prompter.note("Failed to resolve usernames. Try again.", params.label);
+      await params.prompter.note("解析用户名失败。请重试。", params.label);
       continue;
     }
     const unresolved = results.filter((res) => !res.resolved || !res.id);
     if (unresolved.length > 0) {
       await params.prompter.note(
-        `Could not resolve: ${unresolved.map((res) => res.input).join(", ")}`,
+        `无法解析：${unresolved.map((res) => res.input).join(", ")}`,
         params.label,
       );
       continue;

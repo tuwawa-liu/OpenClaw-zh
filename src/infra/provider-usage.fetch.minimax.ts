@@ -328,7 +328,7 @@ export async function fetchMinimaxUsage(
       provider: "minimax",
       displayName: PROVIDER_LABELS.minimax,
       windows: [],
-      error: "Invalid JSON",
+      error: "无效的 JSON",
     };
   }
 
@@ -362,7 +362,7 @@ export async function fetchMinimaxUsage(
       provider: "minimax",
       displayName: PROVIDER_LABELS.minimax,
       windows: [],
-      error: "Unsupported response shape",
+      error: "不支持的响应格式",
     };
   }
 

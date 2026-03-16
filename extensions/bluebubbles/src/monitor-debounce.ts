@@ -34,7 +34,7 @@ const DEFAULT_INBOUND_DEBOUNCE_MS = 500;
  */
 function combineDebounceEntries(entries: BlueBubblesDebounceEntry[]): NormalizedWebhookMessage {
   if (entries.length === 0) {
-    throw new Error("Cannot combine empty entries");
+    throw new Error("无法合并空条目");
   }
   if (entries.length === 1) {
     return entries[0].message;

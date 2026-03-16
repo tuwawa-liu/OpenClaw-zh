@@ -72,13 +72,13 @@ export async function probeTwitch(
       // Failure: disconnected (e.g., auth failed)
       disconnectListener = client?.onDisconnect((_manually, reason) => {
         cleanup();
-        reject(reason || new Error("Disconnected"));
+        reject(reason || new Error("已断开连接"));
       });
 
       // Failure: authentication failed
       authFailListener = client?.onAuthenticationFailure(() => {
         cleanup();
-        reject(new Error("Authentication failed"));
+        reject(new Error("认证失败"));
       });
     });
 

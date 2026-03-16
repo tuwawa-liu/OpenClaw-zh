@@ -38,7 +38,7 @@ export const nostrPlugin: ChannelPlugin<ResolvedNostrAccount> = {
     selectionLabel: "Nostr",
     docsPath: "/channels/nostr",
     docsLabel: "nostr",
-    blurb: "Decentralized DMs via Nostr relays (NIP-04)",
+    blurb: "通过 Nostr 中继器进行去中心化私信 (NIP-04)",
     order: 100,
   },
   capabilities: {

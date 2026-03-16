@@ -227,16 +227,16 @@ export function attachGatewayWsMessageHandler(params: {
 
   if (hasUntrustedProxyHeaders) {
     logWsControl.warn(
-      "Proxy headers detected from untrusted address. " +
-        "Connection will not be treated as local. " +
-        "Configure gateway.trustedProxies to restore local client detection behind your proxy.",
+      "检测到来自不受信任地址的代理头。" +
+        "连接将不会被视为本地连接。" +
+        "请配置 gateway.trustedProxies 以恢复代理后的本地客户端检测。",
     );
   }
   if (!hostIsLocalish && isLoopbackAddress(remoteAddr) && !hasProxyHeaders) {
     logWsControl.warn(
-      "Loopback connection with non-local Host header. " +
-        "Treating it as remote. If you're behind a reverse proxy, " +
-        "set gateway.trustedProxies and forward X-Forwarded-For/X-Real-IP.",
+      "回环连接使用了非本地 Host 头。" +
+        "将视为远程连接。如果你在反向代理后面，" +
+        "请设置 gateway.trustedProxies 并转发 X-Forwarded-For/X-Real-IP。",
     );
   }
 
