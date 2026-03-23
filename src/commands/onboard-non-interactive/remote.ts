@@ -7,7 +7,7 @@ import { applyWizardMetadata } from "../onboard-helpers.js";
 import type { OnboardOptions } from "../onboard-types.js";
 import { t } from "../../i18n/index.js";
 
-export async function runNonInteractiveOnboardingRemote(params: {
+export async function runNonInteractiveRemoteSetup(params: {
   opts: OnboardOptions;
   runtime: RuntimeEnv;
   baseConfig: OpenClawConfig;

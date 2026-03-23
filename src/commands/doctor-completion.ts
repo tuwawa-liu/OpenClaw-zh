@@ -167,7 +167,7 @@ export async function doctorShellCompletion(
 }
 
 /**
- * Ensure completion cache exists. Used during onboarding/update to fix
+ * Ensure completion cache exists. Used during setup/update to fix
  * cases where profile has completion but no cache.
  * This is a silent fix - no prompts.
  */

@@ -1,14 +1,7 @@
 ---
-read_when: Changing onboarding wizard steps or config schema endpoints
-summary: 新手引导向导和配置模式的 RPC 协议说明
-title: 新手引导和配置协议
-x-i18n:
-  generated_at: "2026-02-03T07:47:10Z"
-  model: claude-opus-4-5
-  provider: pi
-  source_hash: 55163b3ee029c02476800cb616a054e5adfe97dae5bb72f2763dce0079851e06
-  source_path: experiments/onboarding-config-protocol.md
-  workflow: 15
+summary: "RPC protocol notes for setup wizard and config schema"
+read_when: "Changing setup wizard steps or config schema endpoints"
+title: "Onboarding and Config Protocol"
 ---
 
 # 新手引导 + 配置协议

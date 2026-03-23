@@ -25,7 +25,10 @@ OpenClaw 发展迅速（尚未到"1.0"）。将更新视为发布基础设施：
 curl -fsSL https://openclaw.ai/install.sh | bash
 ```
 
-说明：
+Notes:
+
+- Add `--no-onboard` if you don’t want onboarding to run again.
+- For **source installs**, use:
 
 - 如果你不想再次运行新手引导向导，添加 `--no-onboard`。
 - 对于**源码安装**，使用：

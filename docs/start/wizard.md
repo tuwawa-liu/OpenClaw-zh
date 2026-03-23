@@ -1,24 +1,18 @@
 ---
+summary: "CLI onboarding: guided setup for gateway, workspace, channels, and skills"
 read_when:
-  - 运行或配置新手引导向导
-  - 设置新机器
-summary: CLI 新手引导向导：引导式配置 Gateway 网关、工作区、渠道和 Skills
-title: 新手引导向导
-x-i18n:
-  generated_at: "2026-02-03T09:20:27Z"
-  model: claude-opus-4-5
-  provider: pi
-  source_hash: 45e10d31048d927ee6546e35b050914f0e6e21a4dee298b3b277eebe7c133732
-  source_path: start/wizard.md
-  workflow: 15
+  - Running or configuring CLI onboarding
+  - Setting up a new machine
+title: "Onboarding (CLI)"
+sidebarTitle: "Onboarding: CLI"
 ---
 
-# 新手引导向导（CLI）
+# Onboarding (CLI)
 
-新手引导向导是在 macOS、Linux 或 Windows（通过 WSL2；强烈推荐）上设置 OpenClaw 的**推荐**方式。
-它可以在一个引导式流程中配置本地 Gateway 网关或远程 Gateway 网关连接，以及渠道、Skills 和工作区默认值。
-
-主要入口：
+CLI onboarding is the **recommended** way to set up OpenClaw on macOS,
+Linux, or Windows (via WSL2; strongly recommended).
+It configures a local Gateway or a remote Gateway connection, plus channels, skills,
+and workspace defaults in one guided flow.
 
 ```bash
 openclaw onboard
@@ -72,7 +66,12 @@ openclaw agents add <name>
 
 提示：`--json` **不**意味着非交互模式。脚本中请使用 `--non-interactive`（和 `--workspace`）。
 
-## 流程详情（本地）
+<Tip>
+CLI onboarding includes a web search step where you can pick a provider
+(Perplexity, Brave, Gemini, Grok, or Kimi) and paste your API key so the agent
+can use `web_search`. You can also configure this later with
+`openclaw configure --section web`. Docs: [Web tools](/tools/web).
+</Tip>
 
 1. **现有配置检测**
    - 如果 `~/.openclaw/openclaw.json` 存在，选择**保留 / 修改 / 重置**。
@@ -83,36 +82,25 @@ openclaw agents add <name>
      - 配置 + 凭证 + 会话
      - 完全重置（同时删除工作区）
 
-2. **模型/认证**
-   - **Anthropic API 密钥（推荐）**：如果存在则使用 `ANTHROPIC_API_KEY`，否则提示输入密钥，然后保存供守护进程使用。
-   - **Anthropic OAuth（Claude Code CLI）**：在 macOS 上，向导检查钥匙串项目"Claude Code-credentials"（选择"始终允许"以便 launchd 启动不会阻塞）；在 Linux/Windows 上，如果存在则复用 `~/.claude/.credentials.json`。
-   - **Anthropic 令牌（粘贴 setup-token）**：在任何机器上运行 `claude setup-token`，然后粘贴令牌（你可以命名它；空白 = 默认）。
-   - **OpenAI Code (Codex) 订阅（Codex CLI）**：如果 `~/.codex/auth.json` 存在，向导可以复用它。
-   - **OpenAI Code (Codex) 订阅（OAuth）**：浏览器流程；粘贴 `code#state`。
-     - 当模型未设置或为 `openai/*` 时，将 `agents.defaults.model` 设置为 `openai-codex/gpt-5.2`。
-   - **OpenAI API 密钥**：如果存在则使用 `OPENAI_API_KEY`，否则提示输入密钥，然后保存到 `~/.openclaw/.env` 以便 launchd 可以读取。
-   - **OpenCode Zen（多模型代理）**：提示输入 `OPENCODE_API_KEY`（或 `OPENCODE_ZEN_API_KEY`，在 https://opencode.ai/auth 获取）。
-   - **API 密钥**：为你存储密钥。
-   - **Vercel AI Gateway（多模型代理）**：提示输入 `AI_GATEWAY_API_KEY`。
-   - 更多详情：[Vercel AI Gateway](/providers/vercel-ai-gateway)
-   - **MiniMax M2.1**：自动写入配置。
-   - 更多详情：[MiniMax](/providers/minimax)
-   - **Synthetic（Anthropic 兼容）**：提示输入 `SYNTHETIC_API_KEY`。
-   - 更多详情：[Synthetic](/providers/synthetic)
-   - **Moonshot（Kimi K2）**：自动写入配置。
-   - **Kimi Coding**：自动写入配置。
-   - 更多详情：[Moonshot AI（Kimi + Kimi Coding）](/providers/moonshot)
-   - **跳过**：尚未配置认证。
-   - 从检测到的选项中选择默认模型（或手动输入提供商/模型）。
-   - 向导运行模型检查，如果配置的模型未知或缺少认证则发出警告。
+Onboarding starts with **QuickStart** (defaults) vs **Advanced** (full control).
 
-- OAuth 凭证存储在 `~/.openclaw/credentials/oauth.json`；认证配置文件存储在 `~/.openclaw/agents/<agentId>/agent/auth-profiles.json`（API 密钥 + OAuth）。
-- 更多详情：[/concepts/oauth](/concepts/oauth)
+<Tabs>
+  <Tab title="QuickStart (defaults)">
+    - Local gateway (loopback)
+    - Workspace default (or existing workspace)
+    - Gateway port **18789**
+    - Gateway auth **Token** (auto‑generated, even on loopback)
+    - Tool policy default for new local setups: `tools.profile: "coding"` (existing explicit profile is preserved)
+    - DM isolation default: local onboarding writes `session.dmScope: "per-channel-peer"` when unset. Details: [CLI Setup Reference](/start/wizard-cli-reference#outputs-and-internals)
+    - Tailscale exposure **Off**
+    - Telegram + WhatsApp DMs default to **allowlist** (you'll be prompted for your phone number)
+  </Tab>
+  <Tab title="Advanced (full control)">
+    - Exposes every step (mode, workspace, gateway, channels, daemon, skills).
+  </Tab>
+</Tabs>
 
-3. **工作区**
-   - 默认 `~/.openclaw/workspace`（可配置）。
-   - 为智能体引导仪式播种所需的工作区文件。
-   - 完整的工作区布局 + 备份指南：[智能体工作区](/concepts/agent-workspace)
+## What onboarding configures
 
 4. **Gateway 网关**
    - 端口、绑定、认证模式、tailscale 暴露。
@@ -130,13 +118,11 @@ openclaw agents add <name>
    - [iMessage](/channels/imessage)：本地 `imsg` CLI 路径 + 数据库访问。
    - 私信安全：默认为配对。第一条私信发送验证码；通过 `openclaw pairing approve <channel> <code>` 批准或使用允许列表。
 
-6. **守护进程安装**
-   - macOS：LaunchAgent
-     - 需要已登录的用户会话；对于无头环境，使用自定义 LaunchDaemon（未提供）。
-   - Linux（和通过 WSL2 的 Windows）：systemd 用户单元
-     - 向导尝试通过 `loginctl enable-linger <user>` 启用 lingering，以便 Gateway 网关在注销后保持运行。
-     - 可能提示 sudo（写入 `/var/lib/systemd/linger`）；它首先尝试不使用 sudo。
-   - **运行时选择：**Node（推荐；WhatsApp/Telegram 需要）。**不推荐** Bun。
+<Note>
+Re-running onboarding does **not** wipe anything unless you explicitly choose **Reset** (or pass `--reset`).
+CLI `--reset` defaults to config, credentials, and sessions; use `--reset-scope full` to include workspace.
+If the config is invalid or contains legacy keys, onboarding asks you to run `openclaw doctor` first.
+</Note>
 
 7. **健康检查**
    - 启动 Gateway 网关（如果需要）并运行 `openclaw health`。
@@ -147,8 +133,8 @@ openclaw agents add <name>
    - 让你选择节点管理器：**npm / pnpm**（不推荐 bun）。
    - 安装可选依赖项（某些在 macOS 上使用 Homebrew）。
 
-9. **完成**
-   - 总结 + 后续步骤，包括用于额外功能的 iOS/Android/macOS 应用。
+Use `openclaw agents add <name>` to create a separate agent with its own workspace,
+sessions, and auth profiles. Running without `--workspace` launches onboarding.
 
 - 如果未检测到 GUI，向导会打印控制界面的 SSH 端口转发说明，而不是打开浏览器。
 - 如果控制界面资源缺失，向导会尝试构建它们；回退方案是 `pnpm ui:build`（自动安装 UI 依赖）。
@@ -182,13 +168,17 @@ openclaw agents add <name>
 
 注意事项：
 
-- 默认工作区遵循 `~/.openclaw/workspace-<agentId>`。
-- 添加 `bindings` 以路由入站消息（向导可以执行此操作）。
-- 非交互标志：`--model`、`--agent-dir`、`--bind`、`--non-interactive`。
+- Default workspaces follow `~/.openclaw/workspace-<agentId>`.
+- Add `bindings` to route inbound messages (onboarding can do this).
+- Non-interactive flags: `--model`, `--agent-dir`, `--bind`, `--non-interactive`.
 
 ## 非交互模式
 
-使用 `--non-interactive` 自动化或脚本化新手引导：
+For detailed step-by-step breakdowns and config outputs, see
+[CLI Setup Reference](/start/wizard-cli-reference).
+For non-interactive examples, see [CLI Automation](/start/wizard-cli-automation).
+For the deeper technical reference, including RPC details, see
+[Onboarding Reference](/reference/wizard).
 
 ```bash
 openclaw onboard --non-interactive \

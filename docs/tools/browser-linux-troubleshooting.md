@@ -128,17 +128,18 @@ curl -s http://127.0.0.1:18791/tabs
 | `browser.attachOnly`     | 不启动浏览器，仅附加到现有浏览器                              | `false`                                          |
 | `browser.cdpPort`        | Chrome DevTools Protocol 端口                                 | `18800`                                          |
 
-### 问题："Chrome extension relay is running, but no tab is connected"
+### Problem: "No Chrome tabs found for profile=\"user\""
 
-你正在使用 `chrome` 配置文件（扩展中继）。它期望 OpenClaw 浏览器扩展附加到一个活动标签页。
+You're using an `existing-session` / Chrome MCP profile. OpenClaw can see local Chrome,
+but there are no open tabs available to attach to.
 
 修复选项：
 
-1. **使用托管浏览器：** `openclaw browser start --browser-profile openclaw`
-   （或设置 `browser.defaultProfile: "openclaw"`）。
-2. **使用扩展中继：** 安装扩展，打开一个标签页，然后点击 OpenClaw 扩展图标来附加它。
+1. **Use the managed browser:** `openclaw browser start --browser-profile openclaw`
+   (or set `browser.defaultProfile: "openclaw"`).
+2. **Use Chrome MCP:** make sure local Chrome is running with at least one open tab, then retry with `--browser-profile user`.
 
 注意事项：
 
-- `chrome` 配置文件在可能时使用你的**系统默认 Chromium 浏览器**。
-- 本地 `openclaw` 配置文件自动分配 `cdpPort`/`cdpUrl`；仅为远程 CDP 设置这些。
+- `user` is host-only. For Linux servers, containers, or remote hosts, prefer CDP profiles.
+- Local `openclaw` profiles auto-assign `cdpPort`/`cdpUrl`; only set those for remote CDP.

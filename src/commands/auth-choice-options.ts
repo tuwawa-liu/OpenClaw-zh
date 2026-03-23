@@ -1,352 +1,51 @@
 import type { AuthProfileStore } from "../agents/auth-profiles.js";
-import { t } from "../i18n/index.js";
-import { AUTH_CHOICE_LEGACY_ALIASES_FOR_CLI } from "./auth-choice-legacy.js";
-import { ONBOARD_PROVIDER_AUTH_FLAGS } from "./onboard-provider-auth-flags.js";
+import type { OpenClawConfig } from "../config/config.js";
+import { resolveManifestProviderAuthChoices } from "../plugins/provider-auth-choices.js";
+import { resolveProviderWizardOptions } from "../plugins/provider-wizard.js";
+import {
+  CORE_AUTH_CHOICE_OPTIONS,
+  type AuthChoiceGroup,
+  type AuthChoiceOption,
+  formatStaticAuthChoiceChoicesForCli,
+} from "./auth-choice-options.static.js";
 import type { AuthChoice, AuthChoiceGroupId } from "./onboard-types.js";
 
-export type { AuthChoiceGroupId };
-
-export type AuthChoiceOption = {
-  value: AuthChoice;
-  label: string;
-  hint?: string;
-};
-export type AuthChoiceGroup = {
-  value: AuthChoiceGroupId;
-  label: string;
-  hint?: string;
-  options: AuthChoiceOption[];
-};
-
-function getAuthChoiceGroupDefs(): {
-  value: AuthChoiceGroupId;
-  label: string;
-  hint?: string;
-  choices: AuthChoice[];
-}[] {
-  return [
-    {
-      value: "openai",
-      label: "OpenAI",
-      hint: t("authChoiceOptions.groupHintOpenai"),
-      choices: ["openai-codex", "openai-api-key"],
-    },
-    {
-      value: "anthropic",
-      label: "Anthropic",
-      hint: t("authChoiceOptions.groupHintAnthropic"),
-      choices: ["token", "apiKey"],
-    },
-    {
-      value: "chutes",
-      label: "Chutes",
-      hint: t("authChoiceOptions.groupHintOauth"),
-      choices: ["chutes"],
-    },
-    {
-      value: "vllm",
-      label: "vLLM",
-      hint: t("authChoiceOptions.groupHintVllm"),
-      choices: ["vllm"],
-    },
-    {
-      value: "ollama",
-      label: "Ollama",
-      hint: t("authChoiceOptions.groupHintOllama"),
-      choices: ["ollama"],
-    },
-    {
-      value: "minimax",
-      label: "MiniMax",
-      hint: t("authChoiceOptions.groupHintMinimax"),
-      choices: ["minimax-portal", "minimax-api", "minimax-api-key-cn", "minimax-api-lightning"],
-    },
-    {
-      value: "moonshot",
-      label: "Moonshot AI (Kimi K2.5)",
-      hint: t("authChoiceOptions.groupHintMoonshot"),
-      choices: ["moonshot-api-key", "moonshot-api-key-cn", "kimi-code-api-key"],
-    },
-    {
-      value: "google",
-      label: "Google",
-      hint: t("authChoiceOptions.groupHintGoogle"),
-      choices: ["gemini-api-key", "google-gemini-cli"],
-    },
-    {
-      value: "xai",
-      label: "xAI (Grok)",
-      hint: t("authChoiceOptions.groupHintApiKey"),
-      choices: ["xai-api-key"],
-    },
-    {
-      value: "mistral",
-      label: "Mistral AI",
-      hint: t("authChoiceOptions.groupHintApiKey"),
-      choices: ["mistral-api-key"],
-    },
-    {
-      value: "volcengine",
-      label: "Volcano Engine",
-      hint: t("authChoiceOptions.groupHintVolcengine"),
-      choices: ["volcengine-api-key"],
-    },
-    {
-      value: "byteplus",
-      label: "BytePlus",
-      hint: t("authChoiceOptions.groupHintByteplus"),
-      choices: ["byteplus-api-key"],
-    },
-    {
-      value: "openrouter",
-      label: "OpenRouter",
-      hint: t("authChoiceOptions.groupHintOpenrouter"),
-      choices: ["openrouter-api-key"],
-    },
-    {
-      value: "kilocode",
-      label: "Kilo Gateway",
-      hint: t("authChoiceOptions.groupHintKilocode"),
-      choices: ["kilocode-api-key"],
-    },
-    {
-      value: "qwen",
-      label: "Qwen",
-      hint: t("authChoiceOptions.groupHintQwen"),
-      choices: ["qwen-portal"],
-    },
-    {
-      value: "zai",
-      label: "Z.AI",
-      hint: t("authChoiceOptions.groupHintZai"),
-      choices: ["zai-coding-global", "zai-coding-cn", "zai-global", "zai-cn"],
-    },
-    {
-      value: "qianfan",
-      label: "Qianfan",
-      hint: t("authChoiceOptions.groupHintQianfan"),
-      choices: ["qianfan-api-key"],
-    },
-    {
-      value: "modelstudio",
-      label: "Alibaba Cloud Model Studio",
-      hint: t("authChoiceOptions.groupHintModelstudio"),
-      choices: ["modelstudio-api-key-cn", "modelstudio-api-key"],
-    },
-    {
-      value: "copilot",
-      label: "Copilot",
-      hint: t("authChoiceOptions.groupHintCopilot"),
-      choices: ["github-copilot", "copilot-proxy"],
-    },
-    {
-      value: "ai-gateway",
-      label: "Vercel AI Gateway",
-      hint: t("authChoiceOptions.groupHintAiGateway"),
-      choices: ["ai-gateway-api-key"],
-    },
-    {
-      value: "opencode",
-      label: "OpenCode",
-      hint: t("authChoiceOptions.groupHintOpenCode"),
-      choices: ["opencode-zen", "opencode-go"],
-    },
-    {
-      value: "xiaomi",
-      label: "Xiaomi",
-      hint: t("authChoiceOptions.groupHintXiaomi"),
-      choices: ["xiaomi-api-key"],
-    },
-    {
-      value: "synthetic",
-      label: "Synthetic",
-      hint: t("authChoiceOptions.groupHintSynthetic"),
-      choices: ["synthetic-api-key"],
-    },
-    {
-      value: "together",
-      label: "Together AI",
-      hint: t("authChoiceOptions.groupHintTogether"),
-      choices: ["together-api-key"],
-    },
-    {
-      value: "huggingface",
-      label: "Hugging Face",
-      hint: t("authChoiceOptions.groupHintHuggingface"),
-      choices: ["huggingface-api-key"],
-    },
-    {
-      value: "venice",
-      label: "Venice AI",
-      hint: t("authChoiceOptions.groupHintVenice"),
-      choices: ["venice-api-key"],
-    },
-    {
-      value: "litellm",
-      label: "LiteLLM",
-      hint: t("authChoiceOptions.groupHintLitellm"),
-      choices: ["litellm-api-key"],
-    },
-    {
-      value: "cloudflare-ai-gateway",
-      label: "Cloudflare AI Gateway",
-      hint: t("authChoiceOptions.groupHintCloudflareAiGateway"),
-      choices: ["cloudflare-ai-gateway-api-key"],
-    },
-    {
-      value: "custom",
-      label: "自定义提供商",
-      hint: t("authChoiceOptions.groupHintCustom"),
-      choices: ["custom-api-key"],
-    },
-  ];
+function compareOptionLabels(a: AuthChoiceOption, b: AuthChoiceOption): number {
+  return a.label.localeCompare(b.label);
 }
 
-function getProviderAuthChoiceOptionHints(): Partial<Record<AuthChoice, string>> {
-  return {
-    "litellm-api-key": t("authChoiceOptions.providerHintLitellm"),
-    "cloudflare-ai-gateway-api-key": t("authChoiceOptions.providerHintCloudflare"),
-    "venice-api-key": t("authChoiceOptions.providerHintVenice"),
-    "together-api-key": t("authChoiceOptions.providerHintTogether"),
-    "huggingface-api-key": t("authChoiceOptions.providerHintHuggingface"),
-    "opencode-zen": t("authChoiceOptions.providerHintOpenCodeZen"),
-    "opencode-go": t("authChoiceOptions.providerHintOpenCodeGo"),
-  };
+function compareGroupLabels(a: AuthChoiceGroup, b: AuthChoiceGroup): number {
+  return a.label.localeCompare(b.label);
 }
 
-function getProviderAuthChoiceOptionLabels(): Partial<Record<AuthChoice, string>> {
-  return {
-    "moonshot-api-key": t("authChoiceOptions.labelMoonshotApi"),
-    "moonshot-api-key-cn": t("authChoiceOptions.labelMoonshotApiCn"),
-    "kimi-code-api-key": t("authChoiceOptions.labelKimiCode"),
-    "cloudflare-ai-gateway-api-key": t("authChoiceOptions.labelCloudflare"),
-    "opencode-zen": t("authChoiceOptions.labelOpenCodeZen"),
-    "opencode-go": t("authChoiceOptions.labelOpenCodeGo"),
-  };
-}
-
-function buildProviderAuthChoiceOptions(): AuthChoiceOption[] {
-  const hints = getProviderAuthChoiceOptionHints();
-  const labels = getProviderAuthChoiceOptionLabels();
-  return ONBOARD_PROVIDER_AUTH_FLAGS.map((flag) => ({
-    value: flag.authChoice,
-    label: labels[flag.authChoice] ?? flag.description,
-    ...(hints[flag.authChoice] ? { hint: hints[flag.authChoice] } : {}),
-  }));
-}
-
-function getBaseAuthChoiceOptions(): ReadonlyArray<AuthChoiceOption> {
-  return [
-    {
-      value: "token",
-      label: t("authChoiceOptions.labelToken"),
-      hint: t("authChoiceOptions.hintToken"),
-    },
-    {
-      value: "openai-codex",
-      label: t("authChoiceOptions.labelOpenaiCodex"),
-    },
-    { value: "chutes", label: t("authChoiceOptions.labelChutes") },
-    {
-      value: "vllm",
-      label: t("authChoiceOptions.labelVllm"),
-      hint: t("authChoiceOptions.hintVllm"),
-    },
-    {
-      value: "ollama",
-      label: t("authChoiceOptions.labelOllama"),
-      hint: t("authChoiceOptions.hintOllama"),
-    },
-    ...buildProviderAuthChoiceOptions(),
-    {
-      value: "moonshot-api-key-cn",
-      label: t("authChoiceOptions.labelMoonshotApiCnBase"),
-    },
-    {
-      value: "github-copilot",
-      label: t("authChoiceOptions.labelGithubCopilot"),
-      hint: t("authChoiceOptions.hintGithubCopilot"),
-    },
-    { value: "gemini-api-key", label: t("authChoiceOptions.labelGeminiApiKey") },
-    {
-      value: "google-gemini-cli",
-      label: t("authChoiceOptions.labelGoogleGeminiCli"),
-      hint: t("authChoiceOptions.hintGoogleGeminiCli"),
-    },
-    { value: "zai-api-key", label: t("authChoiceOptions.labelZaiApiKey") },
-    {
-      value: "zai-coding-global",
-      label: t("authChoiceOptions.labelZaiCodingGlobal"),
-      hint: t("authChoiceOptions.hintZaiCodingGlobal"),
-    },
-    {
-      value: "zai-coding-cn",
-      label: t("authChoiceOptions.labelZaiCodingCn"),
-      hint: t("authChoiceOptions.hintZaiCodingCn"),
-    },
-    {
-      value: "zai-global",
-      label: t("authChoiceOptions.labelZaiGlobal"),
-      hint: t("authChoiceOptions.hintZaiGlobal"),
-    },
-    {
-      value: "zai-cn",
-      label: t("authChoiceOptions.labelZaiCn"),
-      hint: t("authChoiceOptions.hintZaiCn"),
-    },
-    {
-      value: "xiaomi-api-key",
-      label: t("authChoiceOptions.labelXiaomiApiKey"),
-    },
-    {
-      value: "minimax-portal",
-      label: t("authChoiceOptions.labelMinimaxPortal"),
-      hint: t("authChoiceOptions.hintMinimaxPortal"),
-    },
-    { value: "qwen-portal", label: t("authChoiceOptions.labelQwenPortal") },
-    {
-      value: "copilot-proxy",
-      label: t("authChoiceOptions.labelCopilotProxy"),
-      hint: t("authChoiceOptions.hintCopilotProxy"),
-    },
-    { value: "apiKey", label: t("authChoiceOptions.labelApiKey") },
-    {
-      value: "opencode-zen",
-      label: t("authChoiceOptions.labelOpenCodeZen"),
-      hint: t("authChoiceOptions.hintOpenCodeZen"),
-    },
-    { value: "minimax-api", label: t("authChoiceOptions.labelMinimaxApi") },
-    {
-      value: "minimax-api-key-cn",
-      label: t("authChoiceOptions.labelMinimaxApiKeyCn"),
-      hint: t("authChoiceOptions.hintMinimaxApiKeyCn"),
-    },
-    {
-      value: "minimax-api-lightning",
-      label: t("authChoiceOptions.labelMinimaxApiLightning"),
-      hint: t("authChoiceOptions.hintMinimaxApiLightning"),
-    },
-    { value: "qianfan-api-key", label: t("authChoiceOptions.labelQianfanApiKey") },
-    {
-      value: "modelstudio-api-key-cn",
-      label: t("authChoiceOptions.labelModelstudioApiKeyCn"),
-      hint: t("authChoiceOptions.hintModelstudioApiKeyCn"),
-    },
-    {
-      value: "modelstudio-api-key",
-      label: t("authChoiceOptions.labelModelstudioApiKey"),
-      hint: t("authChoiceOptions.hintModelstudioApiKey"),
-    },
-    { value: "custom-api-key", label: t("authChoiceOptions.labelCustomApiKey") },
-  ];
-}
-
-function resolveDynamicProviderCliChoices(params?: {
+function resolveManifestProviderChoiceOptions(params?: {
   config?: OpenClawConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
-}): string[] {
-  return [...new Set(resolveProviderWizardOptions(params ?? {}).map((option) => option.value))];
+}): AuthChoiceOption[] {
+  return resolveManifestProviderAuthChoices(params ?? {}).map((choice) => ({
+    value: choice.choiceId as AuthChoice,
+    label: choice.choiceLabel,
+    ...(choice.choiceHint ? { hint: choice.choiceHint } : {}),
+    ...(choice.groupId ? { groupId: choice.groupId as AuthChoiceGroupId } : {}),
+    ...(choice.groupLabel ? { groupLabel: choice.groupLabel } : {}),
+    ...(choice.groupHint ? { groupHint: choice.groupHint } : {}),
+  }));
+}
+
+function resolveRuntimeFallbackProviderChoiceOptions(params?: {
+  config?: OpenClawConfig;
+  workspaceDir?: string;
+  env?: NodeJS.ProcessEnv;
+}): AuthChoiceOption[] {
+  return resolveProviderWizardOptions(params ?? {}).map((option) => ({
+    value: option.value as AuthChoice,
+    label: option.label,
+    ...(option.hint ? { hint: option.hint } : {}),
+    groupId: option.groupId as AuthChoiceGroupId,
+    groupLabel: option.groupLabel,
+    ...(option.groupHint ? { groupHint: option.groupHint } : {}),
+  }));
 }
 
 export function formatAuthChoiceChoicesForCli(params?: {
@@ -356,11 +55,12 @@ export function formatAuthChoiceChoicesForCli(params?: {
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
 }): string {
-  const includeSkip = params?.includeSkip ?? true;
-  const includeLegacyAliases = params?.includeLegacyAliases ?? false;
-  const values = getBaseAuthChoiceOptions().map((opt) => opt.value);
+  const values = [
+    ...formatStaticAuthChoiceChoicesForCli(params).split("|"),
+    ...resolveManifestProviderChoiceOptions(params).map((option) => option.value),
+  ];
 
-  return values.join("|");
+  return [...new Set(values)].join("|");
 }
 
 export function buildAuthChoiceOptions(params: {
@@ -371,7 +71,30 @@ export function buildAuthChoiceOptions(params: {
   env?: NodeJS.ProcessEnv;
 }): AuthChoiceOption[] {
   void params.store;
-  const options: AuthChoiceOption[] = [...getBaseAuthChoiceOptions()];
+  const optionByValue = new Map<AuthChoice, AuthChoiceOption>();
+  for (const option of CORE_AUTH_CHOICE_OPTIONS) {
+    optionByValue.set(option.value, option);
+  }
+  for (const option of resolveManifestProviderChoiceOptions({
+    config: params.config,
+    workspaceDir: params.workspaceDir,
+    env: params.env,
+  })) {
+    optionByValue.set(option.value, option);
+  }
+  for (const option of resolveRuntimeFallbackProviderChoiceOptions({
+    config: params.config,
+    workspaceDir: params.workspaceDir,
+    env: params.env,
+  })) {
+    if (!optionByValue.has(option.value)) {
+      optionByValue.set(option.value, option);
+    }
+  }
+
+  const options: AuthChoiceOption[] = Array.from(optionByValue.values()).toSorted(
+    compareOptionLabels,
+  );
 
   if (params.includeSkip) {
     options.push({ value: "skip", label: t("commands.authOptions.skipForNow") });
@@ -394,46 +117,30 @@ export function buildAuthChoiceGroups(params: {
     ...params,
     includeSkip: false,
   });
-  const optionByValue = new Map<AuthChoice, AuthChoiceOption>(
-    options.map((opt) => [opt.value, opt]),
-  );
+  const groupsById = new Map<AuthChoiceGroupId, AuthChoiceGroup>();
 
-  const groups = getAuthChoiceGroupDefs().map((group) => ({
-    ...group,
-    options: group.choices
-      .map((choice) => optionByValue.get(choice))
-      .filter((opt): opt is AuthChoiceOption => Boolean(opt)),
-  }));
-  const staticGroupIds = new Set(groups.map((group) => group.value));
-
-  for (const option of resolveProviderWizardOptions({
-    config: params.config,
-    workspaceDir: params.workspaceDir,
-    env: params.env,
-  })) {
-    const existing = groups.find((group) => group.value === option.groupId);
-    const nextOption = optionByValue.get(option.value as AuthChoice) ?? {
-      value: option.value as AuthChoice,
-      label: option.label,
-      hint: option.hint,
-    };
+  for (const option of options) {
+    if (!option.groupId || !option.groupLabel) {
+      continue;
+    }
+    const existing = groupsById.get(option.groupId);
     if (existing) {
-      if (!existing.options.some((candidate) => candidate.value === nextOption.value)) {
-        existing.options.push(nextOption);
-      }
+      existing.options.push(option);
       continue;
     }
-    if (staticGroupIds.has(option.groupId as AuthChoiceGroupId)) {
-      continue;
-    }
-    groups.push({
-      value: option.groupId as AuthChoiceGroupId,
+    groupsById.set(option.groupId, {
+      value: option.groupId,
       label: option.groupLabel,
-      hint: option.groupHint,
-      options: [nextOption],
+      ...(option.groupHint ? { hint: option.groupHint } : {}),
+      options: [option],
     });
-    staticGroupIds.add(option.groupId as AuthChoiceGroupId);
   }
+  const groups = Array.from(groupsById.values())
+    .map((group) => ({
+      ...group,
+      options: [...group.options].toSorted(compareOptionLabels),
+    }))
+    .toSorted(compareGroupLabels);
 
   const skipOption = params.includeSkip
     ? ({ value: "skip", label: t("commands.authOptions.skipForNow") } satisfies AuthChoiceOption)

@@ -47,11 +47,11 @@ Docker 是**可选的**。仅当你想要容器化的 Gateway 网关或验证 Do
 
 此脚本：
 
-- 构建 Gateway 网关镜像
-- 运行新手引导向导
-- 打印可选的提供商设置提示
-- 通过 Docker Compose 启动 Gateway 网关
-- 生成 Gateway 网关令牌并写入 `.env`
+- builds the gateway image locally (or pulls a remote image if `OPENCLAW_IMAGE` is set)
+- runs onboarding
+- prints optional provider setup hints
+- starts the gateway via Docker Compose
+- generates a gateway token and writes it to `.env`
 
 可选环境变量：
 
@@ -442,9 +442,42 @@ scripts/sandbox-browser-setup.sh
 
 注意：
 
-- 有头（Xvfb）比无头减少机器人阻止。
-- 通过设置 `agents.defaults.sandbox.browser.headless=true` 仍然可以使用无头模式。
-- 不需要完整的桌面环境（GNOME）；Xvfb 提供显示。
+- Docker and other headless/container browser flows stay on raw CDP. Chrome MCP `existing-session` is for host-local Chrome, not container takeover.
+- Headful (Xvfb) reduces bot blocking vs headless.
+- Headless can still be used by setting `agents.defaults.sandbox.browser.headless=true`.
+- No full desktop environment (GNOME) is needed; Xvfb provides the display.
+- Browser containers default to a dedicated Docker network (`openclaw-sandbox-browser`) instead of global `bridge`.
+- Optional `agents.defaults.sandbox.browser.cdpSourceRange` restricts container-edge CDP ingress by CIDR (for example `172.21.0.1/32`).
+- noVNC observer access is password-protected by default; OpenClaw provides a short-lived observer token URL that serves a local bootstrap page and keeps the password in URL fragment (instead of URL query).
+- Browser container startup defaults are conservative for shared/container workloads, including:
+  - `--remote-debugging-address=127.0.0.1`
+  - `--remote-debugging-port=<derived from OPENCLAW_BROWSER_CDP_PORT>`
+  - `--user-data-dir=${HOME}/.chrome`
+  - `--no-first-run`
+  - `--no-default-browser-check`
+  - `--disable-3d-apis`
+  - `--disable-software-rasterizer`
+  - `--disable-gpu`
+  - `--disable-dev-shm-usage`
+  - `--disable-background-networking`
+  - `--disable-features=TranslateUI`
+  - `--disable-breakpad`
+  - `--disable-crash-reporter`
+  - `--metrics-recording-only`
+  - `--renderer-process-limit=2`
+  - `--no-zygote`
+  - `--disable-extensions`
+  - If `agents.defaults.sandbox.browser.noSandbox` is set, `--no-sandbox` and
+    `--disable-setuid-sandbox` are also appended.
+  - The three graphics hardening flags above are optional. If your workload needs
+    WebGL/3D, set `OPENCLAW_BROWSER_DISABLE_GRAPHICS_FLAGS=0` to run without
+    `--disable-3d-apis`, `--disable-software-rasterizer`, and `--disable-gpu`.
+  - Extension behavior is controlled by `--disable-extensions` and can be disabled
+    (enables extensions) via `OPENCLAW_BROWSER_DISABLE_EXTENSIONS=0` for
+    extension-dependent pages or extensions-heavy workflows.
+  - `--renderer-process-limit=2` is also configurable with
+    `OPENCLAW_BROWSER_RENDERER_PROCESS_LIMIT`; set `0` to let Chromium choose its
+    default process limit when browser concurrency needs tuning.
 
 使用配置：
 

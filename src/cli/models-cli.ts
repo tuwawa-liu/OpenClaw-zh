@@ -1,6 +1,5 @@
 import type { Command } from "commander";
 import {
-  githubCopilotLoginCommand,
   modelsAliasesAddCommand,
   modelsAliasesListCommand,
   modelsAliasesRemoveCommand,
@@ -347,14 +346,14 @@ export function registerModelsCli(program: Command) {
 
   auth
     .command("login-github-copilot")
-    .description(t("cli.models.auth.loginGithubCopilot.desc"))
-    .option("--profile-id <id>", t("cli.models.auth.loginGithubCopilot.optProfileId"))
-    .option("--yes", t("cli.models.auth.loginGithubCopilot.optYes"), false)
+    .description("Login to GitHub Copilot via GitHub device flow (TTY required)")
+    .option("--yes", "Overwrite existing profile without prompting", false)
     .action(async (opts) => {
       await runModelsCommand(async () => {
-        await githubCopilotLoginCommand(
+        await modelsAuthLoginCommand(
           {
-            profileId: opts.profileId as string | undefined,
+            provider: "github-copilot",
+            method: "device",
             yes: Boolean(opts.yes),
           },
           defaultRuntime,

@@ -1,5 +1,5 @@
 import type { Command } from "commander";
-import { onboardCommand } from "../../commands/onboard.js";
+import { setupWizardCommand } from "../../commands/onboard.js";
 import { setupCommand } from "../../commands/setup.js";
 import { t } from "../../i18n/index.js";
 import { defaultRuntime } from "../../runtime.js";
@@ -17,12 +17,15 @@ export function registerSetupCommand(program: Command) {
       () =>
         `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/setup", "docs.openclaw.ai/cli/setup")}\n`,
     )
-    .option("--workspace <dir>", t("setupCli.workspaceOpt"))
-    .option("--wizard", t("setupCli.wizardOpt"), false)
-    .option("--non-interactive", t("setupCli.nonInteractiveOpt"), false)
-    .option("--mode <mode>", t("setupCli.modeOpt"))
-    .option("--remote-url <url>", t("setupCli.remoteUrlOpt"))
-    .option("--remote-token <token>", t("setupCli.remoteTokenOpt"))
+    .option(
+      "--workspace <dir>",
+      "Agent workspace directory (default: ~/.openclaw/workspace; stored as agents.defaults.workspace)",
+    )
+    .option("--wizard", "Run interactive onboarding", false)
+    .option("--non-interactive", "Run onboarding without prompts", false)
+    .option("--mode <mode>", "Onboard mode: local|remote")
+    .option("--remote-url <url>", "Remote Gateway WebSocket URL")
+    .option("--remote-token <token>", "Remote Gateway token (optional)")
     .action(async (opts, command) => {
       await runCommandWithRuntime(defaultRuntime, async () => {
         const hasWizardFlags = hasExplicitOptions(command, [
@@ -33,7 +36,7 @@ export function registerSetupCommand(program: Command) {
           "remoteToken",
         ]);
         if (opts.wizard || hasWizardFlags) {
-          await onboardCommand(
+          await setupWizardCommand(
             {
               workspace: opts.workspace as string | undefined,
               nonInteractive: Boolean(opts.nonInteractive),

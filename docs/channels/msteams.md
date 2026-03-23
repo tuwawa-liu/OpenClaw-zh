@@ -40,8 +40,8 @@ openclaw plugins install @openclaw/msteams
 openclaw plugins install ./extensions/msteams
 ```
 
-如果你在配置/新手引导过程中选择 Teams 并检测到 git 检出，
-OpenClaw 将自动提供本地安装路径。
+If you choose Teams during setup and a git checkout is detected,
+OpenClaw will offer the local install path automatically.
 
 详情：[插件](/tools/plugin)
 

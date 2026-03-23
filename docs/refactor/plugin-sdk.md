@@ -31,13 +31,13 @@ x-i18n:
 
 内容（示例）：
 
-- 类型：`ChannelPlugin`、适配器、`ChannelMeta`、`ChannelCapabilities`、`ChannelDirectoryEntry`。
-- 配置辅助函数：`buildChannelConfigSchema`、`setAccountEnabledInConfigSection`、`deleteAccountFromConfigSection`、
-  `applyAccountNameToChannelSection`。
-- 配对辅助函数：`PAIRING_APPROVED_MESSAGE`、`formatPairingApproveHint`。
-- 新手引导辅助函数：`promptChannelAccessConfig`、`addWildcardAllowFrom`、新手引导类型。
-- 工具参数辅助函数：`createActionGate`、`readStringParam`、`readNumberParam`、`readReactionParams`、`jsonResult`。
-- 文档链接辅助函数：`formatDocsLink`。
+- Types: `ChannelPlugin`, adapters, `ChannelMeta`, `ChannelCapabilities`, `ChannelDirectoryEntry`.
+- Config helpers: `buildChannelConfigSchema`, `setAccountEnabledInConfigSection`, `deleteAccountFromConfigSection`,
+  `applyAccountNameToChannelSection`.
+- Pairing helpers: `PAIRING_APPROVED_MESSAGE`, `formatPairingApproveHint`.
+- Setup entry points: host-owned `setup` + `setupWizard`; avoid broad public onboarding helpers.
+- Tool param helpers: `createActionGate`, `readStringParam`, `readNumberParam`, `readReactionParams`, `jsonResult`.
+- Docs link helper: `formatDocsLink`.
 
 交付方式：
 
@@ -218,4 +218,28 @@ export type PluginRuntime = {
 - 新连接器模板仅依赖 SDK + 运行时。
 - 外部插件可以在无需访问核心源码的情况下进行开发和更新。
 
-相关文档：[插件](/tools/plugin)、[渠道](/channels/index)、[配置](/gateway/configuration)。
+Related docs: [Plugins](/tools/plugin), [Channels](/channels/index), [Configuration](/gateway/configuration).
+
+## Implemented channel-owned seams
+
+Recent refactor work widened the channel plugin contract so core can stop owning
+channel-specific UX and routing behavior:
+
+- `messaging.buildCrossContextComponents`: channel-owned cross-context UI markers
+  (for example Discord components v2 containers)
+- `messaging.enableInteractiveReplies`: channel-owned reply normalization toggles
+  (for example Slack interactive replies)
+- `messaging.resolveOutboundSessionRoute`: channel-owned outbound session routing
+- `status.formatCapabilitiesProbe` / `status.buildCapabilitiesDiagnostics`: channel-owned
+  `/channels capabilities` probe display and extra audits/scopes
+- `threading.resolveAutoThreadId`: channel-owned same-conversation auto-threading
+- `threading.resolveReplyTransport`: channel-owned reply-vs-thread delivery mapping
+- `actions.requiresTrustedRequesterSender`: channel-owned privileged action trust gates
+- `execApprovals.*`: channel-owned exec approval surface state, forwarding suppression,
+  pending payload UX, and pre-delivery hooks
+- `lifecycle.onAccountConfigChanged` / `lifecycle.onAccountRemoved`: channel-owned cleanup on
+  config mutation/removal
+- `allowlist.supportsScope`: channel-owned allowlist scope advertisement
+
+These hooks should be preferred over new `channel === "discord"` / `telegram`
+branches in shared core flows.

@@ -45,8 +45,8 @@ MiniMax 强调 M2.1 的以下改进：
 启用内置 OAuth 插件并进行认证：
 
 ```bash
-openclaw plugins enable minimax-portal-auth  # 如果已加载则跳过
-openclaw gateway restart  # 如果 Gateway 网关已在运行则重启
+openclaw plugins enable minimax  # skip if already loaded.
+openclaw gateway restart  # restart if gateway is already running
 openclaw onboard --auth-choice minimax-portal
 ```
 
@@ -55,7 +55,7 @@ openclaw onboard --auth-choice minimax-portal
 - **Global** - 国际用户（`api.minimax.io`）
 - **CN** - 中国用户（`api.minimaxi.com`）
 
-详情参见 [MiniMax OAuth 插件 README](https://github.com/openclaw/openclaw/tree/main/extensions/minimax-portal-auth)。
+See [MiniMax plugin README](https://github.com/openclaw/openclaw/tree/main/extensions/minimax) for details.
 
 ### MiniMax M2.1（API 密钥）
 

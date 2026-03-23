@@ -1,4 +1,5 @@
-import { zh_CN } from "../locales/zh-CN.ts";
+import { getSafeLocalStorage } from "../../local-storage.ts";
+import { en } from "../locales/en.ts";
 import {
   DEFAULT_LOCALE,
   SUPPORTED_LOCALES,
@@ -14,6 +15,55 @@ class I18nManager {
   private locale: Locale = DEFAULT_LOCALE;
   private translations: Record<Locale, TranslationMap> = { "zh-CN": zh_CN };
   private subscribers: Set<Subscriber> = new Set();
+
+  constructor() {
+    this.loadLocale();
+  }
+
+  private readStoredLocale(): string | null {
+    const storage = getSafeLocalStorage();
+    if (!storage) {
+      return null;
+    }
+    try {
+      return storage.getItem("openclaw.i18n.locale");
+    } catch {
+      return null;
+    }
+  }
+
+  private persistLocale(locale: Locale) {
+    const storage = getSafeLocalStorage();
+    if (!storage) {
+      return;
+    }
+    try {
+      storage.setItem("openclaw.i18n.locale", locale);
+    } catch {
+      // Ignore storage write failures in private/blocked contexts.
+    }
+  }
+
+  private resolveInitialLocale(): Locale {
+    const saved = this.readStoredLocale();
+    if (isSupportedLocale(saved)) {
+      return saved;
+    }
+    const language =
+      typeof globalThis.navigator?.language === "string" ? globalThis.navigator.language : null;
+    return resolveNavigatorLocale(language ?? "");
+  }
+
+  private loadLocale() {
+    const initialLocale = this.resolveInitialLocale();
+    if (initialLocale === DEFAULT_LOCALE) {
+      this.locale = DEFAULT_LOCALE;
+      return;
+    }
+    // Use the normal locale setter so startup locale loading follows the same
+    // translation-loading + notify path as manual locale changes.
+    void this.setLocale(initialLocale);
+  }
 
   public getLocale(): Locale {
     return this.locale;

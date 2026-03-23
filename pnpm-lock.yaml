@@ -50,6 +50,9 @@ importers:
       '@homebridge/ciao':
         specifier: ^1.3.5
         version: 1.3.5
+      '@lancedb/lancedb':
+        specifier: ^0.26.2
+        version: 0.26.2(apache-arrow@18.1.0)
       '@larksuiteoapi/node-sdk':
         specifier: ^1.59.0
         version: 1.59.0
@@ -122,6 +125,9 @@ importers:
       file-type:
         specifier: 21.3.2
         version: 21.3.2
+      gaxios:
+        specifier: 7.1.3
+        version: 7.1.3
       grammy:
         specifier: ^1.41.1
         version: 1.41.1
@@ -268,6 +274,11 @@ importers:
         specifier: 0.3.0
         version: 0.3.0(zod@4.3.6)
 
+<<<<<<< HEAD
+=======
+  extensions/amazon-bedrock: {}
+
+>>>>>>> upstream/main
   extensions/anthropic: {}
 
   extensions/bluebubbles:
@@ -349,11 +360,19 @@ importers:
         specifier: ^4.3.6
         version: 4.3.6
 
+<<<<<<< HEAD
   extensions/github-copilot: {}
 
   extensions/google: {}
 
   extensions/google-gemini-cli-auth: {}
+=======
+  extensions/firecrawl: {}
+
+  extensions/github-copilot: {}
+
+  extensions/google: {}
+>>>>>>> upstream/main
 
   extensions/googlechat:
     dependencies:
@@ -445,7 +464,15 @@ importers:
 
   extensions/minimax: {}
 
+<<<<<<< HEAD
   extensions/minimax-portal-auth: {}
+=======
+  extensions/mistral: {}
+
+  extensions/modelstudio: {}
+
+  extensions/moonshot: {}
+>>>>>>> upstream/main
 
   extensions/mistral: {}
 
@@ -485,14 +512,22 @@ importers:
 
   extensions/openai: {}
 
+<<<<<<< HEAD
   extensions/openai-codex: {}
 
+=======
+>>>>>>> upstream/main
   extensions/opencode: {}
 
   extensions/opencode-go: {}
 
   extensions/openrouter: {}
 
+<<<<<<< HEAD
+=======
+  extensions/openshell: {}
+
+>>>>>>> upstream/main
   extensions/perplexity: {}
 
   extensions/qianfan: {}

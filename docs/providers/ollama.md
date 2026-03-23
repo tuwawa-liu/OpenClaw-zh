@@ -21,7 +21,45 @@ Ollama 是一个本地 LLM 运行时，可以轻松在你的机器上运行开�
 
 1. 安装 Ollama：https://ollama.ai
 
-2. 如果需要本地推理，拉取一个本地模型：
+### Onboarding (recommended)
+
+The fastest way to set up Ollama is through onboarding:
+
+```bash
+openclaw onboard
+```
+
+Select **Ollama** from the provider list. Onboarding will:
+
+1. Ask for the Ollama base URL where your instance can be reached (default `http://127.0.0.1:11434`).
+2. Let you choose **Cloud + Local** (cloud models and local models) or **Local** (local models only).
+3. Open a browser sign-in flow if you choose **Cloud + Local** and are not signed in to ollama.com.
+4. Discover available models and suggest defaults.
+5. Auto-pull the selected model if it is not available locally.
+
+Non-interactive mode is also supported:
+
+```bash
+openclaw onboard --non-interactive \
+  --auth-choice ollama \
+  --accept-risk
+```
+
+Optionally specify a custom base URL or model:
+
+```bash
+openclaw onboard --non-interactive \
+  --auth-choice ollama \
+  --custom-base-url "http://ollama-host:11434" \
+  --custom-model-id "qwen3.5:27b" \
+  --accept-risk
+```
+
+### Manual setup
+
+1. Install Ollama: [https://ollama.com/download](https://ollama.com/download)
+
+2. Pull a local model if you want local inference:
 
 ```bash
 ollama pull glm-4.7-flash
@@ -194,7 +232,15 @@ export OLLAMA_API_KEY="ollama-local"
 
 ### 推理模型
 
-OpenClaw 默认将名称中包含 `deepseek-r1`、`reasoning` 或 `think` 的模型视为具有推理能力：
+To use cloud models, select **Cloud + Local** mode during setup. The wizard checks whether you are signed in and opens a browser sign-in flow when needed. If authentication cannot be verified, the wizard falls back to local model defaults.
+
+You can also sign in directly at [ollama.com/signin](https://ollama.com/signin).
+
+## Advanced
+
+### Reasoning models
+
+OpenClaw treats models with names such as `deepseek-r1`, `reasoning`, or `think` as reasoning-capable by default:
 
 ```bash
 ollama pull deepseek-r1:32b

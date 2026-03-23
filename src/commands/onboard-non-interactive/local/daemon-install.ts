@@ -55,7 +55,7 @@ export async function installGatewayDaemonNonInteractive(params: {
       [
         t("onboardNonInteractive.gatewayInstallBlocked"),
         tokenResolution.unavailableReason,
-        t("onboardNonInteractive.fixGatewayAuthAndRerun"),
+        "Fix gateway auth config/token input and rerun setup.",
       ].join(" "),
     );
     runtime.exit(1);

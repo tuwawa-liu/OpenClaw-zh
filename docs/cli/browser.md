@@ -1,17 +1,10 @@
 ---
+summary: "CLI reference for `openclaw browser` (profiles, tabs, actions, Chrome MCP, and CDP)"
 read_when:
-  - 你使用 `openclaw browser` 并想要常见任务的示例
-  - 你想通过 node host 控制在另一台机器上运行的浏览器
-  - 你想使用 Chrome 扩展中继（通过工具栏按钮附加/分离）
-summary: "`openclaw browser` 的 CLI 参考（配置文件、标签页、操作、扩展中继）"
-title: browser
-x-i18n:
-  generated_at: "2026-02-03T07:44:49Z"
-  model: claude-opus-4-5
-  provider: pi
-  source_hash: af35adfd68726fd519c704d046451effd330458c2b8305e713137fb07b2571fd
-  source_path: cli/browser.md
-  workflow: 15
+  - You use `openclaw browser` and want examples for common tasks
+  - You want to control a browser running on another machine via a node host
+  - You want to attach to your local signed-in Chrome via Chrome MCP
+title: "browser"
 ---
 
 # `openclaw browser`
@@ -20,8 +13,7 @@ x-i18n:
 
 相关：
 
-- 浏览器工具 + API：[浏览器工具](/tools/browser)
-- Chrome 扩展中继：[Chrome 扩展](/tools/chrome-extension)
+- Browser tool + API: [Browser tool](/tools/browser)
 
 ## 通用标志
 
@@ -44,12 +36,14 @@ openclaw browser --browser-profile openclaw snapshot
 
 配置文件是命名的浏览器路由配置。实际上：
 
-- `openclaw`：启动/附加到专用的 OpenClaw 管理的 Chrome 实例（隔离的用户数据目录）。
-- `chrome`：通过 Chrome 扩展中继控制你现有的 Chrome 标签页。
+- `openclaw`: launches or attaches to a dedicated OpenClaw-managed Chrome instance (isolated user data dir).
+- `user`: controls your existing signed-in Chrome session via Chrome DevTools MCP.
+- custom CDP profiles: point at a local or remote CDP endpoint.
 
 ```bash
 openclaw browser profiles
 openclaw browser create-profile --name work --color "#FF5A36"
+openclaw browser create-profile --name chrome-live --driver existing-session
 openclaw browser delete-profile --name work
 ```
 
@@ -90,20 +84,18 @@ openclaw browser click <ref>
 openclaw browser type <ref> "hello"
 ```
 
-## Chrome 扩展中继（通过工具栏按钮附加）
+## Existing Chrome via MCP
 
-此模式让智能体控制你手动附加的现有 Chrome 标签页（不会自动附加）。
-
-将未打包的扩展安装到稳定路径：
+Use the built-in `user` profile, or create your own `existing-session` profile:
 
 ```bash
-openclaw browser extension install
-openclaw browser extension path
+openclaw browser --browser-profile user tabs
+openclaw browser create-profile --name chrome-live --driver existing-session
+openclaw browser create-profile --name brave-live --driver existing-session --user-data-dir "~/Library/Application Support/BraveSoftware/Brave-Browser"
+openclaw browser --browser-profile chrome-live tabs
 ```
 
-然后 Chrome → `chrome://extensions` → 启用"开发者模式" → "加载已解压的扩展程序" → 选择打印的文件夹。
-
-完整指南：[Chrome 扩展](/tools/chrome-extension)
+This path is host-only. For Docker, headless servers, Browserless, or other remote setups, use a CDP profile instead.
 
 ## 远程浏览器控制（node host 代理）
 

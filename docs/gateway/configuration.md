@@ -121,9 +121,28 @@ openclaw gateway call config.patch --params '{
 
 首次构建默认镜像：
 
-```bash
-scripts/sandbox-setup.sh
-```
+<Tabs>
+  <Tab title="Interactive wizard">
+    ```bash
+    openclaw onboard       # full onboarding flow
+    openclaw configure     # config wizard
+    ```
+  </Tab>
+  <Tab title="CLI (one-liners)">
+    ```bash
+    openclaw config get agents.defaults.workspace
+    openclaw config set agents.defaults.heartbeat.every "2h"
+    openclaw config unset tools.web.search.apiKey
+    ```
+  </Tab>
+  <Tab title="Control UI">
+    Open [http://127.0.0.1:18789](http://127.0.0.1:18789) and use the **Config** tab.
+    The Control UI renders a form from the config schema, with a **Raw JSON** editor as an escape hatch.
+  </Tab>
+  <Tab title="Direct edit">
+    Edit `~/.openclaw/openclaw.json` directly. The Gateway watches the file and applies changes automatically (see [hot reload](#config-hot-reload)).
+  </Tab>
+</Tabs>
 
 ## 自聊天模式（推荐用于群组控制）
 
@@ -325,8 +344,17 @@ OpenClaw 从父进程（shell、launchd/systemd、CI 等）读取环境变量。
 {
   models: {
     providers: {
-      "vercel-gateway": {
-        apiKey: "${VERCEL_GATEWAY_API_KEY}",
+      openai: { apiKey: { source: "env", provider: "default", id: "OPENAI_API_KEY" } },
+    },
+  },
+  skills: {
+    entries: {
+      "image-lab": {
+        apiKey: {
+          source: "file",
+          provider: "filemain",
+          id: "/skills/entries/image-lab/apiKey",
+        },
       },
     },
   },

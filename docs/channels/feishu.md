@@ -28,9 +28,9 @@ openclaw plugins install @openclaw/feishu
 
 添加飞书渠道有两种方式：
 
-### 方式一：通过安装向导添加（推荐）
+### Method 1: onboarding (recommended)
 
-如果您刚安装完 OpenClaw，可以直接运行向导，根据提示添加飞书：
+If you just installed OpenClaw, run onboarding:
 
 ```bash
 openclaw onboard
@@ -679,18 +679,42 @@ openclaw pairing list feishu
 
 ### 接收
 
-- ✅ 文本消息
-- ✅ 富文本（帖子）
-- ✅ 图片
-- ✅ 文件
-- ✅ 音频
-- ✅ 视频
-- ✅ 表情包
+- ✅ Text
+- ✅ Rich text (post)
+- ✅ Images
+- ✅ Files
+- ✅ Audio
+- ✅ Video/media
+- ✅ Stickers
 
 ### 发送
 
-- ✅ 文本消息
-- ✅ 图片
-- ✅ 文件
-- ✅ 音频
-- ⚠️ 富文本（部分支持）
+- ✅ Text
+- ✅ Images
+- ✅ Files
+- ✅ Audio
+- ✅ Video/media
+- ✅ Interactive cards
+- ⚠️ Rich text (post-style formatting and cards, not arbitrary Feishu authoring features)
+
+### Threads and replies
+
+- ✅ Inline replies
+- ✅ Topic-thread replies where Feishu exposes `reply_in_thread`
+- ✅ Media replies stay thread-aware when replying to a thread/topic message
+
+## Runtime action surface
+
+Feishu currently exposes these runtime actions:
+
+- `send`
+- `read`
+- `edit`
+- `thread-reply`
+- `pin`
+- `list-pins`
+- `unpin`
+- `member-info`
+- `channel-info`
+- `channel-list`
+- `react` and `reactions` when reactions are enabled in config

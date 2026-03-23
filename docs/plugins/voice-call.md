@@ -119,7 +119,76 @@ cd ./extensions/voice-call && pnpm install
 
 ## 通话的 TTS
 
-Voice Call 使用核心 `messages.tts` 配置（OpenAI 或 ElevenLabs）进行通话中的流式语音。你可以在插件配置下使用**相同的结构**覆盖它——它会与 `messages.tts` 深度合并。
+Use `staleCallReaperSeconds` to end calls that never receive a terminal webhook
+(for example, notify-mode calls that never complete). The default is `0`
+(disabled).
+
+Recommended ranges:
+
+- **Production:** `120`–`300` seconds for notify-style flows.
+- Keep this value **higher than `maxDurationSeconds`** so normal calls can
+  finish. A good starting point is `maxDurationSeconds + 30–60` seconds.
+
+Example:
+
+```json5
+{
+  plugins: {
+    entries: {
+      "voice-call": {
+        config: {
+          maxDurationSeconds: 300,
+          staleCallReaperSeconds: 360,
+        },
+      },
+    },
+  },
+}
+```
+
+## Webhook Security
+
+When a proxy or tunnel sits in front of the Gateway, the plugin reconstructs the
+public URL for signature verification. These options control which forwarded
+headers are trusted.
+
+`webhookSecurity.allowedHosts` allowlists hosts from forwarding headers.
+
+`webhookSecurity.trustForwardingHeaders` trusts forwarded headers without an allowlist.
+
+`webhookSecurity.trustedProxyIPs` only trusts forwarded headers when the request
+remote IP matches the list.
+
+Webhook replay protection is enabled for Twilio and Plivo. Replayed valid webhook
+requests are acknowledged but skipped for side effects.
+
+Twilio conversation turns include a per-turn token in `<Gather>` callbacks, so
+stale/replayed speech callbacks cannot satisfy a newer pending transcript turn.
+
+Example with a stable public host:
+
+```json5
+{
+  plugins: {
+    entries: {
+      "voice-call": {
+        config: {
+          publicUrl: "https://voice.example.com/voice/webhook",
+          webhookSecurity: {
+            allowedHosts: ["voice.example.com"],
+          },
+        },
+      },
+    },
+  },
+}
+```
+
+## TTS for calls
+
+Voice Call uses the core `messages.tts` configuration for
+streaming speech on calls. You can override it under the plugin config with the
+**same shape** — it deep‑merges with `messages.tts`.
 
 ```json5
 {
@@ -135,8 +204,8 @@ Voice Call 使用核心 `messages.tts` 配置（OpenAI 或 ElevenLabs）进行�
 
 注意事项：
 
-- **语音通话忽略 Edge TTS**（电话音频需要 PCM；Edge 输出不可靠）。
-- 当启用 Twilio 媒体流时使用核心 TTS；否则通话回退到提供商原生语音。
+- **Microsoft speech is ignored for voice calls** (telephony audio needs PCM; the current Microsoft transport does not expose telephony PCM output).
+- Core TTS is used when Twilio media streaming is enabled; otherwise calls fall back to provider native voices.
 
 ### 更多示例
 

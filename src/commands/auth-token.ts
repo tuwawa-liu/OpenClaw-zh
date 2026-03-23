@@ -1,39 +1,8 @@
-import { normalizeProviderId } from "../agents/model-selection.js";
-import { t } from "../i18n/index.js";
-
-export const ANTHROPIC_SETUP_TOKEN_PREFIX = "sk-ant-oat01-";
-export const ANTHROPIC_SETUP_TOKEN_MIN_LENGTH = 80;
-export const DEFAULT_TOKEN_PROFILE_NAME = "default";
-
-export function normalizeTokenProfileName(raw: string): string {
-  const trimmed = raw.trim();
-  if (!trimmed) {
-    return DEFAULT_TOKEN_PROFILE_NAME;
-  }
-  const slug = trimmed
-    .toLowerCase()
-    .replace(/[^a-z0-9._-]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  return slug || DEFAULT_TOKEN_PROFILE_NAME;
-}
-
-export function buildTokenProfileId(params: { provider: string; name: string }): string {
-  const provider = normalizeProviderId(params.provider);
-  const name = normalizeTokenProfileName(params.name);
-  return `${provider}:${name}`;
-}
-
-export function validateAnthropicSetupToken(raw: string): string | undefined {
-  const trimmed = raw.trim();
-  if (!trimmed) {
-    return t("commands.authToken.required");
-  }
-  if (!trimmed.startsWith(ANTHROPIC_SETUP_TOKEN_PREFIX)) {
-    return t("commands.authToken.expectedPrefix", { prefix: ANTHROPIC_SETUP_TOKEN_PREFIX });
-  }
-  if (trimmed.length < ANTHROPIC_SETUP_TOKEN_MIN_LENGTH) {
-    return t("commands.authToken.tooShort");
-  }
-  return undefined;
-}
+export {
+  ANTHROPIC_SETUP_TOKEN_MIN_LENGTH,
+  ANTHROPIC_SETUP_TOKEN_PREFIX,
+  buildTokenProfileId,
+  DEFAULT_TOKEN_PROFILE_NAME,
+  normalizeTokenProfileName,
+  validateAnthropicSetupToken,
+} from "../plugins/provider-auth-token.js";

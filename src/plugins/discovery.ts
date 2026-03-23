@@ -16,9 +16,18 @@ import type { PluginBundleFormat, PluginDiagnostic, PluginFormat, PluginOrigin }
 
 const EXTENSION_EXTS = new Set([".ts", ".js", ".mts", ".cts", ".mjs", ".cjs"]);
 
+const CANONICAL_PACKAGE_ID_ALIASES: Record<string, string> = {
+  "elevenlabs-speech": "elevenlabs",
+  "microsoft-speech": "microsoft",
+  "ollama-provider": "ollama",
+  "sglang-provider": "sglang",
+  "vllm-provider": "vllm",
+};
+
 export type PluginCandidate = {
   idHint: string;
   source: string;
+  setupSource?: string;
   rootDir: string;
   origin: PluginOrigin;
   format?: PluginFormat;
@@ -336,12 +345,7 @@ function deriveIdHint(params: {
   const unscoped = rawPackageName.includes("/")
     ? (rawPackageName.split("/").pop() ?? rawPackageName)
     : rawPackageName;
-  const canonicalPackageId =
-    {
-      "ollama-provider": "ollama",
-      "sglang-provider": "sglang",
-      "vllm-provider": "vllm",
-    }[unscoped] ?? unscoped;
+  const canonicalPackageId = CANONICAL_PACKAGE_ID_ALIASES[unscoped] ?? unscoped;
 
   if (!params.hasMultipleExtensions) {
     return canonicalPackageId;
@@ -355,6 +359,7 @@ function addCandidate(params: {
   seen: Set<string>;
   idHint: string;
   source: string;
+  setupSource?: string;
   rootDir: string;
   origin: PluginOrigin;
   format?: PluginFormat;
@@ -385,6 +390,7 @@ function addCandidate(params: {
   params.candidates.push({
     idHint: params.idHint,
     source: resolved,
+    setupSource: params.setupSource,
     rootDir: resolvedRoot,
     origin: params.origin,
     format: params.format ?? "openclaw",
@@ -520,6 +526,17 @@ function discoverInDirectory(params: {
     const manifest = readPackageManifest(fullPath, rejectHardlinks);
     const extensionResolution = resolvePackageExtensionEntries(manifest ?? undefined);
     const extensions = extensionResolution.status === "ok" ? extensionResolution.entries : [];
+    const setupEntryPath = getPackageManifestMetadata(manifest ?? undefined)?.setupEntry;
+    const setupSource =
+      typeof setupEntryPath === "string" && setupEntryPath.trim().length > 0
+        ? resolvePackageEntrySource({
+            packageDir: fullPath,
+            entryPath: setupEntryPath,
+            sourceLabel: fullPath,
+            diagnostics: params.diagnostics,
+            rejectHardlinks,
+          })
+        : null;
 
     if (extensions.length > 0) {
       for (const extPath of extensions) {
@@ -543,6 +560,7 @@ function discoverInDirectory(params: {
             hasMultipleExtensions: extensions.length > 1,
           }),
           source: resolved,
+          ...(setupSource ? { setupSource } : {}),
           rootDir: fullPath,
           origin: params.origin,
           ownershipUid: params.ownershipUid,
@@ -577,6 +595,7 @@ function discoverInDirectory(params: {
         seen: params.seen,
         idHint: entry.name,
         source: indexFile,
+        ...(setupSource ? { setupSource } : {}),
         rootDir: fullPath,
         origin: params.origin,
         ownershipUid: params.ownershipUid,
@@ -637,6 +656,17 @@ function discoverFromPath(params: {
     const manifest = readPackageManifest(resolved, rejectHardlinks);
     const extensionResolution = resolvePackageExtensionEntries(manifest ?? undefined);
     const extensions = extensionResolution.status === "ok" ? extensionResolution.entries : [];
+    const setupEntryPath = getPackageManifestMetadata(manifest ?? undefined)?.setupEntry;
+    const setupSource =
+      typeof setupEntryPath === "string" && setupEntryPath.trim().length > 0
+        ? resolvePackageEntrySource({
+            packageDir: resolved,
+            entryPath: setupEntryPath,
+            sourceLabel: resolved,
+            diagnostics: params.diagnostics,
+            rejectHardlinks,
+          })
+        : null;
 
     if (extensions.length > 0) {
       for (const extPath of extensions) {
@@ -660,6 +690,7 @@ function discoverFromPath(params: {
             hasMultipleExtensions: extensions.length > 1,
           }),
           source,
+          ...(setupSource ? { setupSource } : {}),
           rootDir: resolved,
           origin: params.origin,
           ownershipUid: params.ownershipUid,
@@ -695,6 +726,7 @@ function discoverFromPath(params: {
         seen: params.seen,
         idHint: path.basename(resolved),
         source: indexFile,
+        ...(setupSource ? { setupSource } : {}),
         rootDir: resolved,
         origin: params.origin,
         ownershipUid: params.ownershipUid,

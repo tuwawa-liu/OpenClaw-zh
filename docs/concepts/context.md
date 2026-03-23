@@ -160,7 +160,12 @@ Skill 指令默认*不*包含。模型应该**仅在需要时**`read` Skill 的 
 
 ## `/context` 实际报告什么
 
-`/context` 在可用时优先使用最新的**运行构建的**系统提示词报告：
+By default, OpenClaw uses the built-in `legacy` context engine for assembly and
+compaction. If you install a plugin that provides `kind: "context-engine"` and
+select it with `plugins.slots.contextEngine`, OpenClaw delegates context
+assembly, `/compact`, and related subagent context lifecycle hooks to that
+engine instead. See [Context Engine](/concepts/context-engine) for the full
+pluggable interface, lifecycle hooks, and configuration.
 
 - `System prompt (run)` = 从最后一次嵌入式（具有工具能力的）运行中捕获，并持久化在会话存储中。
 - `System prompt (estimate)` = 当没有运行报告存在时（或通过不生成报告的 CLI 后端运行时）即时计算。

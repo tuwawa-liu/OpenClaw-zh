@@ -73,8 +73,8 @@ ClawHub 是 OpenClaw 的公共 Skills 注册表。浏览 https://clawhub.com。�
 
 ```markdown
 ---
-name: nano-banana-pro
-description: Generate or edit images via Gemini 3 Pro Image
+name: image-lab
+description: Generate or edit images via a provider-backed image workflow
 ---
 ```
 
@@ -101,8 +101,8 @@ OpenClaw 使用 `metadata`（单行 JSON）**在加载时过滤 Skills**：
 
 ```markdown
 ---
-name: nano-banana-pro
-description: Generate or edit images via Gemini 3 Pro Image
+name: image-lab
+description: Generate or edit images via a provider-backed image workflow
 metadata:
   {
     "openclaw":
@@ -178,7 +178,7 @@ metadata:
 {
   skills: {
     entries: {
-      "nano-banana-pro": {
+      "image-lab": {
         enabled: true,
         apiKey: "GEMINI_KEY_HERE",
         env: {
@@ -198,7 +198,12 @@ metadata:
 
 注意：如果 Skills 名称包含连字符，请用引号括起键名（JSON5 允许带引号的键名）。
 
-配置键默认匹配 **Skills 名称**。如果 Skills 定义了 `metadata.openclaw.skillKey`，请在 `skills.entries` 下使用该键。
+If you want stock image generation/editing inside OpenClaw itself, use the core
+`image_generate` tool with `agents.defaults.imageGenerationModel` instead of a
+bundled skill. Skill examples here are for custom or third-party workflows.
+
+Config keys match the **skill name** by default. If a skill defines
+`metadata.openclaw.skillKey`, use that key under `skills.entries`.
 
 规则：
 

@@ -34,16 +34,19 @@ openclaw daemon uninstall
 
 ## 常用选项
 
-- `status`：`--url`、`--token`、`--password`、`--timeout`、`--no-probe`、`--deep`、`--json`
-- `install`：`--port`、`--runtime <node|bun>`、`--token`、`--force`、`--json`
-- 生命周期（`uninstall|start|stop|restart`）：`--json`
+- `status`: `--url`, `--token`, `--password`, `--timeout`, `--no-probe`, `--require-rpc`, `--deep`, `--json`
+- `install`: `--port`, `--runtime <node|bun>`, `--token`, `--force`, `--json`
+- lifecycle (`uninstall|start|stop|restart`): `--json`
 
 说明：
 
-- `status` 在可能的情况下解析已配置的认证 SecretRef 用于探测认证。
-- 当令牌认证需要令牌且 `gateway.auth.token` 由 SecretRef 管理时，`install` 会验证 SecretRef 可解析，但不会将解析后的令牌持久化到服务环境元数据中。
-- 如果令牌认证需要令牌且配置的令牌 SecretRef 未解析，install 会安全失败。
-- 如果同时配置了 `gateway.auth.token` 和 `gateway.auth.password` 且 `gateway.auth.mode` 未设置，install 会被阻止直到显式设置模式。
+- `status` resolves configured auth SecretRefs for probe auth when possible.
+- If a required auth SecretRef is unresolved in this command path, `daemon status --json` reports `rpc.authWarning` when probe connectivity/auth fails; pass `--token`/`--password` explicitly or resolve the secret source first.
+- If the probe succeeds, unresolved auth-ref warnings are suppressed to avoid false positives.
+- On Linux systemd installs, `status` token-drift checks include both `Environment=` and `EnvironmentFile=` unit sources.
+- When token auth requires a token and `gateway.auth.token` is SecretRef-managed, `install` validates that the SecretRef is resolvable but does not persist the resolved token into service environment metadata.
+- If token auth requires a token and the configured token SecretRef is unresolved, install fails closed.
+- If both `gateway.auth.token` and `gateway.auth.password` are configured and `gateway.auth.mode` is unset, install is blocked until mode is set explicitly.
 
 ## 推荐
 

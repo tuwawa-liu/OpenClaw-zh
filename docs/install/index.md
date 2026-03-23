@@ -17,7 +17,168 @@ x-i18n:
 
 除非有特殊原因，否则请使用安装器。它会设置 CLI 并运行新手引导。
 
-## 快速安装（推荐）
+## System requirements
+
+- **[Node 24 (recommended)](/install/node)** (Node 22 LTS, currently `22.16+`, is still supported for compatibility; the [installer script](#install-methods) will install Node 24 if missing)
+- macOS, Linux, or Windows
+- `pnpm` only if you build from source
+
+<Note>
+On Windows, we strongly recommend running OpenClaw under [WSL2](https://learn.microsoft.com/en-us/windows/wsl/install).
+</Note>
+
+## Install methods
+
+<Tip>
+The **installer script** is the recommended way to install OpenClaw. It handles Node detection, installation, and onboarding in one step.
+</Tip>
+
+<Warning>
+For VPS/cloud hosts, avoid third-party "1-click" marketplace images when possible. Prefer a clean base OS image (for example Ubuntu LTS), then install OpenClaw yourself with the installer script.
+</Warning>
+
+<AccordionGroup>
+  <Accordion title="Installer script" icon="rocket" defaultOpen>
+    Downloads the CLI, installs it globally via npm, and launches onboarding.
+
+    <Tabs>
+      <Tab title="macOS / Linux / WSL2">
+        ```bash
+        curl -fsSL https://openclaw.ai/install.sh | bash
+        ```
+      </Tab>
+      <Tab title="Windows (PowerShell)">
+        ```powershell
+        iwr -useb https://openclaw.ai/install.ps1 | iex
+        ```
+      </Tab>
+    </Tabs>
+
+    That's it — the script handles Node detection, installation, and onboarding.
+
+    To skip onboarding and just install the binary:
+
+    <Tabs>
+      <Tab title="macOS / Linux / WSL2">
+        ```bash
+        curl -fsSL https://openclaw.ai/install.sh | bash -s -- --no-onboard
+        ```
+      </Tab>
+      <Tab title="Windows (PowerShell)">
+        ```powershell
+        & ([scriptblock]::Create((iwr -useb https://openclaw.ai/install.ps1))) -NoOnboard
+        ```
+      </Tab>
+    </Tabs>
+
+    For all flags, env vars, and CI/automation options, see [Installer internals](/install/installer).
+
+  </Accordion>
+
+  <Accordion title="npm / pnpm" icon="package">
+    If you already manage Node yourself, we recommend Node 24. OpenClaw still supports Node 22 LTS, currently `22.16+`, for compatibility:
+
+    <Tabs>
+      <Tab title="npm">
+        ```bash
+        npm install -g openclaw@latest
+        openclaw onboard --install-daemon
+        ```
+
+        <Accordion title="sharp build errors?">
+          If you have libvips installed globally (common on macOS via Homebrew) and `sharp` fails, force prebuilt binaries:
+
+          ```bash
+          SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm install -g openclaw@latest
+          ```
+
+          If you see `sharp: Please add node-gyp to your dependencies`, either install build tooling (macOS: Xcode CLT + `npm install -g node-gyp`) or use the env var above.
+        </Accordion>
+      </Tab>
+      <Tab title="pnpm">
+        ```bash
+        pnpm add -g openclaw@latest
+        pnpm approve-builds -g        # approve openclaw, node-llama-cpp, sharp, etc.
+        openclaw onboard --install-daemon
+        ```
+
+        <Note>
+        pnpm requires explicit approval for packages with build scripts. After the first install shows the "Ignored build scripts" warning, run `pnpm approve-builds -g` and select the listed packages.
+        </Note>
+      </Tab>
+    </Tabs>
+
+    Want the current GitHub `main` head with a package-manager install?
+
+    ```bash
+    npm install -g github:openclaw/openclaw#main
+    ```
+
+    ```bash
+    pnpm add -g github:openclaw/openclaw#main
+    ```
+
+  </Accordion>
+
+  <Accordion title="From source" icon="github">
+    For contributors or anyone who wants to run from a local checkout.
+
+    <Steps>
+      <Step title="Clone and build">
+        Clone the [OpenClaw repo](https://github.com/openclaw/openclaw) and build:
+
+        ```bash
+        git clone https://github.com/openclaw/openclaw.git
+        cd openclaw
+        pnpm install
+        pnpm ui:build
+        pnpm build
+        ```
+      </Step>
+      <Step title="Link the CLI">
+        Make the `openclaw` command available globally:
+
+        ```bash
+        pnpm link --global
+        ```
+
+        Alternatively, skip the link and run commands via `pnpm openclaw ...` from inside the repo.
+      </Step>
+      <Step title="Run onboarding">
+        ```bash
+        openclaw onboard --install-daemon
+        ```
+      </Step>
+    </Steps>
+
+    For deeper development workflows, see [Setup](/start/setup).
+
+  </Accordion>
+</AccordionGroup>
+
+## Other install methods
+
+<CardGroup cols={2}>
+  <Card title="Docker" href="/install/docker" icon="container">
+    Containerized or headless deployments.
+  </Card>
+  <Card title="Podman" href="/install/podman" icon="container">
+    Rootless container: run `setup-podman.sh` once, then the launch script.
+  </Card>
+  <Card title="Nix" href="/install/nix" icon="snowflake">
+    Declarative install via Nix.
+  </Card>
+  <Card title="Ansible" href="/install/ansible" icon="server">
+    Automated fleet provisioning.
+  </Card>
+  <Card title="Bun" href="/install/bun" icon="zap">
+    CLI-only usage via the Bun runtime.
+  </Card>
+</CardGroup>
+
+## After install
+
+Verify everything is working:
 
 ```bash
 curl -fsSL https://openclaw.ai/install.sh | bash

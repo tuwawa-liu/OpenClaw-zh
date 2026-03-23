@@ -113,7 +113,7 @@ openclaw models auth paste-token --provider anthropic
 ### CLI 设置
 
 ```bash
-# 在新手引导期间粘贴 setup-token
+# Paste a setup-token during setup
 openclaw onboard --auth-choice setup-token
 ```
 

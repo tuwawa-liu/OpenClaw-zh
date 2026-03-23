@@ -26,8 +26,12 @@ openclaw status --usage
 
 注意事项：
 
-- `--deep` 运行实时探测（WhatsApp Web + Telegram + Discord + Google Chat + Slack + Signal）。
-- 当配置了多个智能体时，输出包含每个智能体的会话存储。
-- 概览包含 Gateway 网关 + 节点主机服务安装/运行时状态（如果可用）。
-- 概览包含更新渠道 + git SHA（用于源代码检出）。
-- 更新信息显示在概览中；如果有可用更新，status 会打印提示运行 `openclaw update`（参见[更新](/install/updating)）。
+- `--deep` runs live probes (WhatsApp Web + Telegram + Discord + Google Chat + Slack + Signal).
+- Output includes per-agent session stores when multiple agents are configured.
+- Overview includes Gateway + node host service install/runtime status when available.
+- Overview includes update channel + git SHA (for source checkouts).
+- Update info surfaces in the Overview; if an update is available, status prints a hint to run `openclaw update` (see [Updating](/install/updating)).
+- Read-only status surfaces (`status`, `status --json`, `status --all`) resolve supported SecretRefs for their targeted config paths when possible.
+- If a supported channel SecretRef is configured but unavailable in the current command path, status stays read-only and reports degraded output instead of crashing. Human output shows warnings such as “configured token unavailable in this command path”, and JSON output includes `secretDiagnostics`.
+- When command-local SecretRef resolution succeeds, status prefers the resolved snapshot and clears transient “secret unavailable” channel markers from the final output.
+- `status --all` includes a Secrets overview row and a diagnosis section that summarizes secret diagnostics (truncated for readability) without stopping report generation.

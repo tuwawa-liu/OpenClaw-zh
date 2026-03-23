@@ -6,12 +6,27 @@ import {
   hasConfiguredSecretInput,
   normalizeSecretInputString,
 } from "../config/types.secrets.js";
-import { t } from "../i18n/index.js";
+import { enablePluginInConfig } from "../plugins/enable.js";
+import { resolvePluginWebSearchProviders } from "../plugins/web-search-providers.js";
 import type { RuntimeEnv } from "../runtime.js";
 import type { WizardPrompter } from "../wizard/prompts.js";
 import type { SecretInputMode } from "./onboard-types.js";
 
-export type SearchProvider = string;
+export type SearchProvider = NonNullable<
+  NonNullable<NonNullable<NonNullable<OpenClawConfig["tools"]>["web"]>["search"]>["provider"]
+>;
+
+const SEARCH_PROVIDER_IDS = ["brave", "firecrawl", "gemini", "grok", "kimi", "perplexity"] as const;
+
+function isSearchProvider(value: string): value is SearchProvider {
+  return (SEARCH_PROVIDER_IDS as readonly string[]).includes(value);
+}
+
+function hasSearchProviderId<T extends { id: string }>(
+  provider: T,
+): provider is T & { id: SearchProvider } {
+  return isSearchProvider(provider.id);
+}
 
 type SearchProviderEntry = {
   value: SearchProvider;
@@ -22,48 +37,19 @@ type SearchProviderEntry = {
   signupUrl: string;
 };
 
-export const SEARCH_PROVIDER_OPTIONS: readonly SearchProviderEntry[] = [
-  {
-    value: "brave",
-    label: "Brave 搜索",
-    hint: t("onboardSearch.braveHint"),
-    envKeys: ["BRAVE_API_KEY"],
-    placeholder: "BSA...",
-    signupUrl: "https://brave.com/search/api/",
-  },
-  {
-    value: "gemini",
-    label: "Gemini（Google 搜索）",
-    hint: t("onboardSearch.geminiHint"),
-    envKeys: ["GEMINI_API_KEY"],
-    placeholder: "AIza...",
-    signupUrl: "https://aistudio.google.com/apikey",
-  },
-  {
-    value: "grok",
-    label: "Grok (xAI)",
-    hint: t("onboardSearch.grokHint"),
-    envKeys: ["XAI_API_KEY"],
-    placeholder: "xai-...",
-    signupUrl: "https://console.x.ai/",
-  },
-  {
-    value: "kimi",
-    label: "Kimi (Moonshot)",
-    hint: t("onboardSearch.kimiHint"),
-    envKeys: ["KIMI_API_KEY", "MOONSHOT_API_KEY"],
-    placeholder: "sk-...",
-    signupUrl: "https://platform.moonshot.cn/",
-  },
-  {
-    value: "perplexity",
-    label: "Perplexity 搜索",
-    hint: t("onboardSearch.perplexityHint"),
-    envKeys: ["PERPLEXITY_API_KEY"],
-    placeholder: "pplx-...",
-    signupUrl: "https://www.perplexity.ai/settings/api",
-  },
-] as const;
+export const SEARCH_PROVIDER_OPTIONS: readonly SearchProviderEntry[] =
+  resolvePluginWebSearchProviders({
+    bundledAllowlistCompat: true,
+  })
+    .filter(hasSearchProviderId)
+    .map((provider) => ({
+      value: provider.id,
+      label: provider.label,
+      hint: provider.hint,
+      envKeys: provider.envVars,
+      placeholder: provider.placeholder,
+      signupUrl: provider.signupUrl,
+    }));
 
 export function hasKeyInEnv(entry: SearchProviderEntry): boolean {
   return entry.envKeys.some((k) => Boolean(process.env[k]?.trim()));
@@ -129,17 +115,21 @@ export function applySearchKey(
   if (entry) {
     entry.setCredentialValue(search as Record<string, unknown>, key);
   }
-  return {
+  const next = {
     ...config,
     tools: {
       ...config.tools,
       web: { ...config.tools?.web, search },
     },
   };
+  if (provider !== "firecrawl") {
+    return next;
+  }
+  return enablePluginInConfig(next, "firecrawl").config;
 }
 
 function applyProviderOnly(config: OpenClawConfig, provider: SearchProvider): OpenClawConfig {
-  return {
+  const next = {
     ...config,
     tools: {
       ...config.tools,
@@ -153,6 +143,10 @@ function applyProviderOnly(config: OpenClawConfig, provider: SearchProvider): Op
       },
     },
   };
+  if (provider !== "firecrawl") {
+    return next;
+  }
+  return enablePluginInConfig(next, "firecrawl").config;
 }
 
 function preserveDisabledState(original: OpenClawConfig, result: OpenClawConfig): OpenClawConfig {
@@ -209,7 +203,7 @@ export async function setupSearch(
     return SEARCH_PROVIDER_OPTIONS[0].value;
   })();
 
-  type PickerValue = string;
+  type PickerValue = SearchProvider | "__skip__";
   const choice = await prompter.select<PickerValue>({
     message: t("onboardSearch.searchProvider"),
     options: [

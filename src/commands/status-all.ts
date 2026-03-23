@@ -45,12 +45,13 @@ export async function statusAllCommand(
   await withProgress({ label: t("commands.statusAll.scanning"), total: 11 }, async (progress) => {
     progress.setLabel(t("commands.statusAll.loadingConfig"));
     const loadedRaw = await readBestEffortConfig();
-    const { resolvedConfig: cfg } = await resolveCommandSecretRefsViaGateway({
-      config: loadedRaw,
-      commandName: "status --all",
-      targetIds: getStatusCommandSecretTargetIds(),
-      mode: "summary",
-    });
+    const { resolvedConfig: cfg, diagnostics: secretDiagnostics } =
+      await resolveCommandSecretRefsViaGateway({
+        config: loadedRaw,
+        commandName: "status --all",
+        targetIds: getStatusCommandSecretTargetIds(),
+        mode: "read_only_status",
+      });
     const osSummary = resolveOsSummary();
     const snap = await readConfigFileSnapshot().catch(() => null);
     progress.tick();
@@ -329,6 +330,13 @@ export async function statusAllCommand(
         Item: t("commands.statusAll.agents"),
         Value: t("commands.statusAll.agentsSummary", { total: String(agentStatus.agents.length), bootstrapping: String(agentStatus.bootstrapPendingCount), active: String(aliveAgents), sessions: String(agentStatus.totalSessions) }),
       },
+      {
+        Item: "Secrets",
+        Value:
+          secretDiagnostics.length > 0
+            ? `${secretDiagnostics.length} diagnostic${secretDiagnostics.length === 1 ? "" : "s"}`
+            : "none",
+      },
     ];
 
     const lines = await buildStatusAllReportLines({
@@ -344,6 +352,7 @@ export async function statusAllCommand(
       diagnosis: {
         snap,
         remoteUrlMissing,
+        secretDiagnostics,
         sentinel,
         lastErr,
         port,

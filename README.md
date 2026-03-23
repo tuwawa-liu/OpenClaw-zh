@@ -24,9 +24,12 @@
 **OpenClaw** 是一个运行在你自己设备上的 _个人 AI 助手_。
 它可以在你日常使用的各种渠道（WhatsApp、Telegram、Slack、Discord、Google Chat、Signal、iMessage、BlueBubbles、IRC、Microsoft Teams、Matrix、飞书、LINE、Mattermost、Nextcloud Talk、Nostr、Synology Chat、Tlon、Twitch、Zalo、Zalo Personal、WebChat）上回复你。它可以在 macOS/iOS/Android 上进行语音对话，还可以渲染你控制的实时 Canvas。Gateway 只是控制平面——产品本身是助手。
 
-如果你想要一个本地优先、快速且始终在线的个人单用户助手，这就是你需要的。
+[Website](https://openclaw.ai) · [Docs](https://docs.openclaw.ai) · [Vision](VISION.md) · [DeepWiki](https://deepwiki.com/openclaw/openclaw) · [Getting Started](https://docs.openclaw.ai/start/getting-started) · [Updating](https://docs.openclaw.ai/install/updating) · [Showcase](https://docs.openclaw.ai/start/showcase) · [FAQ](https://docs.openclaw.ai/help/faq) · [Onboarding](https://docs.openclaw.ai/start/wizard) · [Nix](https://github.com/openclaw/nix-openclaw) · [Docker](https://docs.openclaw.ai/install/docker) · [Discord](https://discord.gg/clawd)
 
-[上游项目](https://github.com/openclaw/openclaw) · [上游官网](https://openclaw.ai) · [上游文档](https://docs.openclaw.ai) · [愿景](VISION.md) · [DeepWiki](https://deepwiki.com/openclaw/openclaw) · [快速入门](https://docs.openclaw.ai/start/getting-started) · [更新指南](https://docs.openclaw.ai/install/updating) · [案例展示](https://docs.openclaw.ai/start/showcase) · [常见问题](https://docs.openclaw.ai/help/faq) · [入门向导](https://docs.openclaw.ai/start/wizard) · [Nix](https://github.com/openclaw/nix-openclaw) · [Docker](https://docs.openclaw.ai/install/docker) · [Discord](https://discord.gg/clawd)
+Preferred setup: run `openclaw onboard` in your terminal.
+OpenClaw Onboard guides you step by step through setting up the gateway, workspace, channels, and skills. It is the recommended CLI setup path and works on **macOS, Linux, and Windows (via WSL2; strongly recommended)**.
+Works with npm, pnpm, or bun.
+New install? Start here: [Getting started](https://docs.openclaw.ai/start/getting-started)
 
 推荐方式：运行入门向导（`openclaw onboard`）。
 向导会逐步引导你完成 Gateway、工作区、频道和技能的配置。CLI 向导是推荐路径，适用于 **macOS、Linux 和 Windows（通过 WSL2；强烈推荐）**。
@@ -91,13 +94,7 @@ npm install -g chinese-openclaw@latest
 openclaw onboard --install-daemon
 ```
 
-> 如果提示 `openclaw: command not found`，需要将 npm 全局路径加入 PATH：
->
-> ```bash
-> export PATH="$(npm prefix -g)/bin:$PATH"
-> ```
->
-> 将上面这行添加到你的 `~/.bashrc` 或 `~/.zshrc` 中。
+OpenClaw Onboard installs the Gateway daemon (launchd/systemd user service) so it stays running.
 
 向导会安装 Gateway 守护进程（launchd/systemd 用户服务），使其持续运行。
 
@@ -383,14 +380,14 @@ Telegram/WhatsApp/Signal/iMessage/Microsoft Teams/Discord/Google Chat/Slack 上�
 
 ## 亮点
 
-- **[本地优先 Gateway](https://docs.openclaw.ai/gateway)** — 用于会话、频道、工具和事件的单一控制平面。
-- **[多频道收件箱](https://docs.openclaw.ai/channels)** — WhatsApp、Telegram、Slack、Discord、Google Chat、Signal、BlueBubbles（iMessage）、iMessage（旧版）、IRC、Microsoft Teams、Matrix、飞书、LINE、Mattermost、Nextcloud Talk、Nostr、Synology Chat、Tlon、Twitch、Zalo、Zalo Personal、WebChat、macOS、iOS/Android。
-- **[多智能体路由](https://docs.openclaw.ai/gateway/configuration)** — 将入站频道/账户/对等端路由到隔离的智能体（工作区 + 按智能体隔离的会话）。
-- **[语音唤醒](https://docs.openclaw.ai/nodes/voicewake) + [通话模式](https://docs.openclaw.ai/nodes/talk)** — macOS/iOS 上的唤醒词和 Android 上的持续语音（ElevenLabs + 系统 TTS 回退）。
-- **[实时 Canvas](https://docs.openclaw.ai/platforms/mac/canvas)** — 智能体驱动的可视化工作区，支持 [A2UI](https://docs.openclaw.ai/platforms/mac/canvas#canvas-a2ui)。
-- **[一流的工具支持](https://docs.openclaw.ai/tools)** — 浏览器、Canvas、节点、定时任务、会话和 Discord/Slack 操作。
-- **[配套应用](https://docs.openclaw.ai/platforms/macos)** — macOS 菜单栏应用 + iOS/Android [节点](https://docs.openclaw.ai/nodes)。
-- **[入门向导](https://docs.openclaw.ai/start/wizard) + [技能](https://docs.openclaw.ai/tools/skills)** — 向导式配置，含内置/托管/工作区技能。
+- **[Local-first Gateway](https://docs.openclaw.ai/gateway)** — single control plane for sessions, channels, tools, and events.
+- **[Multi-channel inbox](https://docs.openclaw.ai/channels)** — WhatsApp, Telegram, Slack, Discord, Google Chat, Signal, BlueBubbles (iMessage), iMessage (legacy), IRC, Microsoft Teams, Matrix, Feishu, LINE, Mattermost, Nextcloud Talk, Nostr, Synology Chat, Tlon, Twitch, Zalo, Zalo Personal, WebChat, macOS, iOS/Android.
+- **[Multi-agent routing](https://docs.openclaw.ai/gateway/configuration)** — route inbound channels/accounts/peers to isolated agents (workspaces + per-agent sessions).
+- **[Voice Wake](https://docs.openclaw.ai/nodes/voicewake) + [Talk Mode](https://docs.openclaw.ai/nodes/talk)** — wake words on macOS/iOS and continuous voice on Android (ElevenLabs + system TTS fallback).
+- **[Live Canvas](https://docs.openclaw.ai/platforms/mac/canvas)** — agent-driven visual workspace with [A2UI](https://docs.openclaw.ai/platforms/mac/canvas#canvas-a2ui).
+- **[First-class tools](https://docs.openclaw.ai/tools)** — browser, canvas, nodes, cron, sessions, and Discord/Slack actions.
+- **[Companion apps](https://docs.openclaw.ai/platforms/macos)** — macOS menu bar app + iOS/Android [nodes](https://docs.openclaw.ai/nodes).
+- **[Onboarding](https://docs.openclaw.ai/start/wizard) + [skills](https://docs.openclaw.ai/tools/skills)** — onboarding-driven setup with bundled/managed/workspace skills.
 
 ## Star 历史
 
@@ -400,11 +397,11 @@ Telegram/WhatsApp/Signal/iMessage/Microsoft Teams/Discord/Google Chat/Slack 上�
 
 ### 核心平台
 
-- [Gateway WebSocket 控制平面](https://docs.openclaw.ai/gateway)，包含会话、在线状态、配置、定时任务、Webhooks、[控制面板 UI](https://docs.openclaw.ai/web) 和 [Canvas 宿主](https://docs.openclaw.ai/platforms/mac/canvas#canvas-a2ui)。
-- [CLI 界面](https://docs.openclaw.ai/tools/agent-send)：gateway、agent、send、[向导](https://docs.openclaw.ai/start/wizard) 和 [doctor](https://docs.openclaw.ai/gateway/doctor)。
-- [Pi 智能体运行时](https://docs.openclaw.ai/concepts/agent)，RPC 模式，支持工具流式传输和块流式传输。
-- [会话模型](https://docs.openclaw.ai/concepts/session)：`main` 用于直接聊天、群组隔离、激活模式、队列模式、回复转发。群组规则：[群组](https://docs.openclaw.ai/channels/groups)。
-- [媒体管道](https://docs.openclaw.ai/nodes/images)：图片/音频/视频、转录钩子、大小限制、临时文件生命周期。音频详情：[音频](https://docs.openclaw.ai/nodes/audio)。
+- [Gateway WS control plane](https://docs.openclaw.ai/gateway) with sessions, presence, config, cron, webhooks, [Control UI](https://docs.openclaw.ai/web), and [Canvas host](https://docs.openclaw.ai/platforms/mac/canvas#canvas-a2ui).
+- [CLI surface](https://docs.openclaw.ai/tools/agent-send): gateway, agent, send, [onboarding](https://docs.openclaw.ai/start/wizard), and [doctor](https://docs.openclaw.ai/gateway/doctor).
+- [Pi agent runtime](https://docs.openclaw.ai/concepts/agent) in RPC mode with tool streaming and block streaming.
+- [Session model](https://docs.openclaw.ai/concepts/session): `main` for direct chats, group isolation, activation modes, queue modes, reply-back. Group rules: [Groups](https://docs.openclaw.ai/channels/groups).
+- [Media pipeline](https://docs.openclaw.ai/nodes/images): images/audio/video, transcription hooks, size caps, temp file lifecycle. Audio details: [Audio](https://docs.openclaw.ai/nodes/audio).
 
 ### 频道
 
@@ -674,19 +671,19 @@ Gateway 本身就能提供出色的体验。所有应用都是可选的，提供
 
 通过入门流程后，使用以下文档获取更深入的参考。
 
-- [从文档索引开始导航，了解 "什么在哪里"。](https://docs.openclaw.ai)
-- [阅读架构概览，了解 Gateway + 协议模型。](https://docs.openclaw.ai/concepts/architecture)
-- [使用完整配置参考查阅每个配置键和示例。](https://docs.openclaw.ai/gateway/configuration)
-- [按照运行手册规范运行 Gateway。](https://docs.openclaw.ai/gateway)
-- [了解控制面板 UI/Web 界面如何工作以及如何安全地公开它们。](https://docs.openclaw.ai/web)
-- [了解通过 SSH 隧道或尾网的远程访问。](https://docs.openclaw.ai/gateway/remote)
-- [跟随入门向导流程进行引导式配置。](https://docs.openclaw.ai/start/wizard)
-- [通过 Webhook 界面接入外部触发器。](https://docs.openclaw.ai/automation/webhook)
-- [设置 Gmail Pub/Sub 触发器。](https://docs.openclaw.ai/automation/gmail-pubsub)
-- [了解 macOS 菜单栏配套应用详情。](https://docs.openclaw.ai/platforms/mac/menu-bar)
-- [平台指南：Windows（WSL2）](https://docs.openclaw.ai/platforms/windows)、[Linux](https://docs.openclaw.ai/platforms/linux)、[macOS](https://docs.openclaw.ai/platforms/macos)、[iOS](https://docs.openclaw.ai/platforms/ios)、[Android](https://docs.openclaw.ai/platforms/android)
-- [通过故障排除指南调试常见问题。](https://docs.openclaw.ai/channels/troubleshooting)
-- [在公开任何内容之前查阅安全指南。](https://docs.openclaw.ai/gateway/security)
+- [Start with the docs index for navigation and “what’s where.”](https://docs.openclaw.ai)
+- [Read the architecture overview for the gateway + protocol model.](https://docs.openclaw.ai/concepts/architecture)
+- [Use the full configuration reference when you need every key and example.](https://docs.openclaw.ai/gateway/configuration)
+- [Run the Gateway by the book with the operational runbook.](https://docs.openclaw.ai/gateway)
+- [Learn how the Control UI/Web surfaces work and how to expose them safely.](https://docs.openclaw.ai/web)
+- [Understand remote access over SSH tunnels or tailnets.](https://docs.openclaw.ai/gateway/remote)
+- [Follow OpenClaw Onboard for a guided setup.](https://docs.openclaw.ai/start/wizard)
+- [Wire external triggers via the webhook surface.](https://docs.openclaw.ai/automation/webhook)
+- [Set up Gmail Pub/Sub triggers.](https://docs.openclaw.ai/automation/gmail-pubsub)
+- [Learn the macOS menu bar companion details.](https://docs.openclaw.ai/platforms/mac/menu-bar)
+- [Platform guides: Windows (WSL2)](https://docs.openclaw.ai/platforms/windows), [Linux](https://docs.openclaw.ai/platforms/linux), [macOS](https://docs.openclaw.ai/platforms/macos), [iOS](https://docs.openclaw.ai/platforms/ios), [Android](https://docs.openclaw.ai/platforms/android)
+- [Debug common failures with the troubleshooting guide.](https://docs.openclaw.ai/channels/troubleshooting)
+- [Review security guidance before exposing anything.](https://docs.openclaw.ai/gateway/security)
 
 ## 高级文档（发现 + 控制）
 

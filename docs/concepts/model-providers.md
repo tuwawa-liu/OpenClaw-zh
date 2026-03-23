@@ -20,13 +20,125 @@ x-i18n:
 
 ## 快速规则
 
-- 模型引用使用 `provider/model` 格式（例如：`opencode/claude-opus-4-5`）。
-- 如果设置了 `agents.defaults.models`，它将成为允许列表。
-- CLI 辅助工具：`openclaw onboard`、`openclaw models list`、`openclaw models set <provider/model>`。
+- Model refs use `provider/model` (example: `opencode/claude-opus-4-6`).
+- If you set `agents.defaults.models`, it becomes the allowlist.
+- CLI helpers: `openclaw onboard`, `openclaw models list`, `openclaw models set <provider/model>`.
+- Provider plugins can inject model catalogs via `registerProvider({ catalog })`;
+  OpenClaw merges that output into `models.providers` before writing
+  `models.json`.
+- Provider manifests can declare `providerAuthEnvVars` so generic env-based
+  auth probes do not need to load plugin runtime. The remaining core env-var
+  map is now just for non-plugin/core providers and a few generic-precedence
+  cases such as Anthropic API-key-first onboarding.
+- Provider plugins can also own provider runtime behavior via
+  `resolveDynamicModel`, `prepareDynamicModel`, `normalizeResolvedModel`,
+  `capabilities`, `prepareExtraParams`, `wrapStreamFn`, `formatApiKey`,
+  `refreshOAuth`, `buildAuthDoctorHint`,
+  `isCacheTtlEligible`, `buildMissingAuthMessage`,
+  `suppressBuiltInModel`, `augmentModelCatalog`, `isBinaryThinking`,
+  `supportsXHighThinking`, `resolveDefaultThinkingLevel`,
+  `isModernModelRef`, `prepareRuntimeAuth`, `resolveUsageAuth`, and
+  `fetchUsageSnapshot`.
 
 ## 内置提供商（pi-ai 目录）
 
-OpenClaw 附带 pi-ai 目录。这些提供商**不需要** `models.providers` 配置；只需设置认证 + 选择模型。
+Provider plugins can now own most provider-specific logic while OpenClaw keeps
+the generic inference loop.
+
+Typical split:
+
+- `auth[].run` / `auth[].runNonInteractive`: provider owns onboarding/login
+  flows for `openclaw onboard`, `openclaw models auth`, and headless setup
+- `wizard.setup` / `wizard.modelPicker`: provider owns auth-choice labels,
+  legacy aliases, onboarding allowlist hints, and setup entries in onboarding/model pickers
+- `catalog`: provider appears in `models.providers`
+- `resolveDynamicModel`: provider accepts model ids not present in the local
+  static catalog yet
+- `prepareDynamicModel`: provider needs a metadata refresh before retrying
+  dynamic resolution
+- `normalizeResolvedModel`: provider needs transport or base URL rewrites
+- `capabilities`: provider publishes transcript/tooling/provider-family quirks
+- `prepareExtraParams`: provider defaults or normalizes per-model request params
+- `wrapStreamFn`: provider applies request headers/body/model compat wrappers
+- `formatApiKey`: provider formats stored auth profiles into the runtime
+  `apiKey` string expected by the transport
+- `refreshOAuth`: provider owns OAuth refresh when the shared `pi-ai`
+  refreshers are not enough
+- `buildAuthDoctorHint`: provider appends repair guidance when OAuth refresh
+  fails
+- `isCacheTtlEligible`: provider decides which upstream model ids support prompt-cache TTL
+- `buildMissingAuthMessage`: provider replaces the generic auth-store error
+  with a provider-specific recovery hint
+- `suppressBuiltInModel`: provider hides stale upstream rows and can return a
+  vendor-owned error for direct resolution failures
+- `augmentModelCatalog`: provider appends synthetic/final catalog rows after
+  discovery and config merging
+- `isBinaryThinking`: provider owns binary on/off thinking UX
+- `supportsXHighThinking`: provider opts selected models into `xhigh`
+- `resolveDefaultThinkingLevel`: provider owns default `/think` policy for a
+  model family
+- `isModernModelRef`: provider owns live/smoke preferred-model matching
+- `prepareRuntimeAuth`: provider turns a configured credential into a short
+  lived runtime token
+- `resolveUsageAuth`: provider resolves usage/quota credentials for `/usage`
+  and related status/reporting surfaces
+- `fetchUsageSnapshot`: provider owns the usage endpoint fetch/parsing while
+  core still owns the summary shell and formatting
+
+Current bundled examples:
+
+- `anthropic`: Claude 4.6 forward-compat fallback, auth repair hints, usage
+  endpoint fetching, and cache-TTL/provider-family metadata
+- `openrouter`: pass-through model ids, request wrappers, provider capability
+  hints, and cache-TTL policy
+- `github-copilot`: onboarding/device login, forward-compat model fallback,
+  Claude-thinking transcript hints, runtime token exchange, and usage endpoint
+  fetching
+- `openai`: GPT-5.4 forward-compat fallback, direct OpenAI transport
+  normalization, Codex-aware missing-auth hints, Spark suppression, synthetic
+  OpenAI/Codex catalog rows, thinking/live-model policy, and
+  provider-family metadata
+- `google` and `google-gemini-cli`: Gemini 3.1 forward-compat fallback and
+  modern-model matching; Gemini CLI OAuth also owns auth-profile token
+  formatting, usage-token parsing, and quota endpoint fetching for usage
+  surfaces
+- `moonshot`: shared transport, plugin-owned thinking payload normalization
+- `kilocode`: shared transport, plugin-owned request headers, reasoning payload
+  normalization, Gemini transcript hints, and cache-TTL policy
+- `zai`: GLM-5 forward-compat fallback, `tool_stream` defaults, cache-TTL
+  policy, binary-thinking/live-model policy, and usage auth + quota fetching
+- `mistral`, `opencode`, and `opencode-go`: plugin-owned capability metadata
+- `byteplus`, `cloudflare-ai-gateway`, `huggingface`, `kimi-coding`,
+  `modelstudio`, `nvidia`, `qianfan`, `synthetic`, `together`, `venice`,
+  `vercel-ai-gateway`, and `volcengine`: plugin-owned catalogs only
+- `qwen-portal`: plugin-owned catalog, OAuth login, and OAuth refresh
+- `minimax` and `xiaomi`: plugin-owned catalogs plus usage auth/snapshot logic
+
+The bundled `openai` plugin now owns both provider ids: `openai` and
+`openai-codex`.
+
+That covers providers that still fit OpenClaw's normal transports. A provider
+that needs a totally custom request executor is a separate, deeper extension
+surface.
+
+## API key rotation
+
+- Supports generic provider rotation for selected providers.
+- Configure multiple keys via:
+  - `OPENCLAW_LIVE_<PROVIDER>_KEY` (single live override, highest priority)
+  - `<PROVIDER>_API_KEYS` (comma or semicolon list)
+  - `<PROVIDER>_API_KEY` (primary key)
+  - `<PROVIDER>_API_KEY_*` (numbered list, e.g. `<PROVIDER>_API_KEY_1`)
+- For Google providers, `GOOGLE_API_KEY` is also included as fallback.
+- Key selection order preserves priority and deduplicates values.
+- Requests are retried with the next key only on rate-limit responses (for example `429`, `rate_limit`, `quota`, `resource exhausted`).
+- Non-rate-limit failures fail immediately; no key rotation is attempted.
+- When all candidate keys fail, the final error is returned from the last attempt.
+
+## Built-in providers (pi-ai catalog)
+
+OpenClaw ships with the pi‑ai catalog. These providers require **no**
+`models.providers` config; just set auth + pick a model.
 
 ### OpenAI
 
@@ -90,17 +202,16 @@ OpenClaw 附带 pi-ai 目录。这些提供商**不需要** `models.providers` �
 - 兼容性：使用 `google/gemini-3.1-flash-preview` 的旧版 OpenClaw 配置会规范化为 `google/gemini-3-flash-preview`
 - CLI：`openclaw onboard --auth-choice gemini-api-key`
 
-### Google Vertex、Antigravity 和 Gemini CLI
+### Google Vertex and Gemini CLI
 
-- 提供商：`google-vertex`、`google-antigravity`、`google-gemini-cli`
-- 认证：Vertex 使用 gcloud ADC；Antigravity/Gemini CLI 使用各自的认证流程
-- Antigravity OAuth 作为捆绑插件提供（`google-antigravity-auth`，默认禁用）。
-  - 启用：`openclaw plugins enable google-antigravity-auth`
-  - 登录：`openclaw models auth login --provider google-antigravity --set-default`
-- Gemini CLI OAuth 作为捆绑插件提供（`google-gemini-cli-auth`，默认禁用）。
-  - 启用：`openclaw plugins enable google-gemini-cli-auth`
-  - 登录：`openclaw models auth login --provider google-gemini-cli --set-default`
-  - 注意：你**不需要**将客户端 ID 或密钥粘贴到 `openclaw.json` 中。CLI 登录流程将令牌存储在 Gateway 网关主机的认证配置文件中。
+- Providers: `google-vertex`, `google-gemini-cli`
+- Auth: Vertex uses gcloud ADC; Gemini CLI uses its OAuth flow
+- Caution: Gemini CLI OAuth in OpenClaw is an unofficial integration. Some users have reported Google account restrictions after using third-party clients. Review Google terms and use a non-critical account if you choose to proceed.
+- Gemini CLI OAuth is shipped as part of the bundled `google` plugin.
+  - Enable: `openclaw plugins enable google`
+  - Login: `openclaw models auth login --provider google-gemini-cli --set-default`
+  - Note: you do **not** paste a client id or secret into `openclaw.json`. The CLI login flow stores
+    tokens in auth profiles on the gateway host.
 
 ### Z.AI (GLM)
 

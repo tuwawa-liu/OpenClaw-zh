@@ -53,8 +53,8 @@ Gateway 网关机器必须在 `PATH` 中有可用的 `zca` 二进制文件。
 }
 ```
 
-4. 重启 Gateway 网关（或完成新手引导）。
-5. 私信访问默认为配对模式；首次联系时批准配对码。
+4. Restart the Gateway (or finish setup).
+5. DM access defaults to pairing; approve the pairing code on first contact.
 
 ## 这是什么
 
@@ -86,7 +86,9 @@ openclaw directory groups list --channel zalouser --query "work"
 `channels.zalouser.dmPolicy` 支持：`pairing | allowlist | open | disabled`（默认：`pairing`）。
 `channels.zalouser.allowFrom` 接受用户 ID 或名称。向导会在可用时通过 `zca friend find` 将名称解析为 ID。
 
-通过以下方式批准：
+`channels.zalouser.allowFrom` accepts user IDs or names. During setup, names are resolved to IDs using the plugin's in-process contact lookup.
+
+Approve via:
 
 - `openclaw pairing list zalouser`
 - `openclaw pairing approve zalouser <code>`

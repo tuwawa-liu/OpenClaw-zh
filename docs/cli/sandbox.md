@@ -1,5 +1,7 @@
 ---
-read_when: You are managing sandbox containers or debugging sandbox/tool-policy behavior.
+title: Sandbox CLI
+summary: "Manage sandbox runtimes and inspect effective sandbox policy"
+read_when: "You are managing sandbox runtimes or debugging sandbox/tool-policy behavior."
 status: active
 summary: 管理沙箱容器并检查生效的沙箱策略
 title: 沙箱 CLI
@@ -14,11 +16,23 @@ x-i18n:
 
 # 沙箱 CLI
 
-管理基于 Docker 的沙箱容器，用于隔离智能体执行。
+Manage sandbox runtimes for isolated agent execution.
 
 ## 概述
 
-OpenClaw 可以在隔离的 Docker 容器中运行智能体以确保安全。`sandbox` 命令帮助你管理这些容器，特别是在更新或配置更改后。
+OpenClaw can run agents in isolated sandbox runtimes for security. The `sandbox` commands help you inspect and recreate those runtimes after updates or configuration changes.
+
+Today that usually means:
+
+- Docker sandbox containers
+- SSH sandbox runtimes when `agents.defaults.sandbox.backend = "ssh"`
+- OpenShell sandbox runtimes when `agents.defaults.sandbox.backend = "openshell"`
+
+For `ssh` and OpenShell `remote`, recreate matters more than with Docker:
+
+- the remote workspace is canonical after the initial seed
+- `openclaw sandbox recreate` deletes that canonical remote workspace for the selected scope
+- next use seeds it again from the current local workspace
 
 ## 命令
 
@@ -35,7 +49,7 @@ openclaw sandbox explain --json
 
 ### `openclaw sandbox list`
 
-列出所有沙箱容器及其状态和配置。
+List all sandbox runtimes with their status and configuration.
 
 ```bash
 openclaw sandbox list
@@ -45,15 +59,16 @@ openclaw sandbox list --json     # JSON output
 
 **输出包括：**
 
-- 容器名称和状态（运行中/已停止）
-- Docker 镜像及其是否与配置匹配
-- 创建时间
-- 空闲时间（自上次使用以来的时间）
-- 关联的会话/智能体
+- Runtime name and status
+- Backend (`docker`, `openshell`, etc.)
+- Config label and whether it matches current config
+- Age (time since creation)
+- Idle time (time since last use)
+- Associated session/agent
 
 ### `openclaw sandbox recreate`
 
-移除沙箱容器以强制使用更新的镜像/配置重新创建。
+Remove sandbox runtimes to force recreation with updated config.
 
 ```bash
 openclaw sandbox recreate --all                # Recreate all containers
@@ -71,11 +86,11 @@ openclaw sandbox recreate --all --force        # Skip confirmation
 - `--browser`：仅重新创建浏览器容器
 - `--force`：跳过确认提示
 
-**重要：** 容器会在智能体下次使用时自动重新创建。
+**Important:** Runtimes are automatically recreated when the agent is next used.
 
 ## 使用场景
 
-### 更新 Docker 镜像后
+### After updating a Docker image
 
 ```bash
 # Pull new image
@@ -98,7 +113,38 @@ openclaw sandbox recreate --all
 openclaw sandbox recreate --all
 ```
 
-### 更改 setupCommand 后
+### After changing SSH target or SSH auth material
+
+```bash
+# Edit config:
+# - agents.defaults.sandbox.backend
+# - agents.defaults.sandbox.ssh.target
+# - agents.defaults.sandbox.ssh.workspaceRoot
+# - agents.defaults.sandbox.ssh.identityFile / certificateFile / knownHostsFile
+# - agents.defaults.sandbox.ssh.identityData / certificateData / knownHostsData
+
+openclaw sandbox recreate --all
+```
+
+For the core `ssh` backend, recreate deletes the per-scope remote workspace root
+on the SSH target. The next run seeds it again from the local workspace.
+
+### After changing OpenShell source, policy, or mode
+
+```bash
+# Edit config:
+# - agents.defaults.sandbox.backend
+# - plugins.entries.openshell.config.from
+# - plugins.entries.openshell.config.mode
+# - plugins.entries.openshell.config.policy
+
+openclaw sandbox recreate --all
+```
+
+For OpenShell `remote` mode, recreate deletes the canonical remote workspace
+for that scope. The next run seeds it again from the local workspace.
+
+### After changing setupCommand
 
 ```bash
 openclaw sandbox recreate --all
@@ -115,15 +161,16 @@ openclaw sandbox recreate --agent alfred
 
 ## 为什么需要这个？
 
-**问题：** 当你更新沙箱 Docker 镜像或配置时：
+**Problem:** When you update sandbox configuration:
 
-- 现有容器继续使用旧设置运行
-- 容器仅在空闲 24 小时后才被清理
-- 经常使用的智能体会无限期保持旧容器运行
+- Existing runtimes continue running with old settings
+- Runtimes are only pruned after 24h of inactivity
+- Regularly-used agents keep old runtimes alive indefinitely
 
-**解决方案：** 使用 `openclaw sandbox recreate` 强制移除旧容器。它们会在下次需要时自动使用当前设置重新创建。
+**Solution:** Use `openclaw sandbox recreate` to force removal of old runtimes. They'll be recreated automatically with current settings when next needed.
 
-提示：优先使用 `openclaw sandbox recreate` 而不是手动 `docker rm`。它使用 Gateway 网关的容器命名规则，避免在作用域/会话键更改时出现不匹配。
+Tip: prefer `openclaw sandbox recreate` over manual backend-specific cleanup.
+It uses the Gateway’s runtime registry and avoids mismatches when scope/session keys change.
 
 ## 配置
 
@@ -135,6 +182,7 @@ openclaw sandbox recreate --agent alfred
     "defaults": {
       "sandbox": {
         "mode": "all", // off, non-main, all
+        "backend": "docker", // docker, ssh, openshell
         "scope": "agent", // session, agent, shared
         "docker": {
           "image": "openclaw-sandbox:bookworm-slim",

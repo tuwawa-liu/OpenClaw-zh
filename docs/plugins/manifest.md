@@ -39,16 +39,56 @@ x-i18n:
 
 可选键：
 
-- `kind`（字符串）：插件类型（例如：`"memory"`）。
-- `channels`（数组）：此插件注册的渠道 id（例如：`["matrix"]`）。
-- `providers`（数组）：此插件注册的提供商 id。
-- `skills`（数组）：要加载的 Skills 目录（相对于插件根目录）。
-- `name`（字符串）：插件的显示名称。
-- `description`（字符串）：插件简短描述。
-- `uiHints`（对象）：用于 UI 渲染的配置字段标签/占位符/敏感标志。
-- `version`（字符串）：插件版本（仅供参考）。
+- `kind` (string): plugin kind (examples: `"memory"`, `"context-engine"`).
+- `channels` (array): channel ids registered by this plugin (example: `["matrix"]`).
+- `providers` (array): provider ids registered by this plugin.
+- `providerAuthEnvVars` (object): auth env vars keyed by provider id. Use this
+  when OpenClaw should resolve provider credentials from env without loading
+  plugin runtime first.
+- `providerAuthChoices` (array): cheap onboarding/auth-choice metadata keyed by
+  provider + auth method. Use this when OpenClaw should show a provider in
+  auth-choice pickers, preferred-provider resolution, and CLI help without
+  loading plugin runtime first.
+- `skills` (array): skill directories to load (relative to the plugin root).
+- `name` (string): display name for the plugin.
+- `description` (string): short plugin summary.
+- `uiHints` (object): config field labels/placeholders/sensitive flags for UI rendering.
+- `version` (string): plugin version (informational).
 
-## JSON Schema 要求
+### `providerAuthChoices` shape
+
+Each entry can declare:
+
+- `provider`: provider id
+- `method`: auth method id
+- `choiceId`: stable onboarding/auth-choice id
+- `choiceLabel` / `choiceHint`: picker label + short hint
+- `groupId` / `groupLabel` / `groupHint`: grouped onboarding bucket metadata
+- `optionKey` / `cliFlag` / `cliOption` / `cliDescription`: optional one-flag
+  CLI wiring for simple auth flows such as API keys
+
+Example:
+
+```json
+{
+  "providerAuthChoices": [
+    {
+      "provider": "openrouter",
+      "method": "api-key",
+      "choiceId": "openrouter-api-key",
+      "choiceLabel": "OpenRouter API key",
+      "groupId": "openrouter",
+      "groupLabel": "OpenRouter",
+      "optionKey": "openrouterApiKey",
+      "cliFlag": "--openrouter-api-key",
+      "cliOption": "--openrouter-api-key <key>",
+      "cliDescription": "OpenRouter API key"
+    }
+  ]
+}
+```
+
+## JSON Schema requirements
 
 - **每个插件都必须提供 JSON Schema**，即使不接受任何配置也是如此。
 - 空 Schema 是可以接受的（例如 `{ "type": "object", "additionalProperties": false }`）。
@@ -63,6 +103,19 @@ x-i18n:
 
 ## 注意事项
 
-- 清单对**所有插件**都是必需的，包括从本地文件系统加载的插件。
-- 运行时仍然会单独加载插件模块；清单仅用于发现和验证。
-- 如果你的插件依赖原生模块，请记录构建步骤以及所有包管理器允许列表要求（例如 pnpm 的 `allow-build-scripts` - `pnpm rebuild <package>`）。
+- The manifest is **required for native OpenClaw plugins**, including local filesystem loads.
+- Runtime still loads the plugin module separately; the manifest is only for
+  discovery + validation.
+- `providerAuthEnvVars` is the cheap metadata path for auth probes, env-marker
+  validation, and similar provider-auth surfaces that should not boot plugin
+  runtime just to inspect env names.
+- `providerAuthChoices` is the cheap metadata path for auth-choice pickers,
+  `--auth-choice` resolution, preferred-provider mapping, and simple onboarding
+  CLI flag registration before provider runtime loads.
+- Exclusive plugin kinds are selected through `plugins.slots.*`.
+  - `kind: "memory"` is selected by `plugins.slots.memory`.
+  - `kind: "context-engine"` is selected by `plugins.slots.contextEngine`
+    (default: built-in `legacy`).
+- If your plugin depends on native modules, document the build steps and any
+  package-manager allowlist requirements (for example, pnpm `allow-build-scripts`
+  - `pnpm rebuild <package>`).

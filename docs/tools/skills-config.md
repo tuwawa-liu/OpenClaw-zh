@@ -31,7 +31,7 @@ x-i18n:
       nodeManager: "npm", // npm | pnpm | yarn | bun（Gateway 网关运行时仍为 Node；不推荐 bun）
     },
     entries: {
-      "nano-banana-pro": {
+      "image-lab": {
         enabled: true,
         apiKey: "GEMINI_KEY_HERE",
         env: {
@@ -45,7 +45,11 @@ x-i18n:
 }
 ```
 
-## 字段
+For built-in image generation/editing, prefer `agents.defaults.imageGenerationModel`
+plus the core `image_generate` tool. `skills.entries.*` is only for custom or
+third-party skill workflows.
+
+## Fields
 
 - `allowBundled`：可选的仅用于**内置** Skills 的白名单。设置后，只有列表中的内置 Skills 才有资格（托管/工作区 Skills 不受影响）。
 - `load.extraDirs`：要扫描的附加 Skills 目录（最低优先级）。

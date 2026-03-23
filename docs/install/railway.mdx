@@ -36,15 +36,27 @@ Railway 会：
 
 然后打开：
 
+<<<<<<< HEAD
 - `https://<your-railway-domain>/setup` — 设置向导（需密码保护）
 - `https://<your-railway-domain>/openclaw` — 控制面板 UI
+=======
+- `https://<your-railway-domain>/setup` — web setup (password protected)
+- `https://<your-railway-domain>/openclaw` — Control UI
+>>>>>>> upstream/main
 
 ## 你将获得
 
+<<<<<<< HEAD
 - 托管的 OpenClaw Gateway网关 + 控制面板 UI
 - `/setup` 网页设置向导（无需终端命令）
 - 通过 Railway Volume（`/data`）实现持久化存储，配置/凭证/工作区在重新部署后不会丢失
 - 在 `/setup/export` 导出备份，方便日后从 Railway 迁移
+=======
+- Hosted OpenClaw Gateway + Control UI
+- Web setup at `/setup` (no terminal commands)
+- Persistent storage via Railway Volume (`/data`) so config/credentials/workspace survive redeploys
+- Backup export at `/setup/export` to migrate off Railway later
+>>>>>>> upstream/main
 
 ## 必需的 Railway 设置
 
@@ -77,7 +89,11 @@ Railway 会：
 3. （可选）添加 Telegram/Discord/Slack 令牌。
 4. 点击 **Run setup**。
 
+<<<<<<< HEAD
 如果 Telegram 私信设置为配对模式，设置向导可以批准配对码。
+=======
+If Telegram DMs are set to pairing, web setup can approve the pairing code.
+>>>>>>> upstream/main
 
 ## 获取聊天令牌
 

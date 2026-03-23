@@ -31,12 +31,15 @@ export function displayContainers(containers: SandboxContainerInfo[], runtime: R
   displayItems(
     containers,
     {
-      emptyMessage: t("commands.sandboxDisplay.noContainers"),
-      title: t("commands.sandboxDisplay.containersTitle"),
+      emptyMessage: "No sandbox runtimes found.",
+      title: "📦 Sandbox Runtimes:",
       renderItem: (container, rt) => {
-        rt.log(`  ${container.containerName}`);
-        rt.log(`    ${t("commands.sandboxDisplay.statusLabel")}  ${formatStatus(container.running)}`);
-        rt.log(`    ${t("commands.sandboxDisplay.imageLabel")}   ${container.image} ${formatImageMatch(container.imageMatch)}`);
+        rt.log(`  ${container.runtimeLabel ?? container.containerName}`);
+        rt.log(`    Status:  ${formatStatus(container.running)}`);
+        rt.log(
+          `    ${container.configLabelKind ?? "Image"}:   ${container.image} ${formatImageMatch(container.imageMatch)}`,
+        );
+        rt.log(`    Backend: ${container.backendId ?? "docker"}`);
         rt.log(
           `    ${t("commands.sandboxDisplay.ageLabel")}     ${formatDurationCompact(Date.now() - container.createdAtMs, { spaced: true }) ?? "0s"}`,
         );
@@ -93,9 +96,9 @@ export function displaySummary(
   runtime.log(t("commands.sandboxDisplay.totalSummary", { total: String(totalCount), running: String(runningCount) }));
 
   if (mismatchCount > 0) {
-    runtime.log(`\n${t("commands.sandboxDisplay.imageMismatch", { count: String(mismatchCount) })}`);
+    runtime.log(`\n⚠️  ${mismatchCount} runtime(s) with config mismatch detected.`);
     runtime.log(
-      `   ${t("commands.sandboxDisplay.recreateHint", { command: formatCliCommand("openclaw sandbox recreate --all") })}`,
+      `   Run '${formatCliCommand("openclaw sandbox recreate --all")}' to update all runtimes.`,
     );
   }
 }
@@ -105,12 +108,14 @@ export function displayRecreatePreview(
   browsers: SandboxBrowserInfo[],
   runtime: RuntimeEnv,
 ): void {
-  runtime.log(`\n${t("commands.sandboxDisplay.recreatePreview")}\n`);
+  runtime.log("\nSandbox runtimes to be recreated:\n");
 
   if (containers.length > 0) {
-    runtime.log(t("commands.sandboxDisplay.sandboxContainersLabel"));
+    runtime.log("📦 Sandbox Runtimes:");
     for (const container of containers) {
-      runtime.log(`  - ${container.containerName} (${formatSimpleStatus(container.running)})`);
+      runtime.log(
+        `  - ${container.runtimeLabel ?? container.containerName} [${container.backendId ?? "docker"}] (${formatSimpleStatus(container.running)})`,
+      );
     }
   }
 
@@ -122,7 +127,7 @@ export function displayRecreatePreview(
   }
 
   const total = containers.length + browsers.length;
-  runtime.log(`\n${t("commands.sandboxDisplay.totalContainers", { total: String(total) })}`);
+  runtime.log(`\nTotal: ${total} runtime(s)`);
 }
 
 export function displayRecreateResult(
@@ -132,6 +137,6 @@ export function displayRecreateResult(
   runtime.log(`\n${t("commands.sandboxDisplay.recreateDone", { success: String(result.successCount), fail: String(result.failCount) })}`);
 
   if (result.successCount > 0) {
-    runtime.log(`\n${t("commands.sandboxDisplay.autoRecreate")}`);
+    runtime.log("\nRuntimes will be automatically recreated when the agent is next used.");
   }
 }

@@ -10,6 +10,7 @@ import {
   type BundledExtension,
   type ExtensionPackageJson as PackageJson,
 } from "./lib/bundled-extension-manifest.ts";
+import { listPluginSdkDistArtifacts } from "./lib/plugin-sdk-entries.mjs";
 import { sparkleBuildFloorsFromShortVersion, type SparkleBuildFloors } from "./sparkle-build.ts";
 
 export { collectBundledExtensionManifestErrors } from "./lib/bundled-extension-manifest.ts";
@@ -20,98 +21,11 @@ type PackResult = { files?: PackFile[]; filename?: string; unpackedSize?: number
 const requiredPathGroups = [
   ["dist/index.js", "dist/index.mjs"],
   ["dist/entry.js", "dist/entry.mjs"],
-  "dist/plugin-sdk/index.js",
-  "dist/plugin-sdk/index.d.ts",
-  "dist/plugin-sdk/core.js",
-  "dist/plugin-sdk/core.d.ts",
+  ...listPluginSdkDistArtifacts(),
   "dist/plugin-sdk/root-alias.cjs",
-  "dist/plugin-sdk/compat.js",
-  "dist/plugin-sdk/compat.d.ts",
-  "dist/plugin-sdk/telegram.js",
-  "dist/plugin-sdk/telegram.d.ts",
-  "dist/plugin-sdk/discord.js",
-  "dist/plugin-sdk/discord.d.ts",
-  "dist/plugin-sdk/slack.js",
-  "dist/plugin-sdk/slack.d.ts",
-  "dist/plugin-sdk/signal.js",
-  "dist/plugin-sdk/signal.d.ts",
-  "dist/plugin-sdk/imessage.js",
-  "dist/plugin-sdk/imessage.d.ts",
-  "dist/plugin-sdk/whatsapp.js",
-  "dist/plugin-sdk/whatsapp.d.ts",
-  "dist/plugin-sdk/line.js",
-  "dist/plugin-sdk/line.d.ts",
-  "dist/plugin-sdk/msteams.js",
-  "dist/plugin-sdk/msteams.d.ts",
-  "dist/plugin-sdk/acpx.js",
-  "dist/plugin-sdk/acpx.d.ts",
-  "dist/plugin-sdk/bluebubbles.js",
-  "dist/plugin-sdk/bluebubbles.d.ts",
-  "dist/plugin-sdk/copilot-proxy.js",
-  "dist/plugin-sdk/copilot-proxy.d.ts",
-  "dist/plugin-sdk/device-pair.js",
-  "dist/plugin-sdk/device-pair.d.ts",
-  "dist/plugin-sdk/diagnostics-otel.js",
-  "dist/plugin-sdk/diagnostics-otel.d.ts",
-  "dist/plugin-sdk/diffs.js",
-  "dist/plugin-sdk/diffs.d.ts",
-  "dist/plugin-sdk/feishu.js",
-  "dist/plugin-sdk/feishu.d.ts",
-  "dist/plugin-sdk/google-gemini-cli-auth.js",
-  "dist/plugin-sdk/google-gemini-cli-auth.d.ts",
-  "dist/plugin-sdk/googlechat.js",
-  "dist/plugin-sdk/googlechat.d.ts",
-  "dist/plugin-sdk/irc.js",
-  "dist/plugin-sdk/irc.d.ts",
-  "dist/plugin-sdk/llm-task.js",
-  "dist/plugin-sdk/llm-task.d.ts",
-  "dist/plugin-sdk/lobster.js",
-  "dist/plugin-sdk/lobster.d.ts",
-  "dist/plugin-sdk/matrix.js",
-  "dist/plugin-sdk/matrix.d.ts",
-  "dist/plugin-sdk/mattermost.js",
-  "dist/plugin-sdk/mattermost.d.ts",
-  "dist/plugin-sdk/memory-core.js",
-  "dist/plugin-sdk/memory-core.d.ts",
-  "dist/plugin-sdk/memory-lancedb.js",
-  "dist/plugin-sdk/memory-lancedb.d.ts",
-  "dist/plugin-sdk/minimax-portal-auth.js",
-  "dist/plugin-sdk/minimax-portal-auth.d.ts",
-  "dist/plugin-sdk/nextcloud-talk.js",
-  "dist/plugin-sdk/nextcloud-talk.d.ts",
-  "dist/plugin-sdk/nostr.js",
-  "dist/plugin-sdk/nostr.d.ts",
-  "dist/plugin-sdk/open-prose.js",
-  "dist/plugin-sdk/open-prose.d.ts",
-  "dist/plugin-sdk/phone-control.js",
-  "dist/plugin-sdk/phone-control.d.ts",
-  "dist/plugin-sdk/qwen-portal-auth.js",
-  "dist/plugin-sdk/qwen-portal-auth.d.ts",
-  "dist/plugin-sdk/synology-chat.js",
-  "dist/plugin-sdk/synology-chat.d.ts",
-  "dist/plugin-sdk/talk-voice.js",
-  "dist/plugin-sdk/talk-voice.d.ts",
-  "dist/plugin-sdk/test-utils.js",
-  "dist/plugin-sdk/test-utils.d.ts",
-  "dist/plugin-sdk/thread-ownership.js",
-  "dist/plugin-sdk/thread-ownership.d.ts",
-  "dist/plugin-sdk/tlon.js",
-  "dist/plugin-sdk/tlon.d.ts",
-  "dist/plugin-sdk/twitch.js",
-  "dist/plugin-sdk/twitch.d.ts",
-  "dist/plugin-sdk/voice-call.js",
-  "dist/plugin-sdk/voice-call.d.ts",
-  "dist/plugin-sdk/zalo.js",
-  "dist/plugin-sdk/zalo.d.ts",
-  "dist/plugin-sdk/zalouser.js",
-  "dist/plugin-sdk/zalouser.d.ts",
-  "dist/plugin-sdk/account-id.js",
-  "dist/plugin-sdk/account-id.d.ts",
-  "dist/plugin-sdk/keyed-async-queue.js",
-  "dist/plugin-sdk/keyed-async-queue.d.ts",
   "dist/build-info.json",
 ];
-const forbiddenPrefixes = ["dist/OpenClaw.app/"];
+const forbiddenPrefixes = ["dist-runtime/", "dist/OpenClaw.app/"];
 // 2026.3.12 ballooned to ~213.6 MiB unpacked and correlated with low-memory
 // startup/doctor OOM reports. Keep enough headroom for the current pack while
 // failing fast if duplicate/shim content sneaks back into the release artifact.
@@ -427,31 +341,47 @@ const requiredPluginSdkExports = [
   "DEFAULT_GROUP_HISTORY_LIMIT",
 ];
 
-function checkPluginSdkExports() {
-  const distPath = resolve("dist", "plugin-sdk", "index.js");
-  let content: string;
+async function collectDistPluginSdkExports(): Promise<Set<string>> {
+  const pluginSdkDir = resolve("dist", "plugin-sdk");
+  let entries: string[];
   try {
-    content = readFileSync(distPath, "utf8");
+    entries = readdirSync(pluginSdkDir)
+      .filter((entry) => entry.endsWith(".js"))
+      .toSorted();
   } catch {
-    console.error("release-check: dist/plugin-sdk/index.js not found (build missing?).");
+    console.error("release-check: dist/plugin-sdk directory not found (build missing?).");
     process.exit(1);
-    return;
+    return new Set();
   }
 
-  const exportMatch = content.match(/export\s*\{([^}]+)\}\s*;?\s*$/);
-  if (!exportMatch) {
-    console.error("release-check: could not find export statement in dist/plugin-sdk/index.js.");
-    process.exit(1);
-    return;
+  const exportedNames = new Set<string>();
+  for (const entry of entries) {
+    const content = readFileSync(join(pluginSdkDir, entry), "utf8");
+    for (const match of content.matchAll(/export\s*\{([^}]+)\}(?:\s*from\s*["'][^"']+["'])?/g)) {
+      const names = match[1]?.split(",") ?? [];
+      for (const name of names) {
+        const parts = name.trim().split(/\s+as\s+/);
+        const exportName = (parts[parts.length - 1] || "").trim();
+        if (exportName) {
+          exportedNames.add(exportName);
+        }
+      }
+    }
+    for (const match of content.matchAll(
+      /export\s+(?:const|function|class|let|var)\s+([A-Za-z0-9_$]+)/g,
+    )) {
+      const exportName = match[1]?.trim();
+      if (exportName) {
+        exportedNames.add(exportName);
+      }
+    }
   }
 
-  const exportedNames = new Set(
-    exportMatch[1].split(",").map((s) => {
-      const parts = s.trim().split(/\s+as\s+/);
-      return (parts[parts.length - 1] || "").trim();
-    }),
-  );
+  return exportedNames;
+}
 
+async function checkPluginSdkExports() {
+  const exportedNames = await collectDistPluginSdkExports();
   const missingExports = requiredPluginSdkExports.filter((name) => !exportedNames.has(name));
   if (missingExports.length > 0) {
     console.error("release-check: missing critical plugin-sdk exports (#27569):");
@@ -462,10 +392,10 @@ function checkPluginSdkExports() {
   }
 }
 
-function main() {
+async function main() {
   checkPluginVersions();
   checkAppcastSparkleVersions();
-  checkPluginSdkExports();
+  await checkPluginSdkExports();
   checkBundledExtensionRootDependencyMirrors();
 
   const results = runPackDry();
@@ -509,5 +439,8 @@ function main() {
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
-  main();
+  void main().catch((error: unknown) => {
+    console.error(error);
+    process.exit(1);
+  });
 }

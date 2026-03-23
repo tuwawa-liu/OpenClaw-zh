@@ -281,7 +281,7 @@ uname -m
 
 ## 开机自启
 
-新手引导向导会设置这个，但要验证：
+Onboarding sets this up, but to verify:
 
 ```bash
 # 检查服务是否已启用

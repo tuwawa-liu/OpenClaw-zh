@@ -13,21 +13,22 @@ OpenClaw 支持多种入门路径，取决于 Gateway 运行的位置以及你�
 
 ## 选择入门路径
 
-- **CLI 向导**：适用于 macOS、Linux 和 Windows（通过 WSL2）。
-- **macOS 应用**：适用于在 Apple 芯片或 Intel Mac 上引导式首次运行。
+- **CLI onboarding** for macOS, Linux, and Windows (via WSL2).
+- **macOS app** for a guided first run on Apple silicon or Intel Macs.
 
-## CLI 入门向导
+## CLI onboarding
 
-在终端中运行向导：
+Run onboarding in a terminal:
 
 ```bash
 openclaw onboard
 ```
 
-当你需要完全控制 Gateway、工作区、频道和技能时，请使用 CLI 向导。文档：
+Use CLI onboarding when you want full control of the Gateway, workspace,
+channels, and skills. Docs:
 
-- [入门向导（CLI）](/start/wizard)
-- [`openclaw onboard` 命令](/cli/onboard)
+- [Onboarding (CLI)](/start/wizard)
+- [`openclaw onboard` command](/cli/onboard)
 
 ## macOS 应用入门
 
@@ -37,7 +38,9 @@ openclaw onboard
 
 ## 自定义提供商
 
-如果你需要的端点未在列表中，包括提供标准 OpenAI 或 Anthropic API 的托管服务商，请在 CLI 向导中选择 **Custom Provider（自定义提供商）**。系统会要求你：
+If you need an endpoint that is not listed, including hosted providers that
+expose standard OpenAI or Anthropic APIs, choose **Custom Provider** in the
+CLI onboarding. You will be asked to:
 
 - 选择 OpenAI 兼容、Anthropic 兼容，或 **Unknown（未知）**（自动检测）。
 - 输入基础 URL 和 API 密钥（如果提供商要求）。

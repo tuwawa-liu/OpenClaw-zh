@@ -29,8 +29,14 @@ OpenClaw 控制一个**专用的 Chrome 配置文件**（名为 `openclaw`，橙
 
 两种简单的访问方式：
 
-1. **让智能体打开浏览器**，然后你自己登录。
-2. **通过 CLI 打开**：
+- Default choice: the agent should use its isolated `openclaw` browser.
+- Use `profile="user"` only when existing logged-in sessions matter and the user is at the computer to click/approve any attach prompt.
+- If you have multiple user-browser profiles, specify the profile explicitly instead of guessing.
+
+Two easy ways to access it:
+
+1. **Ask the agent to open the browser** and then log in yourself.
+2. **Open it via CLI**:
 
 ```bash
 openclaw browser start

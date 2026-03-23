@@ -1,7 +1,7 @@
 import {
   DISCORD_DEFAULT_INBOUND_WORKER_TIMEOUT_MS,
   DISCORD_DEFAULT_LISTENER_TIMEOUT_MS,
-} from "../../extensions/discord/src/monitor/timeouts.js";
+} from "../plugin-sdk/discord.js";
 import { MEDIA_AUDIO_FIELD_HELP } from "./media-audio-field-metadata.js";
 import { IRC_FIELD_HELP } from "./schema.irc.js";
 import { describeTalkSilenceTimeoutDefaults } from "./talk-defaults.js";
@@ -20,17 +20,17 @@ export const FIELD_HELP: Record<string, string> = {
   "env.vars":
     "显式键/值环境变量覆盖，合并到 OpenClaw 的运行时进程环境中。使用此项进行确定性环境配置，而不是仅依赖 shell profile 的副作用。",
   wizard:
-    "设置向导状态跟踪字段，记录最近一次引导式入门运行的详情。保留这些字段以便在升级过程中观察和排查设置流程。",
+    "Setup wizard state tracking fields that record the most recent guided setup run details. Keep these fields for observability and troubleshooting of setup flows across upgrades.",
   "wizard.lastRunAt":
-    "设置向导在此主机上最近完成时的 ISO 时间戳。用于在支持和运维审计期间确认入门的时效性。",
+    "ISO timestamp for when the setup wizard most recently completed on this host. Use this to confirm setup recency during support and operational audits.",
   "wizard.lastRunVersion":
-    "此配置上最近一次向导运行时记录的 OpenClaw 版本。用于诊断跨版本入门变更导致的行为差异。",
+    "OpenClaw version recorded at the time of the most recent wizard run on this config. Use this when diagnosing behavior differences across version-to-version setup changes.",
   "wizard.lastRunCommit":
-    "开发构建中最后一次向导执行时记录的源代码提交标识符。用于在调试期间将入门行为与精确的源码状态关联。",
+    "Source commit identifier recorded for the last wizard execution in development builds. Use this to correlate setup behavior with exact source state during debugging.",
   "wizard.lastRunCommand":
-    "为保留执行上下文而记录的最新向导运行命令调用。用于在验证设置回归时重现入门步骤。",
+    "Command invocation recorded for the latest wizard run to preserve execution context. Use this to reproduce setup steps when verifying setup regressions.",
   "wizard.lastRunMode":
-    '最近一次入门流程记录的向导执行模式，为 "local" 或 "remote"。用于了解设置是针对直接本地运行时还是远程网关拓扑。',
+    'Wizard execution mode recorded as "local" or "remote" for the most recent setup flow. Use this to understand whether setup targeted direct local runtime or remote gateway topology.',
   diagnostics:
     "诊断控制，用于调试期间的目标追踪、遥测导出和缓存检查。在生产环境中保持基线诊断最小化，仅在调查问题时启用更深层信号。",
   "diagnostics.otel":
@@ -249,17 +249,17 @@ export const FIELD_HELP: Record<string, string> = {
   "browser.cdpPortRangeStart":
     "用于自动分配浏览器配置文件端口的起始本地 CDP 端口。当主机级端口默认值与其他本地服务冲突时增加。",
   "browser.defaultProfile":
-    "调用者未显式选择配置文件时选择的默认浏览器配置文件名称。使用稳定的低权限配置文件作为默认值，以减少意外的跨上下文状态使用。",
-  "browser.relayBindHost":
-    "Chrome 扩展中继侦听器的绑定 IP 地址。保持未设置以仅回环访问，或仅在中继必须跨网络命名空间可达（例如 WSL2）且周围网络已可信时设置显式的非回环 IP（如 0.0.0.0）。",
+    "Default browser profile name selected when callers do not explicitly choose a profile. Use a stable low-privilege profile as the default to reduce accidental cross-context state use.",
   "browser.profiles":
     "命名的浏览器配置文件连接映射，用于显式路由到 CDP 端口或 URL，带可选元数据。保持配置文件名称一致，避免重叠的端点定义。",
   "browser.profiles.*.cdpPort":
     "按配置文件的本地 CDP 端口，通过端口而非 URL 连接到浏览器实例时使用。每个配置文件使用唯一端口以避免连接冲突。",
   "browser.profiles.*.cdpUrl":
-    "按配置文件的 CDP WebSocket URL，用于按配置文件名称显式远程浏览器路由。当配置文件连接终止在远程主机或隧道时使用。",
+    "Per-profile CDP websocket URL used for explicit remote browser routing by profile name. Use this when profile connections terminate on remote hosts or tunnels.",
+  "browser.profiles.*.userDataDir":
+    "Per-profile Chromium user data directory for existing-session attachment through Chrome DevTools MCP. Use this for host-local Brave, Edge, Chromium, or non-default Chrome profiles when the built-in auto-connect path would pick the wrong browser data directory.",
   "browser.profiles.*.driver":
-    '按配置文件的浏览器驱动模式："openclaw"（或旧版 "clawd"）或 "extension"，取决于连接/运行时策略。使用与你的浏览器控制栈匹配的驱动以避免协议不匹配。',
+    'Per-profile browser driver mode. Use "openclaw" (or legacy "clawd") for CDP-based profiles, or use "existing-session" for host-local Chrome DevTools MCP attachment.',
   "browser.profiles.*.attachOnly":
     "按配置文件的仅连接覆盖，跳过本地浏览器启动，仅连接到现有 CDP 端点。当一个配置文件由外部管理而其他配置文件在本地启动时很有用。",
   "browser.profiles.*.color":
@@ -397,9 +397,9 @@ export const FIELD_HELP: Record<string, string> = {
   "gateway.http.endpoints.chatCompletions.images":
     "OpenAI 兼容 `image_url` 部分的图片获取/验证控制。",
   "gateway.http.endpoints.chatCompletions.images.allowUrl":
-    "允许服务器端 URL 获取 `image_url` 部分（默认：false；data URI 始终支持）。",
+    "Allow server-side URL fetches for `image_url` parts (default: false; data URIs remain supported). Set this to `false` to disable URL fetching entirely.",
   "gateway.http.endpoints.chatCompletions.images.urlAllowlist":
-    "`image_url` URL 获取的可选主机名允许列表；支持精确主机和 `*.example.com` 通配符。",
+    "Optional hostname allowlist for `image_url` URL fetches; supports exact hosts and `*.example.com` wildcards. Empty or omitted lists mean no hostname allowlist restriction.",
   "gateway.http.endpoints.chatCompletions.images.allowedMimes":
     "`image_url` 部分允许的 MIME 类型（不区分大小写列表）。",
   "gateway.http.endpoints.chatCompletions.images.maxBytes":
@@ -409,8 +409,10 @@ export const FIELD_HELP: Record<string, string> = {
   "gateway.http.endpoints.chatCompletions.images.timeoutMs":
     "`image_url` URL 获取的超时时间（毫秒，默认：10000）。",
   "gateway.reload.mode":
-    '控制配置编辑的应用方式："off" 忽略实时编辑，"restart" 始终重启，"hot" 在进程内应用，"hybrid" 先尝试热加载然后在需要时重启。保持 "hybrid" 以获得最安全的常规更新。',
-  "gateway.reload.debounceMs": "应用配置更改前的防抖窗口（毫秒）。",
+    'Controls how config edits are applied: "off" ignores live edits, "restart" always restarts, "hot" applies in-process, and "hybrid" tries hot then restarts if required. Keep "hybrid" for safest routine updates.',
+  "gateway.reload.debounceMs": "Debounce window (ms) before applying config changes.",
+  "gateway.reload.deferralTimeoutMs":
+    "Maximum time (ms) to wait for in-flight operations to complete before forcing a SIGUSR1 restart. Default: 300000 (5 minutes). Lower values risk aborting active subagent LLM calls.",
   "gateway.nodes.browser.mode":
     '节点浏览器路由模式（"auto" = 选择单个已连接的浏览器节点，"manual" = 需要 node 参数，"off" = 禁用）。',
   "gateway.nodes.browser.node": "将浏览器路由固定到特定的节点 ID 或名称（可选）。",
@@ -649,13 +651,17 @@ export const FIELD_HELP: Record<string, string> = {
   "tools.message.broadcast.enabled": "启用广播操作（默认：true）。",
   "tools.web.search.enabled": "启用 web_search 工具（需要提供商 API 密钥）。",
   "tools.web.search.provider":
-    '搜索提供商（"brave"、"gemini"、"grok"、"kimi" 或 "perplexity"）。省略时从可用 API 密钥自动检测。',
-  "tools.web.search.apiKey": "Brave Search API 密钥（回退：BRAVE_API_KEY 环境变量）。",
-  "tools.web.search.maxResults": "返回的结果数量（1-10）。",
-  "tools.web.search.timeoutSeconds": "web_search 请求的超时时间（秒）。",
-  "tools.web.search.cacheTtlMinutes": "web_search 结果的缓存 TTL（分钟）。",
+    'Search provider ("brave", "firecrawl", "gemini", "grok", "kimi", or "perplexity"). Auto-detected from available API keys if omitted.',
+  "tools.web.search.apiKey": "Brave Search API key (fallback: BRAVE_API_KEY env var).",
+  "tools.web.search.maxResults": "Number of results to return (1-10).",
+  "tools.web.search.timeoutSeconds": "Timeout in seconds for web_search requests.",
+  "tools.web.search.cacheTtlMinutes": "Cache TTL in minutes for web_search results.",
   "tools.web.search.brave.mode":
-    'Brave Search 模式："web"（URL 结果）或 "llm-context"（预提取的页面内容用于 LLM 基础）。',
+    'Brave Search mode: "web" (URL results) or "llm-context" (pre-extracted page content for LLM grounding).',
+  "tools.web.search.firecrawl.apiKey":
+    "Firecrawl API key for web search (fallback: FIRECRAWL_API_KEY env var).",
+  "tools.web.search.firecrawl.baseUrl":
+    'Firecrawl Search base URL override (default: "https://api.firecrawl.dev").',
   "tools.web.search.gemini.apiKey":
     "用于 Google Search 基础的 Gemini API 密钥（回退：GEMINI_API_KEY 环境变量）。",
   "tools.web.search.gemini.model": 'Gemini 模型覆盖（默认："gemini-2.5-flash"）。',
@@ -979,16 +985,26 @@ export const FIELD_HELP: Record<string, string> = {
   "plugins.installs.*.shasum":
     "获取工件的已解析 npm dist shasum（如 npm 报告）。",
   "plugins.installs.*.resolvedAt":
-    "此安装记录的 npm 包元数据最后解析的 ISO 时间戳。",
-  "plugins.installs.*.installedAt": "最后安装/更新的 ISO 时间戳。",
+    "ISO timestamp when npm package metadata was last resolved for this install record.",
+  "plugins.installs.*.installedAt": "ISO timestamp of last install/update.",
+  "plugins.installs.*.marketplaceName":
+    "Marketplace display name recorded for marketplace-backed plugin installs (if available).",
+  "plugins.installs.*.marketplaceSource":
+    "Original marketplace source used to resolve the install (for example a repo path or Git URL).",
+  "plugins.installs.*.marketplacePlugin":
+    "Plugin entry name inside the source marketplace, used for later updates.",
   "agents.list.*.identity.avatar":
     "代理头像（工作区相对路径、http(s) URL 或 data URI）。",
   "agents.defaults.model.primary": "主模型（provider/model）。",
   "agents.defaults.model.fallbacks":
     "有序回退模型（provider/model）。主模型失败时使用。",
   "agents.defaults.imageModel.primary":
-    "当主模型缺少图片输入时使用的可选图片模型（provider/model）。",
-  "agents.defaults.imageModel.fallbacks": "有序回退图片模型（provider/model）。",
+    "Optional image model (provider/model) used when the primary model lacks image input.",
+  "agents.defaults.imageModel.fallbacks": "Ordered fallback image models (provider/model).",
+  "agents.defaults.imageGenerationModel.primary":
+    "Optional image-generation model (provider/model) used by the shared image generation capability.",
+  "agents.defaults.imageGenerationModel.fallbacks":
+    "Ordered fallback image-generation models (provider/model).",
   "agents.defaults.pdfModel.primary":
     "PDF 分析工具的可选 PDF 模型（provider/model）。默认回退到 imageModel，然后是会话模型。",
   "agents.defaults.pdfModel.fallbacks": "有序回退 PDF 模型（provider/model）。",
@@ -1057,11 +1073,15 @@ export const FIELD_HELP: Record<string, string> = {
   "commands.bash":
     "允许 bash 聊天命令（`!`；`/bash` 别名）运行主机 shell 命令（默认：false；需要 tools.elevated）。",
   "commands.bashForegroundMs":
-    "bash 在后台执行前等待的时间（默认：2000；0 表示立即后台执行）。",
-  "commands.config": "允许 /config 聊天命令读写磁盘上的配置（默认：false）。",
-  "commands.debug": "允许 /debug 聊天命令进行仅运行时覆盖（默认：false）。",
-  "commands.restart": "允许 /restart 和网关重启工具操作（默认：true）。",
-  "commands.useAccessGroups": "为命令强制执行访问组允许列表/策略。",
+    "How long bash waits before backgrounding (default: 2000; 0 backgrounds immediately).",
+  "commands.config": "Allow /config chat command to read/write config on disk (default: false).",
+  "commands.mcp":
+    "Allow /mcp chat command to manage OpenClaw MCP server config under mcp.servers (default: false).",
+  "commands.plugins":
+    "Allow /plugins chat command to list discovered plugins and toggle plugin enablement in config (default: false).",
+  "commands.debug": "Allow /debug chat command for runtime-only overrides (default: false).",
+  "commands.restart": "Allow /restart and gateway restart tool actions (default: true).",
+  "commands.useAccessGroups": "Enforce access-group allowlists/policies for commands.",
   "commands.ownerAllowFrom":
     "仅所有者工具/命令的显式所有者允许列表。使用频道原生 ID（可选前缀，如 \"whatsapp:+15551234567\"）。'*' 被忽略。",
   "commands.ownerDisplay":
@@ -1069,7 +1089,10 @@ export const FIELD_HELP: Record<string, string> = {
   "commands.ownerDisplaySecret":
     "ownerDisplay=hash 时用于 HMAC 哈希所有者 ID 的可选密钥。建议使用环境变量替换。",
   "commands.allowFrom":
-    "按频道和发送者为所有者级别命令界面定义提升命令允许规则。使用窄范围的提供商特定身份，避免特权命令暴露给广泛的聊天受众。",
+    "Defines elevated command allow rules by channel and sender for owner-level command surfaces. Use narrow provider-specific identities so privileged commands are not exposed to broad chat audiences.",
+  mcp: "Global MCP server definitions managed by OpenClaw. Embedded Pi and other runtime adapters can consume these servers without storing them inside Pi-owned project settings.",
+  "mcp.servers":
+    "Named MCP server definitions. OpenClaw stores them in its own config and runtime adapters decide which transports are supported at execution time.",
   session:
     "全局会话路由、重置、投递策略和会话历史行为的维护控制。保持默认值，除非需要更严格的隔离、保留或投递约束。",
   "session.scope":
@@ -1495,7 +1518,9 @@ export const FIELD_HELP: Record<string, string> = {
   "channels.telegram.network.autoSelectFamily":
     "覆盖 Telegram 的 Node autoSelectFamily（true=启用，false=禁用）。",
   "channels.telegram.timeoutSeconds":
-    "Telegram API 请求超时前的最大秒数（默认：500，按 grammY 约定）。",
+    "Max seconds before Telegram API requests are aborted (default: 500 per grammY).",
+  "channels.telegram.silentErrorReplies":
+    "When true, Telegram bot replies marked as errors are sent silently (no notification sound). Default: false.",
   "channels.telegram.threadBindings.enabled":
     "启用 Telegram 会话绑定功能（/focus、/unfocus、/agents 和 /session idle|max-age）。设置时覆盖 session.threadBindings.enabled。",
   "channels.telegram.threadBindings.idleHours":

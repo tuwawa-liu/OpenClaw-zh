@@ -17,7 +17,11 @@ x-i18n:
 
 OpenClaw 可以在回复流程运行之前**摘要入站媒体**（图片/音频/视频）。它会自动检测本地工具或提供商密钥是否可用，并且可以禁用或自定义。如果理解关闭，模型仍然会像往常一样接收原始文件/URL。
 
-## 目标
+Vendor-specific media behavior is registered by vendor plugins, while OpenClaw
+core owns the shared `tools.media` config, fallback order, and reply-pipeline
+integration.
+
+## Goals
 
 - 可选：将入站媒体预先消化为短文本，以便更快路由 + 更好的命令解析。
 - 保留原始媒体传递给模型（始终）。
@@ -182,14 +186,24 @@ CLI 模板还可以使用：
 | 音频 | OpenAI、Groq、Deepgram、Google                 | 提供商转录（Whisper/Deepgram/Gemini）。 |
 | 视频 | Google（Gemini API）                           | 提供商视频理解。                        |
 
-## 推荐提供商
+- `openai`, `anthropic`, `minimax`: **image**
+- `moonshot`: **image + video**
+- `google` (Gemini API): **image + audio + video**
+- `mistral`: **audio**
+- `zai`: **image**
+- `groq`: **audio**
+- `deepgram`: **audio**
 
 **图片**
 
 - 如果支持图片，优先使用你的活动模型。
 - 良好的默认值：`openai/gpt-5.2`、`anthropic/claude-opus-4-5`、`google/gemini-3-pro-preview`。
 
-**音频**
+| Capability | Provider integration                               | Notes                                                                   |
+| ---------- | -------------------------------------------------- | ----------------------------------------------------------------------- |
+| Image      | OpenAI, Anthropic, Google, MiniMax, Moonshot, Z.AI | Vendor plugins register image support against core media understanding. |
+| Audio      | OpenAI, Groq, Deepgram, Google, Mistral            | Provider transcription (Whisper/Deepgram/Gemini/Voxtral).               |
+| Video      | Google, Moonshot                                   | Provider video understanding via vendor plugins.                        |
 
 - `openai/gpt-4o-mini-transcribe`、`groq/whisper-large-v3-turbo` 或 `deepgram/nova-3`。
 - CLI 回退：`whisper-cli`（whisper-cpp）或 `whisper`。

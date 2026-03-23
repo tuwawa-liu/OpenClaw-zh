@@ -33,7 +33,22 @@ x-i18n:
 - [展示](/start/showcase)
 - [背景故事](/start/lore)
 
-## 安装 + 更新
+- [Index](/)
+- [Getting Started](/start/getting-started)
+- [Quick start](/start/quickstart)
+- [Onboarding](/start/onboarding)
+- [Onboarding (CLI)](/start/wizard)
+- [Setup](/start/setup)
+- [Dashboard (local Gateway)](http://127.0.0.1:18789/)
+- [Help](/help)
+- [Docs directory](/start/docs-directory)
+- [Configuration](/gateway/configuration)
+- [Configuration examples](/gateway/configuration-examples)
+- [OpenClaw assistant](/start/openclaw)
+- [Showcase](/start/showcase)
+- [Lore](/start/lore)
+
+## Installation + updates
 
 - [Docker](/install/docker)
 - [Nix](/install/nix)

@@ -15,6 +15,7 @@ const optionNamesAdd = [
   "account",
   "name",
   "token",
+  "privateKey",
   "tokenFile",
   "botToken",
   "appToken",
@@ -40,6 +41,7 @@ const optionNamesAdd = [
   "initialSyncLimit",
   "ship",
   "url",
+  "relayUrls",
   "code",
   "groupChannels",
   "dmAllowlist",
@@ -160,41 +162,43 @@ export function registerChannelsCli(program: Command) {
 
   channels
     .command("add")
-    .description(t("cli.channels.add.desc"))
-    .option("--channel <name>", `${t("cli.channels.add.optChannel")} (${channelNames})`)
-    .option("--account <id>", t("cli.channels.add.optAccount"))
-    .option("--name <name>", t("cli.channels.add.optName"))
-    .option("--token <token>", t("cli.channels.add.optToken"))
-    .option("--token-file <path>", t("cli.channels.add.optTokenFile"))
-    .option("--bot-token <token>", t("cli.channels.add.optBotToken"))
-    .option("--app-token <token>", t("cli.channels.add.optAppToken"))
-    .option("--signal-number <e164>", t("cli.channels.add.optSignalNumber"))
-    .option("--cli-path <path>", t("cli.channels.add.optCliPath"))
-    .option("--db-path <path>", t("cli.channels.add.optDbPath"))
-    .option("--service <service>", t("cli.channels.add.optService"))
-    .option("--region <region>", t("cli.channels.add.optRegion"))
-    .option("--auth-dir <path>", t("cli.channels.add.optAuthDir"))
-    .option("--http-url <url>", t("cli.channels.add.optHttpUrl"))
-    .option("--http-host <host>", t("cli.channels.add.optHttpHost"))
-    .option("--http-port <port>", t("cli.channels.add.optHttpPort"))
-    .option("--webhook-path <path>", t("cli.channels.add.optWebhookPath"))
-    .option("--webhook-url <url>", t("cli.channels.add.optWebhookUrl"))
-    .option("--audience-type <type>", t("cli.channels.add.optAudienceType"))
-    .option("--audience <value>", t("cli.channels.add.optAudience"))
-    .option("--homeserver <url>", t("cli.channels.add.optHomeserver"))
-    .option("--user-id <id>", t("cli.channels.add.optUserId"))
-    .option("--access-token <token>", t("cli.channels.add.optAccessToken"))
-    .option("--password <password>", t("cli.channels.add.optPassword"))
-    .option("--device-name <name>", t("cli.channels.add.optDeviceName"))
-    .option("--initial-sync-limit <n>", t("cli.channels.add.optInitialSyncLimit"))
-    .option("--ship <ship>", t("cli.channels.add.optShip"))
-    .option("--url <url>", t("cli.channels.add.optUrl"))
-    .option("--code <code>", t("cli.channels.add.optCode"))
-    .option("--group-channels <list>", t("cli.channels.add.optGroupChannels"))
-    .option("--dm-allowlist <list>", t("cli.channels.add.optDmAllowlist"))
-    .option("--auto-discover-channels", t("cli.channels.add.optAutoDiscoverChannels"))
-    .option("--no-auto-discover-channels", t("cli.channels.add.optNoAutoDiscoverChannels"))
-    .option("--use-env", t("cli.channels.add.optUseEnv"), false)
+    .description("Add or update a channel account")
+    .option("--channel <name>", `Channel (${channelNames})`)
+    .option("--account <id>", "Account id (default when omitted)")
+    .option("--name <name>", "Display name for this account")
+    .option("--token <token>", "Bot token (Telegram/Discord)")
+    .option("--private-key <key>", "Nostr private key (nsec... or hex)")
+    .option("--token-file <path>", "Bot token file (Telegram)")
+    .option("--bot-token <token>", "Slack bot token (xoxb-...)")
+    .option("--app-token <token>", "Slack app token (xapp-...)")
+    .option("--signal-number <e164>", "Signal account number (E.164)")
+    .option("--cli-path <path>", "CLI path (signal-cli or imsg)")
+    .option("--db-path <path>", "iMessage database path")
+    .option("--service <service>", "iMessage service (imessage|sms|auto)")
+    .option("--region <region>", "iMessage region (for SMS)")
+    .option("--auth-dir <path>", "WhatsApp auth directory override")
+    .option("--http-url <url>", "Signal HTTP daemon base URL")
+    .option("--http-host <host>", "Signal HTTP host")
+    .option("--http-port <port>", "Signal HTTP port")
+    .option("--webhook-path <path>", "Webhook path (Google Chat/BlueBubbles)")
+    .option("--webhook-url <url>", "Google Chat webhook URL")
+    .option("--audience-type <type>", "Google Chat audience type (app-url|project-number)")
+    .option("--audience <value>", "Google Chat audience value (app URL or project number)")
+    .option("--homeserver <url>", "Matrix homeserver URL")
+    .option("--user-id <id>", "Matrix user ID")
+    .option("--access-token <token>", "Matrix access token")
+    .option("--password <password>", "Matrix password")
+    .option("--device-name <name>", "Matrix device name")
+    .option("--initial-sync-limit <n>", "Matrix initial sync limit")
+    .option("--ship <ship>", "Tlon ship name (~sampel-palnet)")
+    .option("--url <url>", "Tlon ship URL")
+    .option("--relay-urls <list>", "Nostr relay URLs (comma-separated)")
+    .option("--code <code>", "Tlon login code")
+    .option("--group-channels <list>", "Tlon group channels (comma-separated)")
+    .option("--dm-allowlist <list>", "Tlon DM allowlist (comma-separated ships)")
+    .option("--auto-discover-channels", "Tlon auto-discover group channels")
+    .option("--no-auto-discover-channels", "Disable Tlon auto-discovery")
+    .option("--use-env", "Use env token (default account only)", false)
     .action(async (opts, command) => {
       await runChannelsCommand(async () => {
         const { channelsAddCommand } = await import("../commands/channels.js");

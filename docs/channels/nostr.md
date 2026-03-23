@@ -23,8 +23,8 @@ Nostr 是一个去中心化的社交网络协议。此渠道使 OpenClaw 能够�
 
 ### 新手引导（推荐）
 
-- 新手引导向导（`openclaw onboard`）和 `openclaw channels add` 会列出可选的渠道插件。
-- 选择 Nostr 会提示你按需安装插件。
+- Onboarding (`openclaw onboard`) and `openclaw channels add` list optional channel plugins.
+- Selecting Nostr prompts you to install the plugin on demand.
 
 安装默认值：
 
@@ -47,7 +47,16 @@ openclaw plugins install --link <path-to-openclaw>/extensions/nostr
 
 安装或启用插件后重启 Gateway 网关。
 
-## 快速设置
+### Non-interactive setup
+
+```bash
+openclaw channels add --channel nostr --private-key "$NOSTR_PRIVATE_KEY"
+openclaw channels add --channel nostr --private-key "$NOSTR_PRIVATE_KEY" --relay-urls "wss://relay.damus.io,wss://relay.primal.net"
+```
+
+Use `--use-env` to keep `NOSTR_PRIVATE_KEY` in the environment instead of storing the key in config.
+
+## Quick setup
 
 1. 生成 Nostr 密钥对（如需要）：
 

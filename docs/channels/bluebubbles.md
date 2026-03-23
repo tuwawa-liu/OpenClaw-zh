@@ -51,7 +51,89 @@ x-i18n:
 
 ## 新手引导
 
-BlueBubbles 可在交互式设置向导中使用：
+Security note:
+
+- Always set a webhook password.
+- Webhook authentication is always required. OpenClaw rejects BlueBubbles webhook requests unless they include a password/guid that matches `channels.bluebubbles.password` (for example `?password=<password>` or `x-password`), regardless of loopback/proxy topology.
+- Password authentication is checked before reading/parsing full webhook bodies.
+
+## Keeping Messages.app alive (VM / headless setups)
+
+Some macOS VM / always-on setups can end up with Messages.app going “idle” (incoming events stop until the app is opened/foregrounded). A simple workaround is to **poke Messages every 5 minutes** using an AppleScript + LaunchAgent.
+
+### 1) Save the AppleScript
+
+Save this as:
+
+- `~/Scripts/poke-messages.scpt`
+
+Example script (non-interactive; does not steal focus):
+
+```applescript
+try
+  tell application "Messages"
+    if not running then
+      launch
+    end if
+
+    -- Touch the scripting interface to keep the process responsive.
+    set _chatCount to (count of chats)
+  end tell
+on error
+  -- Ignore transient failures (first-run prompts, locked session, etc).
+end try
+```
+
+### 2) Install a LaunchAgent
+
+Save this as:
+
+- `~/Library/LaunchAgents/com.user.poke-messages.plist`
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.user.poke-messages</string>
+
+    <key>ProgramArguments</key>
+    <array>
+      <string>/bin/bash</string>
+      <string>-lc</string>
+      <string>/usr/bin/osascript &quot;$HOME/Scripts/poke-messages.scpt&quot;</string>
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>StartInterval</key>
+    <integer>300</integer>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/poke-messages.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/poke-messages.err</string>
+  </dict>
+</plist>
+```
+
+Notes:
+
+- This runs **every 300 seconds** and **on login**.
+- The first run may trigger macOS **Automation** prompts (`osascript` → Messages). Approve them in the same user session that runs the LaunchAgent.
+
+Load it:
+
+```bash
+launchctl unload ~/Library/LaunchAgents/com.user.poke-messages.plist 2>/dev/null || true
+launchctl load ~/Library/LaunchAgents/com.user.poke-messages.plist
+```
+
+## Onboarding
+
+BlueBubbles is available in interactive onboarding:
 
 ```
 openclaw onboard

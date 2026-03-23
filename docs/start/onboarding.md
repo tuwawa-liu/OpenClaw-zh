@@ -1,4 +1,5 @@
 ---
+summary: "First-run setup flow for OpenClaw (macOS app)"
 read_when:
   - 设计 macOS 新手引导助手
   - 实现认证或身份设置
@@ -15,7 +16,10 @@ x-i18n:
 
 # 新手引导（macOS 应用）
 
-本文档描述**当前**的首次运行新手引导流程。目标是流畅的"第 0 天"体验：选择 Gateway 网关运行位置、连接认证、运行向导，然后让智能体自行引导。
+This doc describes the **current** first‑run setup flow. The goal is a
+smooth “day 0” experience: pick where the Gateway runs, connect auth, run the
+wizard, and let the agent bootstrap itself.
+For a general overview of onboarding paths, see [Onboarding Overview](/start/onboarding-overview).
 
 ## 页面顺序（当前）
 

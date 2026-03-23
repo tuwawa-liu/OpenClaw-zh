@@ -58,31 +58,11 @@ OpenClaw 需要 Node 22 或更新版本。
 `openclaw doctor` 即可更新 Gateway 网关服务入口点。
 </Info>
 
-## 从源码安装（开发）
-
-```bash
-git clone https://github.com/openclaw/openclaw.git
-cd openclaw
-pnpm install
-pnpm ui:build # 首次运行时会自动安装 UI 依赖
-pnpm build
-openclaw onboard --install-daemon
-```
-
-如果你还没有全局安装，可以在仓库目录中通过 `pnpm openclaw ...` 运行新手引导。
-
-## 多实例快速开始（可选）
-
-```bash
-OPENCLAW_CONFIG_PATH=~/.openclaw/a.json \
-OPENCLAW_STATE_DIR=~/.openclaw-a \
-openclaw gateway --port 19001
-```
-
-## 发送测试消息
-
-需要一个正在运行的 Gateway 网关。
-
-```bash
-openclaw message send --target +15555550123 --message "Hello from OpenClaw"
-```
+<Columns>
+  <Card title="Getting Started" href="/start/getting-started">
+    Install OpenClaw and run your first chat in minutes.
+  </Card>
+  <Card title="Onboarding (CLI)" href="/start/wizard">
+    Full CLI onboarding reference and advanced options.
+  </Card>
+</Columns>

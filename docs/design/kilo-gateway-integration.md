@@ -524,10 +524,10 @@ const needsNonImageSanitize =
    - 测试 `applyKilocodeConfig()` 设置正确的默认值
    - 测试 `resolveEnvApiKey("kilocode")` 返回正确的环境变量
 
-2. **集成测试：**
-   - 测试使用 `--auth-choice kilocode-api-key` 的引导流程
-   - 测试使用 `--kilocode-api-key` 的非交互式引导
-   - 测试带有 `kilocode/` 前缀的模型选择
+2. **Integration Tests:**
+   - Test setup flow with `--auth-choice kilocode-api-key`
+   - Test non-interactive setup with `--kilocode-api-key`
+   - Test model selection with `kilocode/` prefix
 
 3. **端到端测试：**
    - 测试通过 Kilo Gateway 的实际 API 调用（实时测试）

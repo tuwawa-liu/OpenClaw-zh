@@ -37,10 +37,11 @@ openclaw channels logs --channel all
 
 ```bash
 openclaw channels add --channel telegram --token <bot-token>
+openclaw channels add --channel nostr --private-key "$NOSTR_PRIVATE_KEY"
 openclaw channels remove --channel telegram --delete
 ```
 
-提示：`openclaw channels add --help` 显示每个渠道的标志（token、app token、signal-cli 路径等）。
+Tip: `openclaw channels add --help` shows per-channel flags (token, private key, app token, signal-cli paths, etc).
 
 ## 登录/登出（交互式）
 

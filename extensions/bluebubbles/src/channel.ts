@@ -1,3 +1,4 @@
+import { formatNormalizedAllowFromEntries } from "openclaw/plugin-sdk/allow-from";
 import type { ChannelAccountSnapshot, ChannelPlugin } from "openclaw/plugin-sdk/bluebubbles";
 import {
   buildChannelConfigSchema,
@@ -11,13 +12,13 @@ import {
   resolveBlueBubblesGroupToolPolicy,
   setAccountEnabledInConfigSection,
 } from "openclaw/plugin-sdk/bluebubbles";
+import { mapAllowFromEntries } from "openclaw/plugin-sdk/channel-config-helpers";
+import { createAccountStatusSink } from "openclaw/plugin-sdk/channel-lifecycle";
 import {
   buildAccountScopedDmSecurityPolicy,
   collectOpenGroupPolicyRestrictSendersWarnings,
-  createAccountStatusSink,
-  formatNormalizedAllowFromEntries,
-  mapAllowFromEntries,
-} from "openclaw/plugin-sdk/compat";
+} from "openclaw/plugin-sdk/channel-policy";
+import { createLazyRuntimeSurface } from "../../../src/shared/lazy-runtime.js";
 import {
   listBlueBubblesAccountIds,
   type ResolvedBlueBubblesAccount,
@@ -25,13 +26,10 @@ import {
   resolveDefaultBlueBubblesAccountId,
 } from "./accounts.js";
 import { bluebubblesMessageActions } from "./actions.js";
+import type { BlueBubblesProbe } from "./channel.runtime.js";
 import { BlueBubblesConfigSchema } from "./config-schema.js";
-import { sendBlueBubblesMedia } from "./media-send.js";
-import { resolveBlueBubblesMessageId } from "./monitor.js";
-import { monitorBlueBubblesProvider, resolveWebhookPathFromConfig } from "./monitor.js";
-import { probeBlueBubbles, type BlueBubblesProbe } from "./probe.js";
-import { sendMessageBlueBubbles } from "./send.js";
-import { blueBubblesSetupAdapter, blueBubblesSetupWizard } from "./setup-surface.js";
+import { blueBubblesSetupAdapter } from "./setup-core.js";
+import { blueBubblesSetupWizard } from "./setup-surface.js";
 import {
   extractHandleFromChatGuid,
   looksLikeBlueBubblesTargetId,
@@ -39,6 +37,13 @@ import {
   normalizeBlueBubblesMessagingTarget,
   parseBlueBubblesTarget,
 } from "./targets.js";
+
+type BlueBubblesChannelRuntime = typeof import("./channel.runtime.js").blueBubblesChannelRuntime;
+
+const loadBlueBubblesChannelRuntime = createLazyRuntimeSurface(
+  () => import("./channel.runtime.js"),
+  ({ blueBubblesChannelRuntime }) => blueBubblesChannelRuntime,
+);
 
 const meta = {
   id: "bluebubbles",
@@ -266,7 +271,9 @@ export const bluebubblesPlugin: ChannelPlugin<ResolvedBlueBubblesAccount> = {
     idLabel: "bluebubblesSenderId",
     normalizeAllowEntry: (entry) => normalizeBlueBubblesHandle(entry.replace(/^bluebubbles:/i, "")),
     notifyApproval: async ({ cfg, id }) => {
-      await sendMessageBlueBubbles(id, PAIRING_APPROVED_MESSAGE, {
+      await (
+        await loadBlueBubblesChannelRuntime()
+      ).sendMessageBlueBubbles(id, PAIRING_APPROVED_MESSAGE, {
         cfg: cfg,
       });
     },
@@ -285,12 +292,13 @@ export const bluebubblesPlugin: ChannelPlugin<ResolvedBlueBubblesAccount> = {
       return { ok: true, to: trimmed };
     },
     sendText: async ({ cfg, to, text, accountId, replyToId }) => {
+      const runtime = await loadBlueBubblesChannelRuntime();
       const rawReplyToId = typeof replyToId === "string" ? replyToId.trim() : "";
       // Resolve short ID (e.g., "5") to full UUID
       const replyToMessageGuid = rawReplyToId
-        ? resolveBlueBubblesMessageId(rawReplyToId, { requireKnownShortId: true })
+        ? runtime.resolveBlueBubblesMessageId(rawReplyToId, { requireKnownShortId: true })
         : "";
-      const result = await sendMessageBlueBubbles(to, text, {
+      const result = await runtime.sendMessageBlueBubbles(to, text, {
         cfg: cfg,
         accountId: accountId ?? undefined,
         replyToMessageGuid: replyToMessageGuid || undefined,
@@ -298,6 +306,7 @@ export const bluebubblesPlugin: ChannelPlugin<ResolvedBlueBubblesAccount> = {
       return { channel: "bluebubbles", ...result };
     },
     sendMedia: async (ctx) => {
+      const runtime = await loadBlueBubblesChannelRuntime();
       const { cfg, to, text, mediaUrl, accountId, replyToId } = ctx;
       const { mediaPath, mediaBuffer, contentType, filename, caption } = ctx as {
         mediaPath?: string;
@@ -307,7 +316,7 @@ export const bluebubblesPlugin: ChannelPlugin<ResolvedBlueBubblesAccount> = {
         caption?: string;
       };
       const resolvedCaption = caption ?? text;
-      const result = await sendBlueBubblesMedia({
+      const result = await runtime.sendBlueBubblesMedia({
         cfg: cfg,
         to,
         mediaUrl,
@@ -335,7 +344,7 @@ export const bluebubblesPlugin: ChannelPlugin<ResolvedBlueBubblesAccount> = {
     buildChannelSummary: ({ snapshot }) =>
       buildProbeChannelStatusSummary(snapshot, { baseUrl: snapshot.baseUrl ?? null }),
     probeAccount: async ({ account, timeoutMs }) =>
-      probeBlueBubbles({
+      (await loadBlueBubblesChannelRuntime()).probeBlueBubbles({
         baseUrl: account.baseUrl,
         password: account.config.password ?? null,
         timeoutMs,
@@ -360,8 +369,9 @@ export const bluebubblesPlugin: ChannelPlugin<ResolvedBlueBubblesAccount> = {
   },
   gateway: {
     startAccount: async (ctx) => {
+      const runtime = await loadBlueBubblesChannelRuntime();
       const account = ctx.account;
-      const webhookPath = resolveWebhookPathFromConfig(account.config);
+      const webhookPath = runtime.resolveWebhookPathFromConfig(account.config);
       const statusSink = createAccountStatusSink({
         accountId: ctx.accountId,
         setStatus: ctx.setStatus,
@@ -370,7 +380,7 @@ export const bluebubblesPlugin: ChannelPlugin<ResolvedBlueBubblesAccount> = {
         baseUrl: account.baseUrl,
       });
       ctx.log?.info(`[${account.accountId}] starting provider (webhook=${webhookPath})`);
-      return monitorBlueBubblesProvider({
+      return runtime.monitorBlueBubblesProvider({
         account,
         config: ctx.cfg,
         runtime: ctx.runtime,

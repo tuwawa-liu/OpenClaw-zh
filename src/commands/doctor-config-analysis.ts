@@ -127,7 +127,7 @@ export function noteOpencodeProviderOverrides(cfg: OpenClawConfig): void {
   });
 
   lines.push(
-    `- ${t("doctorConfigAnalysis.removeEntries")}`,
+    "- Remove these entries to restore per-model API routing + costs (then re-run setup if needed).",
   );
 note(lines.join("\n"), t("doctorConfigAnalysis.openCode"));
 }

@@ -419,7 +419,7 @@ x-i18n:
       nodeManager: "npm",
     },
     entries: {
-      "nano-banana-pro": {
+      "image-lab": {
         enabled: true,
         apiKey: "GEMINI_KEY_HERE",
         env: { GEMINI_API_KEY: "GEMINI_KEY_HERE" },

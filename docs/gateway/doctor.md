@@ -64,30 +64,31 @@ cat ~/.openclaw/openclaw.json
 
 ## 功能概述
 
-- git 安装的可选预检更新（仅交互模式）。
-- UI 协议新鲜度检查（当协议 schema 较新时重建 Control UI）。
-- 健康检查 + 重启提示。
-- Skills 状态摘要（符合条件/缺失/被阻止）。
-- 遗留值的配置规范化。
-- OpenCode 提供商覆盖警告（`models.providers.opencode` / `models.providers.opencode-go`）。
-- 遗留磁盘状态迁移（会话/智能体目录/WhatsApp 认证）。
-- 遗留 cron 存储迁移（`jobId`、`schedule.cron`、顶层 delivery/payload 字段、payload `provider`、简单 `notify: true` webhook 回退任务）。
-- 状态完整性和权限检查（会话、记录、状态目录）。
-- 本地运行时的配置文件权限检查（chmod 600）。
-- 模型认证健康：检查 OAuth 过期，可刷新即将过期的 token，并报告认证配置文件冷却/禁用状态。
-- 额外工作区目录检测（`~/openclaw`）。
-- 启用沙箱隔离时的沙箱镜像修复。
-- 遗留服务迁移和额外 Gateway 网关检测。
-- Gateway 网关运行时检查（服务已安装但未运行；缓存的 launchd 标签）。
-- 渠道状态警告（从运行中的 Gateway 网关探测）。
-- Supervisor 配置审计（launchd/systemd/schtasks）及可选修复。
-- Gateway 网关运行时最佳实践检查（Node vs Bun，版本管理器路径）。
-- Gateway 网关端口冲突诊断（默认 `18789`）。
-- 开放私信策略的安全警告。
-- 未设置 `gateway.auth.token` 时的 Gateway 网关认证检查（本地模式；当没有 token 源时提供 token 生成；不会覆盙 token SecretRef 配置）。
-- Linux 上的 systemd linger 检查。
-- 源码安装检查（pnpm workspace 不匹配、缺失 UI 资产、缺失 tsx 二进制文件）。
-- 写入更新后的配置 + 向导元数据。
+- Optional pre-flight update for git installs (interactive only).
+- UI protocol freshness check (rebuilds Control UI when the protocol schema is newer).
+- Health check + restart prompt.
+- Skills status summary (eligible/missing/blocked).
+- Config normalization for legacy values.
+- Browser migration checks for legacy Chrome extension configs and Chrome MCP readiness.
+- OpenCode provider override warnings (`models.providers.opencode` / `models.providers.opencode-go`).
+- Legacy on-disk state migration (sessions/agent dir/WhatsApp auth).
+- Legacy cron store migration (`jobId`, `schedule.cron`, top-level delivery/payload fields, payload `provider`, simple `notify: true` webhook fallback jobs).
+- State integrity and permissions checks (sessions, transcripts, state dir).
+- Config file permission checks (chmod 600) when running locally.
+- Model auth health: checks OAuth expiry, can refresh expiring tokens, and reports auth-profile cooldown/disabled states.
+- Extra workspace dir detection (`~/openclaw`).
+- Sandbox image repair when sandboxing is enabled.
+- Legacy service migration and extra gateway detection.
+- Gateway runtime checks (service installed but not running; cached launchd label).
+- Channel status warnings (probed from the running gateway).
+- Supervisor config audit (launchd/systemd/schtasks) with optional repair.
+- Gateway runtime best-practice checks (Node vs Bun, version-manager paths).
+- Gateway port collision diagnostics (default `18789`).
+- Security warnings for open DM policies.
+- Gateway auth checks for local token mode (offers token generation when no token source exists; does not overwrite token SecretRef configs).
+- systemd linger check on Linux.
+- Source install checks (pnpm workspace mismatch, missing UI assets, missing tsx binary).
+- Writes updated config + wizard metadata.
 
 ## 详细行为和原理
 
@@ -127,6 +128,9 @@ Gateway 网关在检测到遗留配置格式时也会在启动时自动运行 do
 - `agent.*` → `agents.defaults` + `tools.*`（tools/elevated/exec/sandbox/subagents）
 - `agent.model`/`allowedModels`/`modelAliases`/`modelFallbacks`/`imageModelFallbacks`
   → `agents.defaults.models` + `agents.defaults.model.primary/fallbacks` + `agents.defaults.imageModel.primary/fallbacks`
+- `browser.ssrfPolicy.allowPrivateNetwork` → `browser.ssrfPolicy.dangerouslyAllowPrivateNetwork`
+- `browser.profiles.*.driver: "extension"` → `"existing-session"`
+- remove `browser.relayBindHost` (legacy extension relay setting)
 
 ### 2b）OpenCode Zen 提供商覆盖
 
@@ -136,7 +140,36 @@ Gateway 网关在检测到遗留配置格式时也会在启动时自动运行 do
 
 ### 3）遗留状态迁移（磁盘布局）
 
-Doctor 可以将旧的磁盘布局迁移到当前结构：
+### 2c) Browser migration and Chrome MCP readiness
+
+If your browser config still points at the removed Chrome extension path, doctor
+normalizes it to the current host-local Chrome MCP attach model:
+
+- `browser.profiles.*.driver: "extension"` becomes `"existing-session"`
+- `browser.relayBindHost` is removed
+
+Doctor also audits the host-local Chrome MCP path when you use `defaultProfile:
+"user"` or a configured `existing-session` profile:
+
+- checks whether Google Chrome is installed on the same host for default
+  auto-connect profiles
+- checks the detected Chrome version and warns when it is below Chrome 144
+- reminds you to enable remote debugging in the browser inspect page (for
+  example `chrome://inspect/#remote-debugging`, `brave://inspect/#remote-debugging`,
+  or `edge://inspect/#remote-debugging`)
+
+Doctor cannot enable the Chrome-side setting for you. Host-local Chrome MCP
+still requires:
+
+- a Chromium-based browser 144+ on the gateway/node host
+- the browser running locally
+- remote debugging enabled in that browser
+- approving the first attach consent prompt in the browser
+
+This check does **not** apply to Docker, sandbox, remote-browser, or other
+headless flows. Those continue to use raw CDP.
+
+### 3) Legacy state migrations (disk layout)
 
 - 会话存储 + 记录：
   - 从 `~/.openclaw/sessions/` 到 `~/.openclaw/agents/<agentId>/sessions/`

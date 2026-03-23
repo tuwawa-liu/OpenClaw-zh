@@ -187,9 +187,15 @@ PDF 解析使用 Node 友好的 `pdfjs-dist` legacy 构建（无 worker）。现
 
 URL 获取默认值：
 
-- `files.allowUrl`：`true`
-- `images.allowUrl`：`true`
-- 请求受到保护（DNS 解析、私有 IP 阻止、重定向限制、超时）。
+- `files.allowUrl`: `true`
+- `images.allowUrl`: `true`
+- `maxUrlParts`: `8` (total URL-based `input_file` + `input_image` parts per request)
+- Requests are guarded (DNS resolution, private IP blocking, redirect caps, timeouts).
+- Optional hostname allowlists are supported per input type (`files.urlAllowlist`, `images.urlAllowlist`).
+  - Exact host: `"cdn.example.com"`
+  - Wildcard subdomains: `"*.assets.example.com"` (does not match apex)
+  - Empty or omitted allowlists mean no hostname allowlist restriction.
+- To disable URL-based fetches entirely, set `files.allowUrl: false` and/or `images.allowUrl: false`.
 
 ## 文件 + 图像限制（配置）
 

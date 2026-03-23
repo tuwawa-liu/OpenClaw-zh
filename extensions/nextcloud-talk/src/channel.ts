@@ -1,11 +1,11 @@
+import { formatAllowFromLowercase } from "openclaw/plugin-sdk/allow-from";
+import { mapAllowFromEntries } from "openclaw/plugin-sdk/channel-config-helpers";
+import { createAccountStatusSink } from "openclaw/plugin-sdk/channel-lifecycle";
 import {
   buildAccountScopedDmSecurityPolicy,
   collectAllowlistProviderGroupPolicyWarnings,
   collectOpenGroupPolicyRouteAllowlistWarnings,
-  createAccountStatusSink,
-  formatAllowFromLowercase,
-  mapAllowFromEntries,
-} from "openclaw/plugin-sdk/compat";
+} from "openclaw/plugin-sdk/channel-policy";
 import {
   buildBaseChannelStatusSummary,
   buildChannelConfigSchema,
@@ -33,7 +33,8 @@ import {
 import { resolveNextcloudTalkGroupToolPolicy } from "./policy.js";
 import { getNextcloudTalkRuntime } from "./runtime.js";
 import { sendMessageNextcloudTalk } from "./send.js";
-import { nextcloudTalkSetupAdapter, nextcloudTalkSetupWizard } from "./setup-surface.js";
+import { nextcloudTalkSetupAdapter } from "./setup-core.js";
+import { nextcloudTalkSetupWizard } from "./setup-surface.js";
 import type { CoreConfig } from "./types.js";
 
 const meta = {

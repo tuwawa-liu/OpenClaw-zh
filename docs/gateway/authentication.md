@@ -46,7 +46,8 @@ openclaw models status
 openclaw doctor
 ```
 
-如果你不想自己管理环境变量，新手引导向导可以为守护进程使用存储 API 密钥：`openclaw onboard`。
+If you’d rather not manage env vars yourself, onboarding can store
+API keys for daemon use: `openclaw onboard`.
 
 参阅[帮助](/help)了解环境变量继承的详情（`env.shellEnv`、`~/.openclaw/.env`、systemd/launchd）。
 

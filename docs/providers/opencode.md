@@ -56,7 +56,7 @@ openclaw onboard --opencode-go-api-key "$OPENCODE_API_KEY"
 
 ## 注意事项
 
-- 也支持 `OPENCODE_ZEN_API_KEY`。
-- 在引导过程中输入一个 OpenCode 密钥会同时为两个运行时提供商存储凭据。
-- 你需要登录 OpenCode，添加账单信息，然后复制你的 API 密钥。
-- 账单和目录可用性在 OpenCode 控制面板中管理。
+- `OPENCODE_ZEN_API_KEY` is also supported.
+- Entering one OpenCode key during setup stores credentials for both runtime providers.
+- You sign in to OpenCode, add billing details, and copy your API key.
+- Billing and catalog availability are managed from the OpenCode dashboard.

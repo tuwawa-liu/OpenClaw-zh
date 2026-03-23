@@ -1,16 +1,16 @@
 ---
-summary: "`openclaw onboard` CLI 入门流程、认证/模型设置、输出和内部原理的完整参考"
+summary: "Complete reference for CLI setup flow, auth/model setup, outputs, and internals"
 read_when:
-  - 需要 openclaw onboard 的详细行为
-  - 调试入门结果或集成入门客户端
-title: "CLI 入门参考"
-sidebarTitle: "CLI 参考"
+  - You need detailed behavior for openclaw onboard
+  - You are debugging onboarding results or integrating onboarding clients
+title: "CLI Setup Reference"
+sidebarTitle: "CLI reference"
 ---
 
-# CLI 入门参考
+# CLI Setup Reference
 
-本页是 `openclaw onboard` 的完整参考。
-简短指南请参阅[入门向导 (CLI)](/start/wizard)。
+This page is the full reference for `openclaw onboard`.
+For the short guide, see [Onboarding (CLI)](/start/wizard).
 
 ## 向导功能
 
@@ -49,17 +49,17 @@ sidebarTitle: "CLI 参考"
     - 工作区布局：[智能体工作区](/concepts/agent-workspace)。
   </Step>
   <Step title="Gateway">
-    - 提示端口、绑定、认证模式和 tailscale 暴露。
-    - 建议：即使在回环接口上也保持令牌认证，以便本地 WS 客户端必须认证。
-    - 在令牌模式下，交互式入门提供：
-      - **生成/存储明文令牌**（默认）
-      - **使用 SecretRef**（可选）
-    - 在密码模式下，交互式入门也支持明文或 SecretRef 存储。
-    - 非交互式令牌 SecretRef 路径：`--gateway-token-ref-env <ENV_VAR>`。
-      - 要求入门进程环境中存在非空环境变量。
-      - 不能与 `--gateway-token` 组合使用。
-    - 仅在完全信任每个本地进程时才禁用认证。
-    - 非回环绑定仍需要认证。
+    - Prompts for port, bind, auth mode, and tailscale exposure.
+    - Recommended: keep token auth enabled even for loopback so local WS clients must authenticate.
+    - In token mode, interactive setup offers:
+      - **Generate/store plaintext token** (default)
+      - **Use SecretRef** (opt-in)
+    - In password mode, interactive setup also supports plaintext or SecretRef storage.
+    - Non-interactive token SecretRef path: `--gateway-token-ref-env <ENV_VAR>`.
+      - Requires a non-empty env var in the onboarding process environment.
+      - Cannot be combined with `--gateway-token`.
+    - Disable auth only if you fully trust every local process.
+    - Non-loopback binds still require auth.
   </Step>
   <Step title="频道">
     - [WhatsApp](/channels/whatsapp)：可选二维码登录
@@ -215,25 +215,25 @@ sidebarTitle: "CLI 参考"
 
 凭证存储模式：
 
-- 默认入门行为将 API 密钥以明文值形式持久化到认证配置文件中。
-- `--secret-input-mode ref` 启用引用模式替代明文密钥存储。
-  在交互式入门中，您可以选择：
-  - 环境变量引用（例如 `keyRef: { source: "env", provider: "default", id: "OPENAI_API_KEY" }`）
-  - 已配置的提供商引用（`file` 或 `exec`），使用提供商别名 + id
-- 交互式引用模式在保存前运行快速预检验证。
-  - Env 引用：验证变量名 + 当前入门环境中的非空值。
-  - 提供商引用：验证提供商配置并解析请求的 id。
-  - 如果预检失败，入门显示错误并允许重试。
-- 在非交互模式下，`--secret-input-mode ref` 仅支持 env 方式。
-  - 在入门进程环境中设置提供商的环境变量。
-  - 内联密钥标志（例如 `--openai-api-key`）要求设置该环境变量；否则入门快速失败。
-  - 对于自定义提供商，非交互 `ref` 模式将 `models.providers.<id>.apiKey` 存储为 `{ source: "env", provider: "default", id: "CUSTOM_API_KEY" }`。
-  - 在该自定义提供商情况下，`--custom-api-key` 要求设置 `CUSTOM_API_KEY`；否则入门快速失败。
-- Gateway 认证凭证在交互式入门中支持明文和 SecretRef 选择：
-  - 令牌模式：**生成/存储明文令牌**（默认）或**使用 SecretRef**。
-  - 密码模式：明文或 SecretRef。
-- 非交互式令牌 SecretRef 路径：`--gateway-token-ref-env <ENV_VAR>`。
-- 现有的明文设置继续正常工作。
+- Default onboarding behavior persists API keys as plaintext values in auth profiles.
+- `--secret-input-mode ref` enables reference mode instead of plaintext key storage.
+  In interactive setup, you can choose either:
+  - environment variable ref (for example `keyRef: { source: "env", provider: "default", id: "OPENAI_API_KEY" }`)
+  - configured provider ref (`file` or `exec`) with provider alias + id
+- Interactive reference mode runs a fast preflight validation before saving.
+  - Env refs: validates variable name + non-empty value in the current onboarding environment.
+  - Provider refs: validates provider config and resolves the requested id.
+  - If preflight fails, onboarding shows the error and lets you retry.
+- In non-interactive mode, `--secret-input-mode ref` is env-backed only.
+  - Set the provider env var in the onboarding process environment.
+  - Inline key flags (for example `--openai-api-key`) require that env var to be set; otherwise onboarding fails fast.
+  - For custom providers, non-interactive `ref` mode stores `models.providers.<id>.apiKey` as `{ source: "env", provider: "default", id: "CUSTOM_API_KEY" }`.
+  - In that custom-provider case, `--custom-api-key` requires `CUSTOM_API_KEY` to be set; otherwise onboarding fails fast.
+- Gateway auth credentials support plaintext and SecretRef choices in interactive setup:
+  - Token mode: **Generate/store plaintext token** (default) or **Use SecretRef**.
+  - Password mode: plaintext or SecretRef.
+- Non-interactive token SecretRef path: `--gateway-token-ref-env <ENV_VAR>`.
+- Existing plaintext setups continue to work unchanged.
 
 <Note>
 无头和服务器提示：在有浏览器的机器上完成 OAuth，然后将
@@ -265,7 +265,8 @@ WhatsApp 凭证存储在 `~/.openclaw/credentials/whatsapp/<accountId>/` 下。
 会话存储在 `~/.openclaw/agents/<agentId>/sessions/` 下。
 
 <Note>
-某些频道以插件形式交付。在入门时选择后，向导会在频道配置之前提示安装插件（npm 或本地路径）。
+Some channels are delivered as plugins. When selected during setup, the wizard
+prompts to install the plugin (npm or local path) before channel configuration.
 </Note>
 
 Gateway 向导 RPC：
@@ -288,6 +289,6 @@ Signal 设置行为：
 
 ## 相关文档
 
-- 入门中心：[入门向导 (CLI)](/start/wizard)
-- 自动化和脚本：[CLI 自动化](/start/wizard-cli-automation)
-- 命令参考：[`openclaw onboard`](/cli/onboard)
+- Onboarding hub: [Onboarding (CLI)](/start/wizard)
+- Automation and scripts: [CLI Automation](/start/wizard-cli-automation)
+- Command reference: [`openclaw onboard`](/cli/onboard)

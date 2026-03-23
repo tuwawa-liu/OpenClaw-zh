@@ -29,18 +29,19 @@ OpenClaw 按以下顺序选择模型：
 
 相关：
 
-- `agents.defaults.models` 是 OpenClaw 可使用的模型白名单/目录（加上别名）。
-- `agents.defaults.imageModel` **仅在**主要模型无法接受图像时使用。
-- 每个智能体的默认值可以通过 `agents.list[].model` 加绑定覆盖 `agents.defaults.model`（参见 [/concepts/multi-agent](/concepts/multi-agent)）。
+- `agents.defaults.models` is the allowlist/catalog of models OpenClaw can use (plus aliases).
+- `agents.defaults.imageModel` is used **only when** the primary model can’t accept images.
+- `agents.defaults.imageGenerationModel` is used by the shared image-generation capability.
+- Per-agent defaults can override `agents.defaults.model` via `agents.list[].model` plus bindings (see [/concepts/multi-agent](/concepts/multi-agent)).
 
 ## 快速模型推荐（经验之谈）
 
 - **GLM**：在编程/工具调用方面稍好。
 - **MiniMax**：在写作和氛围方面更好。
 
-## 设置向导（推荐）
+## Onboarding (recommended)
 
-如果你不想手动编辑配置，请运行新手引导向导：
+If you don’t want to hand-edit config, run onboarding:
 
 ```bash
 openclaw onboard
@@ -50,10 +51,11 @@ openclaw onboard
 
 ## 配置键（概述）
 
-- `agents.defaults.model.primary` 和 `agents.defaults.model.fallbacks`
-- `agents.defaults.imageModel.primary` 和 `agents.defaults.imageModel.fallbacks`
-- `agents.defaults.models`（白名单 + 别名 + 提供商参数）
-- `models.providers`（写入 `models.json` 的自定义提供商）
+- `agents.defaults.model.primary` and `agents.defaults.model.fallbacks`
+- `agents.defaults.imageModel.primary` and `agents.defaults.imageModel.fallbacks`
+- `agents.defaults.imageGenerationModel.primary` and `agents.defaults.imageGenerationModel.fallbacks`
+- `agents.defaults.models` (allowlist + aliases + provider params)
+- `models.providers` (custom providers written into `models.json`)
 
 模型引用会规范化为小写。提供商别名如 `z.ai/*` 会规范化为 `zai/*`。
 

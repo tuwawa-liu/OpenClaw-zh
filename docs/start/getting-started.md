@@ -47,12 +47,14 @@ x-i18n:
 
 ## 0) 前置条件
 
-- Node `>=22`
-- `pnpm`（可选；如果从源代码构建则推荐）
-- **推荐：**Brave Search API 密钥用于网页搜索。最简单的方式：`openclaw configure --section web`（存储 `tools.web.search.apiKey`）。参见 [Web 工具](/tools/web)。
+  </Step>
+  <Step title="Run onboarding">
+    ```bash
+    openclaw onboard --install-daemon
+    ```
 
-macOS：如果你计划构建应用，安装 Xcode / CLT。仅用于 CLI + Gateway 网关的话，Node 就足够了。
-Windows：使用 **WSL2**（推荐 Ubuntu）。强烈推荐 WSL2；原生 Windows 未经测试，问题更多，工具兼容性更差。先安装 WSL2，然后在 WSL 内运行 Linux 步骤。参见 [Windows (WSL2)](/platforms/windows)。
+    Onboarding configures auth, gateway settings, and optional channels.
+    See [Onboarding (CLI)](/start/wizard) for details.
 
 ## 1) 安装 CLI（推荐）
 
@@ -99,8 +101,14 @@ openclaw onboard --install-daemon
 
 - **推荐的 Anthropic 路径：**设置 API 密钥（向导可以为服务使用存储它）。如果你想复用 Claude Code 凭证，也支持 `claude setup-token`。
 
-- OAuth 凭证（旧版导入）：`~/.openclaw/credentials/oauth.json`
-- 认证配置文件（OAuth + API 密钥）：`~/.openclaw/agents/<agentId>/agent/auth-profiles.json`
+<Columns>
+  <Card title="Onboarding (CLI)" href="/start/wizard">
+    Full CLI onboarding reference and advanced options.
+  </Card>
+  <Card title="macOS app onboarding" href="/start/onboarding">
+    First run flow for the macOS app.
+  </Card>
+</Columns>
 
 无头/服务器提示：先在普通机器上完成 OAuth，然后将 `oauth.json` 复制到 Gateway 网关主机。
 

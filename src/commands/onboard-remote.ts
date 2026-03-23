@@ -7,7 +7,7 @@ import { discoverGatewayBeacons } from "../infra/bonjour-discovery.js";
 import { resolveWideAreaDiscoveryDomain } from "../infra/widearea-dns.js";
 import type { WizardPrompter } from "../wizard/prompts.js";
 import {
-  promptSecretRefForOnboarding,
+  promptSecretRefForSetup,
   resolveSecretInputModeForEnvSelection,
 } from "./auth-choice.apply-helpers.js";
 import { detectBinary } from "./onboard-helpers.js";
@@ -163,7 +163,7 @@ export async function promptRemoteGatewayConfig(
       },
     });
     if (selectedMode === "ref") {
-      const resolved = await promptSecretRefForOnboarding({
+      const resolved = await promptSecretRefForSetup({
         provider: "gateway-remote-token",
         config: cfg,
         prompter,
@@ -195,7 +195,7 @@ export async function promptRemoteGatewayConfig(
       },
     });
     if (selectedMode === "ref") {
-      const resolved = await promptSecretRefForOnboarding({
+      const resolved = await promptSecretRefForSetup({
         provider: "gateway-remote-password",
         config: cfg,
         prompter,

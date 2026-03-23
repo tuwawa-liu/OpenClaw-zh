@@ -62,6 +62,29 @@ x-i18n:
 
 ## 提示
 
-- 当会话感觉过时或上下文臃肿时，使用 `/compact`。
-- 大型工具输出已被截断；修剪可以进一步减少工具结果的堆积。
-- 如果你需要全新开始，`/new` 或 `/reset` 会启动一个新的会话 ID。
+OpenClaw also supports OpenAI Responses server-side compaction hints for
+compatible direct OpenAI models. This is separate from local OpenClaw
+compaction and can run alongside it.
+
+- Local compaction: OpenClaw summarizes and persists into session JSONL.
+- Server-side compaction: OpenAI compacts context on the provider side when
+  `store` + `context_management` are enabled.
+
+See [OpenAI provider](/providers/openai) for model params and overrides.
+
+## Custom context engines
+
+Compaction behavior is owned by the active
+[context engine](/concepts/context-engine). The legacy engine uses the built-in
+summarization described above. Plugin engines (selected via
+`plugins.slots.contextEngine`) can implement any compaction strategy — DAG
+summaries, vector retrieval, incremental condensation, etc.
+
+When a plugin engine sets `ownsCompaction: true`, OpenClaw delegates all
+compaction decisions to the engine and does not run built-in auto-compaction.
+
+## Tips
+
+- Use `/compact` when sessions feel stale or context is bloated.
+- Large tool outputs are already truncated; pruning can further reduce tool-result buildup.
+- If you need a fresh slate, `/new` or `/reset` starts a new session id.

@@ -1,34 +1,71 @@
 ---
+summary: "Firecrawl search, scrape, and web_fetch fallback"
 read_when:
-  - 你想要 Firecrawl 支持的网页提取
-  - 你需要 Firecrawl API 密钥
-  - 你想要 web_fetch 的反机器人提取
-summary: 用于 web_fetch 的 Firecrawl 回退（反机器人 + 缓存提取）
-title: Firecrawl
-x-i18n:
-  generated_at: "2026-02-03T10:10:35Z"
-  model: claude-opus-4-5
-  provider: pi
-  source_hash: 08a7ad45b41af41204e44d2b0be0f980b7184d80d2fa3977339e42a47beb2851
-  source_path: tools/firecrawl.md
-  workflow: 15
+  - You want Firecrawl-backed web extraction
+  - You need a Firecrawl API key
+  - You want Firecrawl as a web_search provider
+  - You want anti-bot extraction for web_fetch
+title: "Firecrawl"
 ---
 
 # Firecrawl
 
-OpenClaw 可以使用 **Firecrawl** 作为 `web_fetch` 的回退提取器。它是一个托管的
-内容提取服务，支持机器人规避和缓存，有助于处理
-JS 密集型网站或阻止普通 HTTP 请求的页面。
+OpenClaw can use **Firecrawl** in three ways:
+
+- as the `web_search` provider
+- as explicit plugin tools: `firecrawl_search` and `firecrawl_scrape`
+- as a fallback extractor for `web_fetch`
+
+It is a hosted extraction/search service that supports bot circumvention and caching,
+which helps with JS-heavy sites or pages that block plain HTTP fetches.
 
 ## 获取 API 密钥
 
 1. 创建 Firecrawl 账户并生成 API 密钥。
 2. 将其存储在配置中或在 Gateway 网关环境中设置 `FIRECRAWL_API_KEY`。
 
-## 配置 Firecrawl
+## Configure Firecrawl search
 
 ```json5
 {
+  plugins: {
+    entries: {
+      firecrawl: {
+        enabled: true,
+      },
+    },
+  },
+  tools: {
+    web: {
+      search: {
+        provider: "firecrawl",
+        firecrawl: {
+          apiKey: "FIRECRAWL_API_KEY_HERE",
+          baseUrl: "https://api.firecrawl.dev",
+        },
+      },
+    },
+  },
+}
+```
+
+Notes:
+
+- Choosing Firecrawl in onboarding or `openclaw configure --section web` enables the bundled Firecrawl plugin automatically.
+- `web_search` with Firecrawl supports `query` and `count`.
+- For Firecrawl-specific controls like `sources`, `categories`, or result scraping, use `firecrawl_search`.
+
+## Configure Firecrawl scrape + web_fetch fallback
+
+```json5
+{
+  plugins: {
+    entries: {
+      firecrawl: {
+        enabled: true,
+      },
+    },
+  },
   tools: {
     web: {
       fetch: {
@@ -50,7 +87,39 @@ JS 密集型网站或阻止普通 HTTP 请求的页面。
 - 当存在 API 密钥时，`firecrawl.enabled` 默认为 true。
 - `maxAgeMs` 控制缓存结果可以保留多久（毫秒）。默认为 2 天。
 
-## 隐身 / 机器人规避
+`firecrawl_scrape` reuses the same `tools.web.fetch.firecrawl.*` settings and env vars.
+
+## Firecrawl plugin tools
+
+### `firecrawl_search`
+
+Use this when you want Firecrawl-specific search controls instead of generic `web_search`.
+
+Core parameters:
+
+- `query`
+- `count`
+- `sources`
+- `categories`
+- `scrapeResults`
+- `timeoutSeconds`
+
+### `firecrawl_scrape`
+
+Use this for JS-heavy or bot-protected pages where plain `web_fetch` is weak.
+
+Core parameters:
+
+- `url`
+- `extractMode`
+- `maxChars`
+- `onlyMainContent`
+- `maxAgeMs`
+- `proxy`
+- `storeInCache`
+- `timeoutSeconds`
+
+## Stealth / bot circumvention
 
 Firecrawl 提供了一个用于机器人规避的**代理模式**参数（`basic`、`stealth` 或 `auto`）。
 OpenClaw 对 Firecrawl 请求始终使用 `proxy: "auto"` 加 `storeInCache: true`。

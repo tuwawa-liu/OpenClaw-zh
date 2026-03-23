@@ -232,7 +232,7 @@ OpenClaw 为 browser、canvas、nodes 和 cron 暴露**一流的智能体工具*
 
 ### `web_search`
 
-使用 Brave Search API 搜索网络。
+Search the web using Brave, Firecrawl, Gemini, Grok, Kimi, or Perplexity.
 
 核心参数：
 
@@ -285,23 +285,26 @@ OpenClaw 为 browser、canvas、nodes 和 cron 暴露**一流的智能体工具*
 
 常用参数：
 
-- `profile`（可选；默认为 `browser.defaultProfile`）
-- `target`（`sandbox` | `host` | `node`）
-- `node`（可选；选择特定的节点 id/名称）
-  注意：
-- 需要 `browser.enabled=true`（默认为 `true`；设置为 `false` 以禁用）。
-- 所有操作接受可选的 `profile` 参数以支持多实例。
-- 当省略 `profile` 时，使用 `browser.defaultProfile`（默认为"chrome"）。
-- 配置文件名称：仅小写字母数字 + 连字符（最多 64 字符）。
-- 端口范围：18800-18899（最多约 100 个配置文件）。
-- 远程配置文件仅支持附加（无 start/stop/reset）。
-- 如果连接了支持浏览器的节点，工具可能会自动路由到它（除非你固定了 `target`）。
-- 安装 Playwright 时 `snapshot` 默认为 `ai`；使用 `aria` 获取无障碍树。
-- `snapshot` 还支持角色快照选项（`interactive`、`compact`、`depth`、`selector`），返回像 `e12` 这样的引用。
-- `act` 需要来自 `snapshot` 的 `ref`（AI 快照中的数字 `12`，或角色快照中的 `e12`）；对于罕见的 CSS 选择器需求使用 `evaluate`。
-- 默认避免 `act` → `wait`；仅在特殊情况下使用（没有可靠的 UI 状态可等待）。
-- `upload` 可以选择性地传递 `ref` 以在准备后自动点击。
-- `upload` 还支持 `inputRef`（aria 引用）或 `element`（CSS 选择器）以直接设置 `<input type="file">`。
+- `profile` (optional; defaults to `browser.defaultProfile`)
+- `target` (`sandbox` | `host` | `node`)
+- `node` (optional; picks a specific node id/name)
+  Notes:
+- Requires `browser.enabled=true` (default is `true`; set `false` to disable).
+- All actions accept optional `profile` parameter for multi-instance support.
+- Omit `profile` for the safe default: isolated OpenClaw-managed browser (`openclaw`).
+- Use `profile="user"` for the real local host browser when existing logins/cookies matter and the user is present to click/approve any attach prompt.
+- `profile="user"` is host-only; do not combine it with sandbox/node targets.
+- When `profile` is omitted, uses `browser.defaultProfile` (defaults to `openclaw`).
+- Profile names: lowercase alphanumeric + hyphens only (max 64 chars).
+- Port range: 18800-18899 (~100 profiles max).
+- Remote profiles are attach-only (no start/stop/reset).
+- If a browser-capable node is connected, the tool may auto-route to it (unless you pin `target`).
+- `snapshot` defaults to `ai` when Playwright is installed; use `aria` for the accessibility tree.
+- `snapshot` also supports role-snapshot options (`interactive`, `compact`, `depth`, `selector`) which return refs like `e12`.
+- `act` requires `ref` from `snapshot` (numeric `12` from AI snapshots, or `e12` from role snapshots); use `evaluate` for rare CSS selector needs.
+- Avoid `act` → `wait` by default; use it only in exceptional cases (no reliable UI state to wait on).
+- `upload` can optionally pass a `ref` to auto-click after arming.
+- `upload` also supports `inputRef` (aria ref) or `element` (CSS selector) to set `<input type="file">` directly.
 
 ### `canvas`
 
@@ -368,8 +371,38 @@ OpenClaw 为 browser、canvas、nodes 和 cron 暴露**一流的智能体工具*
 
 注意：
 
-- 仅在配置了 `agents.defaults.imageModel`（主要或回退）时可用，或者当可以从你的默认模型 + 配置的认证推断出隐式图像模型时（尽力配对）。
-- 直接使用图像模型（独立于主聊天模型）。
+- Only available when `agents.defaults.imageModel` is configured (primary or fallbacks), or when an implicit image model can be inferred from your default model + configured auth (best-effort pairing).
+- Uses the image model directly (independent of the main chat model).
+
+### `image_generate`
+
+Generate one or more images with the configured image-generation model.
+
+Core parameters:
+
+- `action` (optional: `generate` or `list`; default `generate`)
+- `prompt` (required)
+- `image` or `images` (optional reference image path/URL for edit mode)
+- `model` (optional provider/model override)
+- `size` (optional size hint)
+- `resolution` (optional `1K|2K|4K` hint)
+- `count` (optional, `1-4`, default `1`)
+
+Notes:
+
+- Only available when `agents.defaults.imageGenerationModel` is configured.
+- Use `action: "list"` to inspect registered providers, default models, supported model ids, sizes, resolutions, and edit support.
+- Returns local `MEDIA:<path>` lines so channels can deliver the generated files directly.
+- Uses the image-generation model directly (independent of the main chat model).
+- Google-backed flows support reference-image edits plus explicit `1K|2K|4K` resolution hints.
+- When editing and `resolution` is omitted, OpenClaw infers a draft/final resolution from the input image size.
+- This is the built-in replacement for the old sample `nano-banana-pro` skill workflow. Use `agents.defaults.imageGenerationModel`, not `skills.entries`, for stock image generation.
+
+### `pdf`
+
+Analyze one or more PDF documents.
+
+For full behavior, limits, config, and examples, see [PDF tool](/tools/pdf).
 
 ### `message`
 

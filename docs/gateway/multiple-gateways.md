@@ -77,7 +77,7 @@ openclaw --profile rescue onboard
 #   最好选择完全不同的基础端口，如 19789，
 # - 其余的新手引导与正常相同
 
-# 安装服务（如果在新手引导期间没有自动完成）
+# To install the service (if not happened automatically during setup)
 openclaw --profile rescue gateway install
 ```
 
