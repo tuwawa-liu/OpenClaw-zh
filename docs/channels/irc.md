@@ -1,32 +1,33 @@
 ---
 title: IRC
-description: 将 OpenClaw 连接到 IRC 频道和私信。
-summary: "IRC 插件设置、访问控制和故障排除"
+summary: "IRC plugin setup, access controls, and troubleshooting"
 read_when:
   - 想要将 OpenClaw 连接到 IRC 频道或私信
   - 正在配置 IRC 白名单、群组策略或提及门控
 ---
 
-当你想在经典频道（`#room`）和私信中使用 OpenClaw 时，请使用 IRC。
-IRC 作为扩展插件提供，但在主配置的 `channels.irc` 下进行配置。
+# IRC
+
+Use IRC when you want OpenClaw in classic channels (`#room`) and direct messages.
+IRC ships as an extension plugin, but it is configured in the main config under `channels.irc`.
 
 ## 快速开始
 
 1. 在 `~/.openclaw/openclaw.json` 中启用 IRC 配置。
 2. 至少设置：
 
-```json
+```json5
 {
-  "channels": {
-    "irc": {
-      "enabled": true,
-      "host": "irc.libera.chat",
-      "port": 6697,
-      "tls": true,
-      "nick": "openclaw-bot",
-      "channels": ["#openclaw"]
-    }
-  }
+  channels: {
+    irc: {
+      enabled: true,
+      host: "irc.libera.chat",
+      port: 6697,
+      tls: true,
+      nick: "openclaw-bot",
+      channels: ["#openclaw"],
+    },
+  },
 }
 ```
 
@@ -73,7 +74,7 @@ IRC 频道有两个独立的"门控"：
 
 示例（允许 `#tuirc-dev` 中的任何人与机器人对话）：
 
-```json5
+```json55
 {
   channels: {
     irc: {
@@ -94,7 +95,7 @@ IRC 频道有两个独立的"门控"：
 
 要使机器人在 IRC 频道中 **无需提及即可回复**，请为该频道禁用提及门控：
 
-```json5
+```json55
 {
   channels: {
     irc: {
@@ -112,7 +113,7 @@ IRC 频道有两个独立的"门控"：
 
 或者允许 **所有** IRC 频道（不使用按频道白名单）且无需提及即可回复：
 
-```json5
+```json55
 {
   channels: {
     irc: {
@@ -132,7 +133,7 @@ IRC 频道有两个独立的"门控"：
 
 ### 频道中所有人使用相同工具
 
-```json5
+```json55
 {
   channels: {
     irc: {
@@ -160,7 +161,7 @@ IRC 频道有两个独立的"门控"：
 
 使用 `toolsBySender` 为 `"*"` 应用更严格的策略，为你的昵称应用更宽松的策略：
 
-```json5
+```json55
 {
   channels: {
     irc: {
@@ -202,32 +203,32 @@ IRC 频道有两个独立的"门控"：
 
 连接后使用 NickServ 认证：
 
-```json
+```json5
 {
-  "channels": {
-    "irc": {
-      "nickserv": {
-        "enabled": true,
-        "service": "NickServ",
-        "password": "your-nickserv-password"
-      }
-    }
-  }
+  channels: {
+    irc: {
+      nickserv: {
+        enabled: true,
+        service: "NickServ",
+        password: "your-nickserv-password",
+      },
+    },
+  },
 }
 ```
 
 可选的连接时一次性注册：
 
-```json
+```json5
 {
-  "channels": {
-    "irc": {
-      "nickserv": {
-        "register": true,
-        "registerEmail": "bot@example.com"
-      }
-    }
-  }
+  channels: {
+    irc: {
+      nickserv: {
+        register: true,
+        registerEmail: "bot@example.com",
+      },
+    },
+  },
 }
 ```
 

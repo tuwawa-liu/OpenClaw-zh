@@ -1,5 +1,6 @@
 ---
-summary: "使用 Kilo Gateway 的统一 API 在 OpenClaw 中访问多种模型"
+title: "Kilo Gateway"
+summary: "Use Kilo Gateway's unified API to access many models in OpenClaw"
 read_when:
   - 想要用一个 API 密钥访问多个 LLM
   - 想要通过 Kilo Gateway 在 OpenClaw 中运行模型

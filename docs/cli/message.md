@@ -15,8 +15,8 @@ x-i18n:
 
 # `openclaw message`
 
-用于发送消息和渠道操作的单一出站命令
-（Discord/Google Chat/Slack/Mattermost（插件）/Telegram/WhatsApp/Signal/iMessage/MS Teams）。
+Single outbound command for sending messages and channel actions
+(Discord/Google Chat/Slack/Mattermost (plugin)/Telegram/WhatsApp/Signal/iMessage/Microsoft Teams).
 
 ## 用法
 
@@ -32,15 +32,15 @@ openclaw message <subcommand> [flags]
 
 目标格式（`--target`）：
 
-- WhatsApp：E.164 或群组 JID
-- Telegram：聊天 ID 或 `@username`
-- Discord：`channel:<id>` 或 `user:<id>`（或 `<@id>` 提及；纯数字 ID 被视为频道）
-- Google Chat：`spaces/<spaceId>` 或 `users/<userId>`
-- Slack：`channel:<id>` 或 `user:<id>`（接受纯频道 ID）
-- Mattermost（插件）：`channel:<id>`、`user:<id>` 或 `@username`（纯 ID 被视为频道）
-- Signal：`+E.164`、`group:<id>`、`signal:+E.164`、`signal:group:<id>` 或 `username:<name>`/`u:<name>`
-- iMessage：句柄、`chat_id:<id>`、`chat_guid:<guid>` 或 `chat_identifier:<id>`
-- MS Teams：会话 ID（`19:...@thread.tacv2`）或 `conversation:<id>` 或 `user:<aad-object-id>`
+- WhatsApp: E.164 or group JID
+- Telegram: chat id or `@username`
+- Discord: `channel:<id>` or `user:<id>` (or `<@id>` mention; raw numeric ids are treated as channels)
+- Google Chat: `spaces/<spaceId>` or `users/<userId>`
+- Slack: `channel:<id>` or `user:<id>` (raw channel id is accepted)
+- Mattermost (plugin): `channel:<id>`, `user:<id>`, or `@username` (bare ids are treated as channels)
+- Signal: `+E.164`, `group:<id>`, `signal:+E.164`, `signal:group:<id>`, or `username:<name>`/`u:<name>`
+- iMessage: handle, `chat_id:<id>`, `chat_guid:<guid>`, or `chat_identifier:<id>`
+- Microsoft Teams: conversation id (`19:...@thread.tacv2`) or `conversation:<id>` or `user:<aad-object-id>`
 
 名称查找：
 
@@ -72,19 +72,21 @@ openclaw message <subcommand> [flags]
 ### 核心
 
 - `send`
-  - 渠道：WhatsApp/Telegram/Discord/Google Chat/Slack/Mattermost（插件）/Signal/iMessage/MS Teams
-  - 必需：`--target`，以及 `--message` 或 `--media`
-  - 可选：`--media`、`--reply-to`、`--thread-id`、`--gif-playback`
-  - 仅限 Telegram：`--buttons`（需要 `channels.telegram.capabilities.inlineButtons` 以启用）
-  - 仅限 Telegram：`--thread-id`（论坛主题 ID）
-  - 仅限 Slack：`--thread-id`（线程时间戳；`--reply-to` 使用相同字段）
-  - 仅限 WhatsApp：`--gif-playback`
+  - Channels: WhatsApp/Telegram/Discord/Google Chat/Slack/Mattermost (plugin)/Signal/iMessage/Microsoft Teams
+  - Required: `--target`, plus `--message` or `--media`
+  - Optional: `--media`, `--reply-to`, `--thread-id`, `--gif-playback`
+  - Telegram only: `--buttons` (requires `channels.telegram.capabilities.inlineButtons` to allow it)
+  - Telegram only: `--force-document` (send images and GIFs as documents to avoid Telegram compression)
+  - Telegram only: `--thread-id` (forum topic id)
+  - Slack only: `--thread-id` (thread timestamp; `--reply-to` uses the same field)
+  - WhatsApp only: `--gif-playback`
 
 - `poll`
-  - 渠道：WhatsApp/Discord/MS Teams
-  - 必需：`--target`、`--poll-question`、`--poll-option`（可重复）
-  - 可选：`--poll-multi`
-  - 仅限 Discord：`--poll-duration-hours`、`--message`
+  - Channels: WhatsApp/Telegram/Discord/Matrix/Microsoft Teams
+  - Required: `--target`, `--poll-question`, `--poll-option` (repeat)
+  - Optional: `--poll-multi`
+  - Discord only: `--poll-duration-hours`, `--silent`, `--message`
+  - Telegram only: `--poll-duration-seconds` (5-600), `--silent`, `--poll-anonymous` / `--poll-public`, `--thread-id`
 
 - `react`
   - 渠道：Discord/Google Chat/Slack/Telegram/WhatsApp/Signal

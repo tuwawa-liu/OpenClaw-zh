@@ -79,10 +79,74 @@ OpenClaw 从多个来源拉取环境变量。规则是**永不覆盖现有值**�
 }
 ```
 
-完整详情参见[配置：环境变量替换](/gateway/configuration#env-var-substitution-in-config)。
+See [Configuration: Env var substitution](/gateway/configuration-reference#env-var-substitution) for full details.
 
 ## 相关内容
 
-- [Gateway 网关配置](/gateway/configuration)
-- [常见问题：环境变量和 .env 加载](/help/faq#env-vars-and-env-loading)
-- [模型概述](/concepts/models)
+OpenClaw supports two env-driven patterns:
+
+- `${VAR}` string substitution in config values.
+- SecretRef objects (`{ source: "env", provider: "default", id: "VAR" }`) for fields that support secrets references.
+
+Both resolve from process env at activation time. SecretRef details are documented in [Secrets Management](/gateway/secrets).
+
+## Path-related env vars
+
+| Variable               | Purpose                                                                                                                                                                          |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OPENCLAW_HOME`        | Override the home directory used for all internal path resolution (`~/.openclaw/`, agent dirs, sessions, credentials). Useful when running OpenClaw as a dedicated service user. |
+| `OPENCLAW_STATE_DIR`   | Override the state directory (default `~/.openclaw`).                                                                                                                            |
+| `OPENCLAW_CONFIG_PATH` | Override the config file path (default `~/.openclaw/openclaw.json`).                                                                                                             |
+
+## Logging
+
+| Variable             | Purpose                                                                                                                                                                                      |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OPENCLAW_LOG_LEVEL` | Override log level for both file and console (e.g. `debug`, `trace`). Takes precedence over `logging.level` and `logging.consoleLevel` in config. Invalid values are ignored with a warning. |
+
+### `OPENCLAW_HOME`
+
+When set, `OPENCLAW_HOME` replaces the system home directory (`$HOME` / `os.homedir()`) for all internal path resolution. This enables full filesystem isolation for headless service accounts.
+
+**Precedence:** `OPENCLAW_HOME` > `$HOME` > `USERPROFILE` > `os.homedir()`
+
+**Example** (macOS LaunchDaemon):
+
+```xml
+<key>EnvironmentVariables</key>
+<dict>
+  <key>OPENCLAW_HOME</key>
+  <string>/Users/kira</string>
+</dict>
+```
+
+`OPENCLAW_HOME` can also be set to a tilde path (e.g. `~/svc`), which gets expanded using `$HOME` before use.
+
+## nvm users: web_fetch TLS failures
+
+If Node.js was installed via **nvm** (not the system package manager), the built-in `fetch()` uses
+nvm's bundled CA store, which may be missing modern root CAs (ISRG Root X1/X2 for Let's Encrypt,
+DigiCert Global Root G2, etc.). This causes `web_fetch` to fail with `"fetch failed"` on most HTTPS sites.
+
+On Linux, OpenClaw automatically detects nvm and applies the fix in the actual startup environment:
+
+- `openclaw gateway install` writes `NODE_EXTRA_CA_CERTS` into the systemd service environment
+- the `openclaw` CLI entrypoint re-execs itself with `NODE_EXTRA_CA_CERTS` set before Node startup
+
+**Manual fix (for older versions or direct `node ...` launches):**
+
+Export the variable before starting OpenClaw:
+
+```bash
+export NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
+openclaw gateway run
+```
+
+Do not rely on writing only to `~/.openclaw/.env` for this variable; Node reads
+`NODE_EXTRA_CA_CERTS` at process startup.
+
+## Related
+
+- [Gateway configuration](/gateway/configuration)
+- [FAQ: env vars and .env loading](/help/faq#env-vars-and-env-loading)
+- [Models overview](/concepts/models)

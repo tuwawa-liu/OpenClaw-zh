@@ -7,6 +7,10 @@ import {
   type RestartSentinelPayload,
   summarizeRestartSentinel,
 } from "../../infra/restart-sentinel.js";
+import {
+  formatPluginCompatibilityNotice,
+  type PluginCompatibilityNotice,
+} from "../../plugins/status.js";
 import { formatTimeAgo, redactSecrets } from "./format.js";
 import { readFileTailLines, summarizeLogTail } from "./gateway.js";
 
@@ -60,6 +64,7 @@ export async function appendStatusAllDiagnosis(params: {
   tailscale: TailscaleStatusLike;
   tailscaleHttpsUrl: string | null;
   skillStatus: SkillStatusLike | null;
+  pluginCompatibility: PluginCompatibilityNotice[];
   channelsStatus: unknown;
   channelIssues: ChannelIssueLike[];
   gatewayReachable: boolean;
@@ -177,7 +182,19 @@ export async function appendStatusAllDiagnosis(params: {
     );
   }
 
-  params.progress.setLabel(t("statusAllDiagnosis.readingLogs"));
+  emitCheck(
+    `Plugin compatibility (${params.pluginCompatibility.length || "none"})`,
+    params.pluginCompatibility.length === 0 ? "ok" : "warn",
+  );
+  for (const notice of params.pluginCompatibility.slice(0, 12)) {
+    const severity = notice.severity === "warn" ? "warn" : "info";
+    lines.push(`  - [${severity}] ${formatPluginCompatibilityNotice(notice)}`);
+  }
+  if (params.pluginCompatibility.length > 12) {
+    lines.push(`  ${muted(`… +${params.pluginCompatibility.length - 12} more`)}`);
+  }
+
+  params.progress.setLabel("Reading logs…");
   const logPaths = (() => {
     try {
       return resolveGatewayLogPaths(process.env);

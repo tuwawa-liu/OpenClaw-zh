@@ -73,12 +73,13 @@ openclaw plugins install ./extensions/synology-chat
 
 ## 私信策略和访问控制
 
-- `dmPolicy: "allowlist"` 是推荐的默认值。
-- `allowedUserIds` 接受 Synology 用户 ID 的列表（或逗号分隔的字符串）。
-- 在 `allowlist` 模式下，空的 `allowedUserIds` 列表被视为配置错误，Webhook 路由不会启动（使用 `dmPolicy: "open"` 允许所有人）。
-- `dmPolicy: "open"` 允许任何发送者。
-- `dmPolicy: "disabled"` 阻止私信。
-- 配对审批工作流程：
+- `dmPolicy: "allowlist"` is the recommended default.
+- `allowedUserIds` accepts a list (or comma-separated string) of Synology user IDs.
+- In `allowlist` mode, an empty `allowedUserIds` list is treated as misconfiguration and the webhook route will not start (use `dmPolicy: "open"` for allow-all).
+- `dmPolicy: "open"` allows any sender.
+- `dmPolicy: "disabled"` blocks DMs.
+- Reply recipient binding stays on stable numeric `user_id` by default. `channels.synology-chat.dangerouslyAllowNameMatching: true` is break-glass compatibility mode that re-enables mutable username/nickname lookup for reply delivery.
+- Pairing approvals work with:
   - `openclaw pairing list synology-chat`
   - `openclaw pairing approve synology-chat <CODE>`
 
@@ -97,8 +98,15 @@ openclaw message send --channel synology-chat --target synology-chat:123456 --te
 
 ## 多账户
 
-`channels.synology-chat.accounts` 下支持多个 Synology Chat 账户。
-每个账户可以覆盖令牌、入站 URL、Webhook 路径、私信策略和限制。
+Multiple Synology Chat accounts are supported under `channels.synology-chat.accounts`.
+Each account can override token, incoming URL, webhook path, DM policy, and limits.
+Direct-message sessions are isolated per account and user, so the same numeric `user_id`
+on two different Synology accounts does not share transcript state.
+Give each enabled account a distinct `webhookPath`. OpenClaw now rejects duplicate exact paths
+and refuses to start named accounts that only inherit a shared webhook path in multi-account setups.
+If you intentionally need legacy inheritance for a named account, set
+`dangerouslyAllowInheritedWebhookPath: true` on that account or at `channels.synology-chat`,
+but duplicate exact paths are still rejected fail-closed. Prefer explicit per-account paths.
 
 ```json5
 {
@@ -125,7 +133,9 @@ openclaw message send --channel synology-chat --target synology-chat:123456 --te
 
 ## 安全说明
 
-- 保密 `token` 并在泄露后轮换。
-- 保持 `allowInsecureSsl: false`，除非你明确信任自签名的本地 NAS 证书。
-- 入站 Webhook 请求经过令牌验证和按发送者限流。
-- 生产环境推荐使用 `dmPolicy: "allowlist"`。
+- Keep `token` secret and rotate it if leaked.
+- Keep `allowInsecureSsl: false` unless you explicitly trust a self-signed local NAS cert.
+- Inbound webhook requests are token-verified and rate-limited per sender.
+- Prefer `dmPolicy: "allowlist"` for production.
+- Keep `dangerouslyAllowNameMatching` off unless you explicitly need legacy username-based reply delivery.
+- Keep `dangerouslyAllowInheritedWebhookPath` off unless you explicitly accept shared-path routing risk in a multi-account setup.

@@ -77,7 +77,10 @@ export function formatUpdateOneLiner(update: UpdateCheckResult): string {
     if (update.registry?.latestVersion) {
       const cmp = compareSemverStrings(VERSION, update.registry.latestVersion);
       if (cmp === 0) {
-        parts.push(t("commands.statusUpdate.npmLatest", { version: update.registry.latestVersion }));
+        if (update.installKind !== "git") {
+          parts.push("up to date");
+        }
+        parts.push(`npm latest ${update.registry.latestVersion}`);
       } else if (cmp != null && cmp < 0) {
         parts.push(t("commands.statusUpdate.npmUpdate", { version: update.registry.latestVersion }));
       } else {

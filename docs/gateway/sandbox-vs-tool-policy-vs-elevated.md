@@ -102,7 +102,7 @@ openclaw sandbox explain --json
 - `group:nodes`：`nodes`
 - `group:openclaw`：所有内置 OpenClaw 工具（不包括提供商插件）
 
-## 提权：仅限 exec 的"在主机上运行"
+## Elevated: exec-only "run on host"
 
 提权**不会**授予额外工具；它仅影响 `exec`。
 
@@ -119,9 +119,9 @@ openclaw sandbox explain --json
 
 参见[提权模式](/tools/elevated)。
 
-## 常见"沙箱困境"修复
+## Common "sandbox jail" fixes
 
-### "工具 X 被沙箱工具策略阻止"
+### "Tool X blocked by sandbox tool policy"
 
 修复键（选一个）：
 
@@ -130,6 +130,12 @@ openclaw sandbox explain --json
   - 从 `tools.sandbox.tools.deny` 中移除它（或每个智能体 `agents.list[].tools.sandbox.tools.deny`）
   - 或将它添加到 `tools.sandbox.tools.allow`（或每个智能体 allow）
 
-### "我以为这是主会话，为什么被沙箱隔离了？"
+### "I thought this was main, why is it sandboxed?"
 
-在 `"non-main"` 模式下，群组/渠道键*不是*主会话。使用主会话键（由 `sandbox explain` 显示）或将模式切换为 `"off"`。
+In `"non-main"` mode, group/channel keys are _not_ main. Use the main session key (shown by `sandbox explain`) or switch mode to `"off"`.
+
+## See also
+
+- [Sandboxing](/gateway/sandboxing) -- full sandbox reference (modes, scopes, backends, images)
+- [Multi-Agent Sandbox & Tools](/tools/multi-agent-sandbox-tools) -- per-agent overrides and precedence
+- [Elevated Mode](/tools/elevated)

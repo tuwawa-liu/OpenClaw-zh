@@ -1,4 +1,5 @@
 ---
+summary: "Agent runtime, workspace contract, and session bootstrap"
 read_when:
   - 更改智能体运行时、工作区引导或会话行为时
 summary: 智能体运行时（嵌入式 pi-mono）、工作区契约和会话引导
@@ -12,9 +13,9 @@ x-i18n:
   workflow: 15
 ---
 
-# 智能体运行时 🤖
+# Agent Runtime
 
-OpenClaw 运行一个源自 **pi-mono** 的嵌入式智能体运行时。
+OpenClaw runs a single embedded agent runtime.
 
 ## 工作区（必需）
 
@@ -65,12 +66,11 @@ OpenClaw 从三个位置加载 Skills（名称冲突时工作区优先）：
 
 Skills 可通过配置/环境变量控制（参见 [Gateway 网关配置](/gateway/configuration) 中的 `skills`）。
 
-## pi-mono 集成
+## Runtime boundaries
 
-OpenClaw 复用 pi-mono 代码库的部分内容（模型/工具），但**会话管理、设备发现和工具连接由 OpenClaw 负责**。
-
-- 无 pi-coding 智能体运行时。
-- 不读取 `~/.pi/agent` 或 `<workspace>/.pi` 设置。
+The embedded agent runtime is built on the Pi agent core (models, tools, and
+prompt pipeline). Session management, discovery, tool wiring, and channel
+delivery are OpenClaw-owned layers on top of that core.
 
 ## 会话
 
@@ -78,13 +78,16 @@ OpenClaw 复用 pi-mono 代码库的部分内容（模型/工具），但**会�
 
 - `~/.openclaw/agents/<agentId>/sessions/<SessionId>.jsonl`
 
-会话 ID 是稳定的，由 OpenClaw 选择。
-**不**读取旧版 Pi/Tau 会话文件夹。
+The session ID is stable and chosen by OpenClaw.
+Legacy session folders from other tools are not read.
 
 ## 流式传输中的引导
 
-当队列模式为 `steer` 时，入站消息会注入当前运行。
-队列在**每次工具调用后**检查；如果存在排队消息，当前助手消息的剩余工具调用将被跳过（工具结果显示错误"Skipped due to queued user message."），然后在下一个助手响应前注入排队的用户消息。
+When queue mode is `steer`, inbound messages are injected into the current run.
+Queued steering is delivered **after the current assistant turn finishes
+executing its tool calls**, before the next LLM call. Steering no longer skips
+remaining tool calls from the current assistant message; it injects the queued
+message at the next model boundary instead.
 
 当队列模式为 `followup` 或 `collect` 时，入站消息会保留到当前轮次结束，然后使用排队的载荷开始新的智能体轮次。参见 [队列](/concepts/queue) 了解模式 + 防抖/上限行为。
 

@@ -146,17 +146,11 @@ export function registerDnsCli(program: Command) {
         }).trimEnd(),
       );
       defaultRuntime.log("");
-      defaultRuntime.log(theme.heading("推荐 ~/.openclaw/openclaw.json："));
-      defaultRuntime.log(
-        JSON.stringify(
-          {
-            gateway: { bind: "auto" },
-            discovery: { wideArea: { enabled: true, domain: wideAreaDomain } },
-          },
-          null,
-          2,
-        ),
-      );
+      defaultRuntime.log(theme.heading("Recommended ~/.openclaw/openclaw.json:"));
+      defaultRuntime.writeJson({
+        gateway: { bind: "auto" },
+        discovery: { wideArea: { enabled: true, domain: wideAreaDomain } },
+      });
       defaultRuntime.log("");
       defaultRuntime.log(theme.heading("Tailscale 管理（DNS → 名称服务器）："));
       defaultRuntime.log(

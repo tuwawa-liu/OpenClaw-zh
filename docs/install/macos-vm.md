@@ -119,7 +119,7 @@ lume create openclaw --os macos --ipsw latest
 
 ---
 
-## 4) 获取 VM 的 IP 地址
+## 4) Get the VM IP address
 
 ```bash
 lume get openclaw
@@ -162,17 +162,17 @@ nano ~/.openclaw/openclaw.json
 
 添加你的渠道：
 
-```json
+```json5
 {
-  "channels": {
-    "whatsapp": {
-      "dmPolicy": "allowlist",
-      "allowFrom": ["+15551234567"]
+  channels: {
+    whatsapp: {
+      dmPolicy: "allowlist",
+      allowFrom: ["+15551234567"],
     },
-    "telegram": {
-      "botToken": "YOUR_BOT_TOKEN"
-    }
-  }
+    telegram: {
+      botToken: "YOUR_BOT_TOKEN",
+    },
+  },
 }
 ```
 
@@ -216,15 +216,15 @@ ssh youruser@192.168.64.X "openclaw status"
 
 添加到你的 OpenClaw 配置：
 
-```json
+```json5
 {
-  "channels": {
-    "bluebubbles": {
-      "serverUrl": "http://localhost:1234",
-      "password": "your-api-password",
-      "webhookPath": "/bluebubbles-webhook"
-    }
-  }
+  channels: {
+    bluebubbles: {
+      serverUrl: "http://localhost:1234",
+      password: "your-api-password",
+      webhookPath: "/bluebubbles-webhook",
+    },
+  },
 }
 ```
 

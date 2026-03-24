@@ -4,8 +4,7 @@ import { buildChannelAccountSnapshot } from "../../channels/plugins/status.js";
 import type { ChannelAccountSnapshot, ChannelPlugin } from "../../channels/plugins/types.js";
 import { withProgress } from "../../cli/progress.js";
 import { formatUsageReportLines, loadProviderUsageSummary } from "../../infra/provider-usage.js";
-import { defaultRuntime, type RuntimeEnv } from "../../runtime.js";
-import { t } from "../../i18n/index.js";
+import { defaultRuntime, type RuntimeEnv, writeRuntimeJson } from "../../runtime.js";
 import { formatDocsLink } from "../../terminal/links.js";
 import { theme } from "../../terminal/theme.js";
 import { formatChannelAccountLabel, requireValidConfig } from "./shared.js";
@@ -127,7 +126,7 @@ export async function channelsListCommand(
       chat[plugin.id] = plugin.config.listAccountIds(cfg);
     }
     const payload = { chat, auth: authProfiles, ...(usage ? { usage } : {}) };
-    runtime.log(JSON.stringify(payload, null, 2));
+    writeRuntimeJson(runtime, payload);
     return;
   }
 

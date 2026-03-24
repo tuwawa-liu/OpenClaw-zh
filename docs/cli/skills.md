@@ -1,21 +1,15 @@
 ---
+summary: "CLI reference for `openclaw skills` (search/install/update/list/info/check)"
 read_when:
-  - 你想查看哪些 Skills 可用并准备好运行
-  - 你想调试 Skills 缺少的二进制文件/环境变量/配置
-summary: "`openclaw skills` 的 CLI 参考（列出/信息/检查）和 skill 资格"
-title: skills
-x-i18n:
-  generated_at: "2026-02-03T07:45:14Z"
-  model: claude-opus-4-5
-  provider: pi
-  source_hash: 7878442c88a27ec8033f3125c319e9a6a85a1c497a404a06112ad45185c261b0
-  source_path: cli/skills.md
-  workflow: 15
+  - You want to see which skills are available and ready to run
+  - You want to search, install, or update skills from ClawHub
+  - You want to debug missing binaries/env/config for skills
+title: "skills"
 ---
 
 # `openclaw skills`
 
-检查 Skills（内置 + 工作区 + 托管覆盖）并查看哪些符合条件，哪些缺少要求。
+Inspect local skills and install/update skills from ClawHub.
 
 相关内容：
 
@@ -26,8 +20,17 @@ x-i18n:
 ## 命令
 
 ```bash
+openclaw skills search "calendar"
+openclaw skills install <slug>
+openclaw skills install <slug> --version <version>
+openclaw skills update <slug>
+openclaw skills update --all
 openclaw skills list
 openclaw skills list --eligible
 openclaw skills info <name>
 openclaw skills check
 ```
+
+`search`/`install`/`update` use ClawHub directly and install into the active
+workspace `skills/` directory. `list`/`info`/`check` still inspect the local
+skills visible to the current workspace and config.

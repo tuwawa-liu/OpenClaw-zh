@@ -1,17 +1,9 @@
 ---
 read_when:
-  - 你需要一个适合初学者的日志概述
-  - 你想配置日志级别或格式
-  - 你正在故障排除并需要快速找到日志
-summary: 日志概述：文件日志、控制台输出、CLI 跟踪和控制 UI
-title: 日志
-x-i18n:
-  generated_at: "2026-02-03T07:50:52Z"
-  model: claude-opus-4-5
-  provider: pi
-  source_hash: 884fcf4a906adff34d546908e22abd283cb89fe0845076cf925c72384ec3556b
-  source_path: logging.md
-  workflow: 15
+  - You need a beginner-friendly overview of logging
+  - You want to configure log levels or formats
+  - You are troubleshooting and need to find logs quickly
+title: "Logging Overview"
 ---
 
 # 日志

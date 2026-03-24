@@ -1,4 +1,6 @@
 ---
+title: "USER Template"
+summary: "User profile record"
 read_when:
   - 手动引导工作区
 summary: 用户档案记录

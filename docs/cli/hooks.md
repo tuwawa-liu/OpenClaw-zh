@@ -1,16 +1,8 @@
 ---
 read_when:
-  - 你想管理智能体钩子
-  - 你想安装或更新钩子
-summary: CLI 参考：`openclaw hooks`（智能体钩子）
-title: hooks
-x-i18n:
-  generated_at: "2026-02-03T10:04:32Z"
-  model: claude-opus-4-5
-  provider: pi
-  source_hash: e2032e61ff4b9135cb2708d92eb7889ac627b85a5fc153e3d5b84265f7bd7bc6
-  source_path: cli/hooks.md
-  workflow: 15
+  - You want to manage agent hooks
+  - You want to inspect hook availability or enable workspace hooks
+title: "hooks"
 ---
 
 # `openclaw hooks`
@@ -19,8 +11,8 @@ x-i18n:
 
 相关内容：
 
-- 钩子：[钩子](/automation/hooks)
-- 插件钩子：[插件](/tools/plugin#plugin-hooks)
+- Hooks: [Hooks](/automation/hooks)
+- Plugin hooks: [Plugin hooks](/plugins/architecture#provider-runtime-hooks)
 
 ## 列出所有钩子
 
@@ -28,7 +20,7 @@ x-i18n:
 openclaw hooks list
 ```
 
-列出从工作区、托管目录和内置目录中发现的所有钩子。
+List all discovered hooks from workspace, managed, extra, and bundled directories.
 
 **选项：**
 
@@ -44,7 +36,7 @@ Hooks (3/3 ready)
 Ready:
   🚀 boot-md ✓ - Run BOOT.md on gateway startup
   📝 command-logger ✓ - Log all command events to a centralized audit file
-  💾 session-memory ✓ - Save session context to memory when /new command is issued
+  💾 session-memory ✓ - Save session context to memory when /new or /reset command is issued
 ```
 
 **示例（详细模式）：**
@@ -90,14 +82,14 @@ openclaw hooks info session-memory
 ```
 💾 session-memory ✓ Ready
 
-Save session context to memory when /new command is issued
+Save session context to memory when /new or /reset command is issued
 
 Details:
   Source: openclaw-bundled
   Path: /path/to/openclaw/hooks/bundled/session-memory/HOOK.md
   Handler: /path/to/openclaw/hooks/bundled/session-memory/handler.ts
   Homepage: https://docs.openclaw.ai/automation/hooks#session-memory
-  Events: command:new
+  Events: command:new, command:reset
 
 Requirements:
   Config: ✓ workspace.dir
@@ -133,8 +125,7 @@ openclaw hooks enable <name>
 
 通过将特定钩子添加到配置（`~/.openclaw/config.json`）来启用它。
 
-**注意：** 由插件管理的钩子在 `openclaw hooks list` 中显示 `plugin:<id>`，
-无法在此处启用/禁用。请改为启用/禁用该插件。
+**Note:** Workspace hooks are disabled by default until enabled here or in config. Hooks managed by plugins show `plugin:<id>` in `openclaw hooks list` and can’t be enabled/disabled here. Enable/disable the plugin instead.
 
 **参数：**
 
@@ -158,7 +149,10 @@ openclaw hooks enable session-memory
 - 在配置中更新 `hooks.internal.entries.<name>.enabled = true`
 - 将配置保存到磁盘
 
-**启用后：**
+If the hook came from `<workspace>/hooks/`, this opt-in step is required before
+the Gateway will load it.
+
+**After enabling:**
 
 - 重启 Gateway 网关以重新加载钩子（macOS 上重启菜单栏应用，或在开发环境中重启 Gateway 网关进程）。
 
@@ -190,13 +184,18 @@ openclaw hooks disable command-logger
 
 - 重启 Gateway 网关以重新加载钩子
 
-## 安装钩子
+## Install Hook Packs
 
 ```bash
-openclaw hooks install <path-or-spec>
+openclaw plugins install <package>        # ClawHub first, then npm
+openclaw plugins install <package> --pin  # pin version
+openclaw plugins install <path>           # local path
 ```
 
-从本地文件夹/压缩包或 npm 安装钩子包。
+Install hook packs through the unified plugins installer.
+
+`openclaw hooks install` still works as a compatibility alias, but it prints a
+deprecation warning and forwards to `openclaw plugins install`.
 
 **执行操作：**
 
@@ -213,27 +212,33 @@ openclaw hooks install <path-or-spec>
 **示例：**
 
 ```bash
-# 本地目录
-openclaw hooks install ./my-hook-pack
+# Local directory
+openclaw plugins install ./my-hook-pack
 
-# 本地压缩包
-openclaw hooks install ./my-hook-pack.zip
+# Local archive
+openclaw plugins install ./my-hook-pack.zip
 
-# NPM 包
-openclaw hooks install @openclaw/my-hook-pack
+# NPM package
+openclaw plugins install @openclaw/my-hook-pack
 
-# 链接本地目录而不复制
-openclaw hooks install -l ./my-hook-pack
+# Link a local directory without copying
+openclaw plugins install -l ./my-hook-pack
 ```
 
-## 更新钩子
+Linked hook packs are treated as managed hooks from an operator-configured
+directory, not as workspace hooks.
+
+## Update Hook Packs
 
 ```bash
-openclaw hooks update <id>
-openclaw hooks update --all
+openclaw plugins update <id>
+openclaw plugins update --all
 ```
 
-更新已安装的钩子包（仅限 npm 安装）。
+Update tracked npm-based hook packs through the unified plugins updater.
+
+`openclaw hooks update` still works as a compatibility alias, but it prints a
+deprecation warning and forwards to `openclaw plugins update`.
 
 **选项：**
 
@@ -244,7 +249,7 @@ openclaw hooks update --all
 
 ### session-memory
 
-在你执行 `/new` 时将会话上下文保存到记忆中。
+Saves session context to memory when you issue `/new` or `/reset`.
 
 **启用：**
 

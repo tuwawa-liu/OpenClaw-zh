@@ -17,7 +17,7 @@ import { callGateway } from "../../gateway/call.js";
 import { t } from "../../i18n/index.js";
 import { collectChannelStatusIssues } from "../../infra/channels-status-issues.js";
 import { formatTimeAgo } from "../../infra/format-time/format-relative.ts";
-import { defaultRuntime, type RuntimeEnv } from "../../runtime.js";
+import { defaultRuntime, type RuntimeEnv, writeRuntimeJson } from "../../runtime.js";
 import { formatDocsLink } from "../../terminal/links.js";
 import { theme } from "../../terminal/theme.js";
 import {
@@ -302,7 +302,7 @@ export async function channelsStatusCommand(
         }),
     );
     if (opts.json) {
-      runtime.log(JSON.stringify(payload, null, 2));
+      writeRuntimeJson(runtime, payload);
       return;
     }
     runtime.log(formatGatewayChannelsStatusLines(payload).join("\n"));

@@ -15,37 +15,47 @@ x-i18n:
 
 # 入门指南
 
-目标：尽快从**零**到**第一个可用聊天**（使用合理的默认值）。
+Install OpenClaw, run onboarding, and chat with your AI assistant — all in
+about 5 minutes. By the end you will have a running Gateway, configured auth,
+and a working chat session.
 
-最快聊天：打开 Control UI（无需渠道设置）。运行 `openclaw dashboard` 并在浏览器中聊天，或在 Gateway 网关主机上打开 `http://127.0.0.1:18789/`。文档：[Dashboard](/web/dashboard) 和 [Control UI](/web/control-ui)。
+## What you need
 
-推荐路径：使用 **CLI 新手引导向导**（`openclaw onboard`）。它设置：
+- **Node.js** — Node 24 recommended (Node 22.16+ also supported)
+- **An API key** from a model provider (Anthropic, OpenAI, Google, etc.) — onboarding will prompt you
 
-- 模型/认证（推荐 OAuth）
-- Gateway 网关设置
-- 渠道（WhatsApp/Telegram/Discord/Mattermost（插件）/...）
-- 配对默认值（安全私信）
-- 工作区引导 + Skills
-- 可选的后台服务
+<Tip>
+Check your Node version with `node --version`.
+**Windows users:** both native Windows and WSL2 are supported. WSL2 is more
+stable and recommended for the full experience. See [Windows](/platforms/windows).
+Need to install Node? See [Node setup](/install/node).
+</Tip>
 
-如果你想要更深入的参考页面，跳转到：[向导](/start/wizard)、[设置](/start/setup)、[配对](/channels/pairing)、[安全](/gateway/security)。
+## Quick setup
 
-沙箱注意事项：`agents.defaults.sandbox.mode: "non-main"` 使用 `session.mainKey`（默认 `"main"`），因此群组/渠道会话会被沙箱隔离。如果你想要主智能体始终在主机上运行，设置显式的每智能体覆盖：
+<Steps>
+  <Step title="Install OpenClaw">
+    <Tabs>
+      <Tab title="macOS / Linux">
+        ```bash
+        curl -fsSL https://openclaw.ai/install.sh | bash
+        ```
+        <img
+  src="/assets/install-script.svg"
+  alt="Install Script Process"
+  className="rounded-lg"
+/>
+      </Tab>
+      <Tab title="Windows (PowerShell)">
+        ```powershell
+        iwr -useb https://openclaw.ai/install.ps1 | iex
+        ```
+      </Tab>
+    </Tabs>
 
-```json
-{
-  "routing": {
-    "agents": {
-      "main": {
-        "workspace": "~/.openclaw/workspace",
-        "sandbox": { "mode": "off" }
-      }
-    }
-  }
-}
-```
-
-## 0) 前置条件
+    <Note>
+    Other install methods (Docker, Nix, npm): [Install](/install).
+    </Note>
 
   </Step>
   <Step title="Run onboarding">
@@ -53,162 +63,61 @@ x-i18n:
     openclaw onboard --install-daemon
     ```
 
-    Onboarding configures auth, gateway settings, and optional channels.
-    See [Onboarding (CLI)](/start/wizard) for details.
+    The wizard walks you through choosing a model provider, setting an API key,
+    and configuring the Gateway. It takes about 2 minutes.
 
-## 1) 安装 CLI（推荐）
+    See [Onboarding (CLI)](/start/wizard) for the full reference.
 
-```bash
-curl -fsSL https://openclaw.ai/install.sh | bash
-```
+  </Step>
+  <Step title="Verify the Gateway is running">
+    ```bash
+    openclaw gateway status
+    ```
 
-安装程序选项（安装方法、非交互式、从 GitHub）：[安装](/install)。
+    You should see the Gateway listening on port 18789.
 
-Windows (PowerShell)：
+  </Step>
+  <Step title="Open the dashboard">
+    ```bash
+    openclaw dashboard
+    ```
 
-```powershell
-iwr -useb https://openclaw.ai/install.ps1 | iex
-```
+    This opens the Control UI in your browser. If it loads, everything is working.
 
-替代方案（全局安装）：
+  </Step>
+  <Step title="Send your first message">
+    Type a message in the Control UI chat and you should get an AI reply.
 
-```bash
-npm install -g openclaw@latest
-```
+    Want to chat from your phone instead? The fastest channel to set up is
+    [Telegram](/channels/telegram) (just a bot token). See [Channels](/channels)
+    for all options.
 
-```bash
-pnpm add -g openclaw@latest
-```
+  </Step>
+</Steps>
 
-## 2) 运行新手引导向导（并安装服务）
-
-```bash
-openclaw onboard --install-daemon
-```
-
-你将选择：
-
-- **本地 vs 远程** Gateway 网关
-- **认证**：OpenAI Code (Codex) 订阅（OAuth）或 API 密钥。对于 Anthropic 我们推荐 API 密钥；也支持 `claude setup-token`。
-- **提供商**：WhatsApp QR 登录、Telegram/Discord 机器人令牌、Mattermost 插件令牌等。
-- **守护进程**：后台安装（launchd/systemd；WSL2 使用 systemd）
-  - **运行时**：Node（推荐；WhatsApp/Telegram 必需）。**不推荐** Bun。
-- **Gateway 网关令牌**：向导默认生成一个（即使在 loopback 上）并存储在 `gateway.auth.token`。
-
-向导文档：[向导](/start/wizard)
-
-### 凭证：存储位置（重要）
-
-- **推荐的 Anthropic 路径：**设置 API 密钥（向导可以为服务使用存储它）。如果你想复用 Claude Code 凭证，也支持 `claude setup-token`。
+## What to do next
 
 <Columns>
-  <Card title="Onboarding (CLI)" href="/start/wizard">
-    Full CLI onboarding reference and advanced options.
+  <Card title="Connect a channel" href="/channels" icon="message-square">
+    WhatsApp, Telegram, Discord, iMessage, and more.
   </Card>
-  <Card title="macOS app onboarding" href="/start/onboarding">
-    First run flow for the macOS app.
+  <Card title="Pairing and safety" href="/channels/pairing" icon="shield">
+    Control who can message your agent.
+  </Card>
+  <Card title="Configure the Gateway" href="/gateway/configuration" icon="settings">
+    Models, tools, sandbox, and advanced settings.
+  </Card>
+  <Card title="Browse tools" href="/tools" icon="wrench">
+    Browser, exec, web search, skills, and plugins.
   </Card>
 </Columns>
 
-无头/服务器提示：先在普通机器上完成 OAuth，然后将 `oauth.json` 复制到 Gateway 网关主机。
+<Accordion title="Advanced: environment variables">
+  If you run OpenClaw as a service account or want custom paths:
 
-## 3) 启动 Gateway 网关
+- `OPENCLAW_HOME` — home directory for internal path resolution
+- `OPENCLAW_STATE_DIR` — override the state directory
+- `OPENCLAW_CONFIG_PATH` — override the config file path
 
-如果你在新手引导期间安装了服务，Gateway 网关应该已经在运行：
-
-```bash
-openclaw gateway status
-```
-
-手动运行（前台）：
-
-```bash
-openclaw gateway --port 18789 --verbose
-```
-
-Dashboard（local loopback）：`http://127.0.0.1:18789/`
-如果配置了令牌，将其粘贴到 Control UI 设置中（存储为 `connect.params.auth.token`）。
-
-⚠️ **Bun 警告（WhatsApp + Telegram）：**Bun 与这些渠道存在已知问题。如果你使用 WhatsApp 或 Telegram，请使用 **Node** 运行 Gateway 网关。
-
-## 3.5) 快速验证（2 分钟）
-
-```bash
-openclaw status
-openclaw health
-openclaw security audit --deep
-```
-
-## 4) 配对 + 连接你的第一个聊天界面
-
-### WhatsApp（QR 登录）
-
-```bash
-openclaw channels login
-```
-
-通过 WhatsApp → 设置 → 链接设备扫描。
-
-WhatsApp 文档：[WhatsApp](/channels/whatsapp)
-
-### Telegram / Discord / 其他
-
-向导可以为你写入令牌/配置。如果你更喜欢手动配置，从这里开始：
-
-- Telegram：[Telegram](/channels/telegram)
-- Discord：[Discord](/channels/discord)
-- Mattermost（插件）：[Mattermost](/channels/mattermost)
-
-**Telegram 私信提示：**你的第一条私信会返回配对码。批准它（见下一步），否则机器人不会响应。
-
-## 5) 私信安全（配对审批）
-
-默认姿态：未知私信会获得一个短代码，消息在批准之前不会被处理。如果你的第一条私信没有收到回复，批准配对：
-
-```bash
-openclaw pairing list whatsapp
-openclaw pairing approve whatsapp <code>
-```
-
-配对文档：[配对](/channels/pairing)
-
-## 从源代码（开发）
-
-如果你正在开发 OpenClaw 本身，从源代码运行：
-
-```bash
-git clone https://github.com/openclaw/openclaw.git
-cd openclaw
-pnpm install
-pnpm ui:build # 首次运行时自动安装 UI 依赖
-pnpm build
-openclaw onboard --install-daemon
-```
-
-如果你还没有全局安装，从仓库通过 `pnpm openclaw ...` 运行新手引导步骤。`pnpm build` 也会打包 A2UI 资源；如果你只需要运行那个步骤，使用 `pnpm canvas:a2ui:bundle`。
-
-Gateway 网关（从此仓库）：
-
-```bash
-node openclaw.mjs gateway --port 18789 --verbose
-```
-
-## 7) 验证端到端
-
-在新终端中，发送测试消息：
-
-```bash
-openclaw message send --target +15555550123 --message "Hello from OpenClaw"
-```
-
-如果 `openclaw health` 显示"未配置认证"，回到向导设置 OAuth/密钥认证——没有它智能体将无法响应。
-
-提示：`openclaw status --all` 是最佳的可粘贴、只读调试报告。
-健康探测：`openclaw health`（或 `openclaw status --deep`）向运行中的 Gateway 网关请求健康快照。
-
-## 下一步（可选，但很棒）
-
-- macOS 菜单栏应用 + 语音唤醒：[macOS 应用](/platforms/macos)
-- iOS/Android 节点（Canvas/相机/语音）：[节点](/nodes)
-- 远程访问（SSH 隧道 / Tailscale Serve）：[远程访问](/gateway/remote) 和 [Tailscale](/gateway/tailscale)
-- 常开 / VPN 设置：[远程访问](/gateway/remote)、[exe.dev](/install/exe-dev)、[Hetzner](/install/hetzner)、[macOS 远程](/platforms/mac/remote)
+Full reference: [Environment variables](/help/environment).
+</Accordion>

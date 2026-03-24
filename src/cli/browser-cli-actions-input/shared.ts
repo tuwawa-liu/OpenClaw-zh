@@ -47,7 +47,7 @@ export function logBrowserActionResult(
   successMessage: string,
 ) {
   if (parent?.json) {
-    defaultRuntime.log(JSON.stringify(result, null, 2));
+    defaultRuntime.writeJson(result);
     return;
   }
   defaultRuntime.log(successMessage);

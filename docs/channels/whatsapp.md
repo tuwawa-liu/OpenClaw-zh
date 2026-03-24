@@ -16,7 +16,32 @@ x-i18n:
 
 状态：仅支持通过 Baileys 的 WhatsApp Web。Gateway 网关拥有会话。
 
-## 快速设置（新手）
+## Install (on demand)
+
+- Onboarding (`openclaw onboard`) and `openclaw channels add --channel whatsapp`
+  prompt to install the WhatsApp plugin the first time you select it.
+- `openclaw channels login --channel whatsapp` also offers the install flow when
+  the plugin is not present yet.
+- Dev channel + git checkout: defaults to the local plugin path.
+- Stable/Beta: defaults to the npm package `@openclaw/whatsapp`.
+
+Manual install stays available:
+
+```bash
+openclaw plugins install @openclaw/whatsapp
+```
+
+<CardGroup cols={3}>
+  <Card title="Pairing" icon="link" href="/channels/pairing">
+    Default DM policy is pairing for unknown senders.
+  </Card>
+  <Card title="Channel troubleshooting" icon="wrench" href="/channels/troubleshooting">
+    Cross-channel diagnostics and repair playbooks.
+  </Card>
+  <Card title="Gateway configuration" icon="settings" href="/gateway/configuration">
+    Full channel config patterns and examples.
+  </Card>
+</CardGroup>
 
 1. 如果可能，使用**单独的手机号码**（推荐）。
 2. 在 `~/.openclaw/openclaw.json` 中配置 WhatsApp。

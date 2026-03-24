@@ -49,7 +49,7 @@ Gateway 网关始终在启动时植入一个"self"条目，这样即使在任何
 
 每个 WS 客户端都以 `connect` 请求开始。在成功握手后，Gateway 网关为该连接更新插入一个在线状态条目。
 
-#### 为什么一次性 CLI 命令不会显示
+#### Why one-off CLI commands do not show up
 
 CLI 经常为短暂的一次性命令进行连接。为避免实例列表被刷屏，`client.mode === "cli"` **不会**被转换为在线状态条目。
 

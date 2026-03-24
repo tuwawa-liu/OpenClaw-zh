@@ -53,7 +53,7 @@ OAuth 提供商通常在登录/刷新流程中发放**新的刷新令牌**。某
 
 - `~/.openclaw/credentials/oauth.json`（首次使用时导入到 `auth-profiles.json`）
 
-以上所有路径也遵循 `$OPENCLAW_STATE_DIR`（状态目录覆盖）。完整参考：[/gateway/configuration](/gateway/configuration#auth-storage-oauth--api-keys)
+All of the above also respect `$OPENCLAW_STATE_DIR` (state dir override). Full reference: [/gateway/configuration](/gateway/configuration-reference#auth-storage)
 
 ## Anthropic setup-token（订阅认证）
 

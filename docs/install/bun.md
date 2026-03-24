@@ -13,48 +13,45 @@ x-i18n:
   workflow: 15
 ---
 
-# Bun（实验性）
+# Bun (Experimental)
 
-目标：使用 **Bun** 运行此仓库（可选，不推荐用于 WhatsApp/Telegram），同时不偏离 pnpm 工作流。
+<Warning>
+Bun is **not recommended for gateway runtime** (known issues with WhatsApp and Telegram). Use Node for production.
+</Warning>
 
-⚠️ **不推荐用于 Gateway 网关运行时**（WhatsApp/Telegram 存在 bug）。生产环境请使用 Node。
-
-## 状态
-
-- Bun 是一个可选的本地运行时，用于直接运行 TypeScript（`bun run …`、`bun --watch …`）。
-- `pnpm` 是构建的默认工具，仍然完全支持（并被一些文档工具使用）。
-- Bun 无法使用 `pnpm-lock.yaml` 并会忽略它。
+Bun is an optional local runtime for running TypeScript directly (`bun run ...`, `bun --watch ...`). The default package manager remains `pnpm`, which is fully supported and used by docs tooling. Bun cannot use `pnpm-lock.yaml` and will ignore it.
 
 ## 安装
 
-默认：
+<Steps>
+  <Step title="Install dependencies">
+    ```sh
+    bun install
+    ```
 
-```sh
-bun install
-```
+    `bun.lock` / `bun.lockb` are gitignored, so there is no repo churn. To skip lockfile writes entirely:
 
-注意：`bun.lock`/`bun.lockb` 被 gitignore，所以无论哪种方式都不会有仓库变动。如果你想*不写入锁文件*：
+    ```sh
+    bun install --no-save
+    ```
 
-```sh
-bun install --no-save
-```
+  </Step>
+  <Step title="Build and test">
+    ```sh
+    bun run build
+    bun run vitest run
+    ```
+  </Step>
+</Steps>
 
-## 构建/测试（Bun）
+## Lifecycle Scripts
 
-```sh
-bun run build
-bun run vitest run
-```
+Bun blocks dependency lifecycle scripts unless explicitly trusted. For this repo, the commonly blocked scripts are not required:
 
-## Bun 生命周期脚本（默认被阻止）
+- `@whiskeysockets/baileys` `preinstall` -- checks Node major >= 20 (OpenClaw defaults to Node 24 and still supports Node 22 LTS, currently `22.16+`)
+- `protobufjs` `postinstall` -- emits warnings about incompatible version schemes (no build artifacts)
 
-除非明确信任（`bun pm untrusted` / `bun pm trust`），Bun 可能会阻止依赖的生命周期脚本。
-对于此仓库，通常被阻止的脚本不是必需的：
-
-- `@whiskeysockets/baileys` `preinstall`：检查 Node 主版本 >= 20（我们运行 Node 22+）。
-- `protobufjs` `postinstall`：发出关于不兼容版本方案的警告（无构建产物）。
-
-如果你遇到真正需要这些脚本的运行时问题，请明确信任它们：
+If you hit a runtime issue that requires these scripts, trust them explicitly:
 
 ```sh
 bun pm trust @whiskeysockets/baileys protobufjs
@@ -62,4 +59,4 @@ bun pm trust @whiskeysockets/baileys protobufjs
 
 ## 注意事项
 
-- 一些脚本仍然硬编码 pnpm（例如 `docs:build`、`ui:*`、`protocol:check`）。目前请通过 pnpm 运行这些脚本。
+Some scripts still hardcode pnpm (for example `docs:build`, `ui:*`, `protocol:check`). Run those via pnpm for now.

@@ -1,7 +1,6 @@
 ---
-title: "工具循环检测"
-description: "配置可选的防护机制以防止重复或停滞的工具调用循环"
-summary: "如何启用和调优检测重复工具调用循环的防护机制"
+title: "Tool-loop detection"
+summary: "How to enable and tune guardrails that detect repetitive tool-call loops"
 read_when:
   - 用户报告智能体陷入重复工具调用
   - 需要调优重复调用保护

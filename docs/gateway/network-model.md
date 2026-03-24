@@ -12,7 +12,10 @@ x-i18n:
   workflow: 15
 ---
 
-大多数操作通过 Gateway 网关（`openclaw gateway`）进行，它是一个长期运行的单一进程，负责管理渠道连接和 WebSocket 控制平面。
+# Network Model
+
+Most operations flow through the Gateway (`openclaw gateway`), a single long-running
+process that owns channel connections and the WebSocket control plane.
 
 ## 核心规则
 

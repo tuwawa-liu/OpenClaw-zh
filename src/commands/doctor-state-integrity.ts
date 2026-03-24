@@ -28,6 +28,19 @@ type DoctorPrompterLike = {
   }) => Promise<boolean>;
 };
 
+function countLabel(count: number, singular: string, plural = `${singular}s`): string {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
+
+function formatFilePreview(paths: string[], limit = 3): string {
+  const names = paths.slice(0, limit).map((filePath) => path.basename(filePath));
+  const remaining = paths.length - names.length;
+  if (remaining > 0) {
+    return `${names.join(", ")}, and ${remaining} more`;
+  }
+  return names.join(", ");
+}
+
 function existsDir(dir: string): boolean {
   try {
     return fs.existsSync(dir) && fs.statSync(dir).isDirectory();
@@ -771,11 +784,18 @@ export async function noteStateIntegrity(
       .map((entry) => path.resolve(path.join(sessionsDir, entry.name)))
       .filter((filePath) => !referencedTranscriptPaths.has(filePath));
     if (orphanTranscriptPaths.length > 0) {
+      const orphanCount = countLabel(orphanTranscriptPaths.length, "orphan transcript file");
+      const orphanPreview = formatFilePreview(orphanTranscriptPaths);
       warnings.push(
-        t("commands.doctorStateIntegrity.orphanTranscripts", { count: orphanTranscriptPaths.length, dir: displaySessionsDir }),
+        [
+          `- Found ${orphanCount} in ${displaySessionsDir}.`,
+          "  These .jsonl files are no longer referenced by sessions.json, so they are not part of any active session history.",
+          "  Doctor can archive them safely by renaming each file to *.deleted.<timestamp>.",
+          `  Examples: ${orphanPreview}`,
+        ].join("\n"),
       );
       const archiveOrphans = await prompter.confirmSkipInNonInteractive({
-        message: t("commands.doctorStateIntegrity.archiveOrphansPrompt", { count: orphanTranscriptPaths.length, dir: displaySessionsDir }),
+        message: `Archive ${orphanCount} in ${displaySessionsDir}? This only renames them to *.deleted.<timestamp>.`,
         initialValue: false,
       });
       if (archiveOrphans) {
@@ -793,7 +813,9 @@ export async function noteStateIntegrity(
           }
         }
         if (archived > 0) {
-          changes.push(`- Archived ${archived} orphan transcript file(s) in ${displaySessionsDir}`);
+          changes.push(
+            `- Archived ${countLabel(archived, "orphan transcript file")} in ${displaySessionsDir} as .deleted timestamped backups.`,
+          );
         }
       }
     }

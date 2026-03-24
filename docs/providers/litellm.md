@@ -1,5 +1,6 @@
 ---
-summary: "通过 LiteLLM 代理运行 OpenClaw，实现统一模型访问和成本跟踪"
+title: "LiteLLM"
+summary: "Run OpenClaw through LiteLLM Proxy for unified model access and cost tracking"
 read_when:
   - 想要通过 LiteLLM 代理路由 OpenClaw
   - 需要通过 LiteLLM 进行成本跟踪、日志记录或模型路由

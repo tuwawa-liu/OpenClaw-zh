@@ -169,15 +169,19 @@ OpenClaw 在调用 `/json/*` 端点和连接 CDP WebSocket 时会保留认证信
 
 注意事项：
 
-- 节点主机通过**代理命令**暴露其本地浏览器控制服务器。
-- 配置文件来自节点自己的 `browser.profiles` 配置（与本地相同）。
-- 如果不需要可以禁用：
-  - 在节点上：`nodeHost.browserProxy.enabled=false`
-  - 在 Gateway 网关上：`gateway.nodes.browser.mode="off"`
+- The node host exposes its local browser control server via a **proxy command**.
+- Profiles come from the node’s own `browser.profiles` config (same as local).
+- `nodeHost.browserProxy.allowProfiles` is optional. Leave it empty for the legacy/default behavior: all configured profiles remain reachable through the proxy, including profile create/delete routes.
+- If you set `nodeHost.browserProxy.allowProfiles`, OpenClaw treats it as a least-privilege boundary: only allowlisted profiles can be targeted, and persistent profile create/delete routes are blocked on the proxy surface.
+- Disable if you don’t want it:
+  - On the node: `nodeHost.browserProxy.enabled=false`
+  - On the gateway: `gateway.nodes.browser.mode="off"`
 
 ## Browserless（托管远程 CDP）
 
-[Browserless](https://browserless.io) 是一个托管的 Chromium 服务，通过 HTTPS 暴露 CDP 端点。你可以将 OpenClaw 浏览器配置文件指向 Browserless 区域端点，并使用你的 API 密钥进行认证。
+[Browserless](https://browserless.io) is a hosted Chromium service that exposes
+CDP endpoints over HTTPS. You can point an OpenClaw browser profile at a
+Browserless region endpoint and authenticate with your API key.
 
 示例：
 
@@ -516,19 +520,25 @@ docker compose run --rm openclaw-cli \
 
 注意事项：
 
-- `upload` 和 `dialog` 是**预备**调用；在触发选择器/对话框的点击/按键之前运行它们。
-- `upload` 也可以通过 `--input-ref` 或 `--element` 直接设置文件输入。
-- `snapshot`：
-  - `--format ai`（安装 Playwright 时的默认值）：返回带有数字 ref 的 AI 快照（`aria-ref="<n>"`）。
-  - `--format aria`：返回无障碍树（无 ref；仅供检查）。
-  - `--efficient`（或 `--mode efficient`）：紧凑角色快照预设（interactive + compact + depth + 较低的 maxChars）。
-  - 配置默认值（仅限工具/CLI）：设置 `browser.snapshotDefaults.mode: "efficient"` 以在调用者未传递模式时使用高效快照（参见 [Gateway 网关配置](/gateway/configuration#browser-openclaw-managed-browser)）。
-  - 角色快照选项（`--interactive`、`--compact`、`--depth`、`--selector`）强制使用带有 `ref=e12` 等 ref 的基于角色的快照。
-  - `--frame "<iframe selector>"` 将角色快照范围限定到 iframe（与 `e12` 等角色 ref 配合使用）。
-  - `--interactive` 输出一个扁平的、易于选择的交互元素列表（最适合驱动操作）。
-  - `--labels` 添加一个带有叠加 ref 标签的视口截图（打印 `MEDIA:<path>`）。
-- `click`/`type` 等需要来自 `snapshot` 的 `ref`（数字 `12` 或角色 ref `e12`）。
-  操作故意不支持 CSS 选择器。
+- `upload` and `dialog` are **arming** calls; run them before the click/press
+  that triggers the chooser/dialog.
+- Download and trace output paths are constrained to OpenClaw temp roots:
+  - traces: `/tmp/openclaw` (fallback: `${os.tmpdir()}/openclaw`)
+  - downloads: `/tmp/openclaw/downloads` (fallback: `${os.tmpdir()}/openclaw/downloads`)
+- Upload paths are constrained to an OpenClaw temp uploads root:
+  - uploads: `/tmp/openclaw/uploads` (fallback: `${os.tmpdir()}/openclaw/uploads`)
+- `upload` can also set file inputs directly via `--input-ref` or `--element`.
+- `snapshot`:
+  - `--format ai` (default when Playwright is installed): returns an AI snapshot with numeric refs (`aria-ref="<n>"`).
+  - `--format aria`: returns the accessibility tree (no refs; inspection only).
+  - `--efficient` (or `--mode efficient`): compact role snapshot preset (interactive + compact + depth + lower maxChars).
+  - Config default (tool/CLI only): set `browser.snapshotDefaults.mode: "efficient"` to use efficient snapshots when the caller does not pass a mode (see [Gateway configuration](/gateway/configuration-reference#browser)).
+  - Role snapshot options (`--interactive`, `--compact`, `--depth`, `--selector`) force a role-based snapshot with refs like `ref=e12`.
+  - `--frame "<iframe selector>"` scopes role snapshots to an iframe (pairs with role refs like `e12`).
+  - `--interactive` outputs a flat, easy-to-pick list of interactive elements (best for driving actions).
+  - `--labels` adds a viewport-only screenshot with overlayed ref labels (prints `MEDIA:<path>`).
+- `click`/`type`/etc require a `ref` from `snapshot` (either numeric `12` or role ref `e12`).
+  CSS selectors are intentionally not supported for actions.
 
 ## 快照和 ref
 

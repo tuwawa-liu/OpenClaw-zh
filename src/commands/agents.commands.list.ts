@@ -3,7 +3,7 @@ import { t } from "../i18n/index.js";
 import { listRouteBindings } from "../config/bindings.js";
 import type { AgentRouteBinding } from "../config/types.js";
 import { normalizeAgentId } from "../routing/session-key.js";
-import type { RuntimeEnv } from "../runtime.js";
+import { type RuntimeEnv, writeRuntimeJson } from "../runtime.js";
 import { defaultRuntime } from "../runtime.js";
 import { shortenHomePath } from "../utils.js";
 import { describeBinding } from "./agents.bindings.js";
@@ -123,7 +123,7 @@ export async function agentsListCommand(
   }
 
   if (opts.json) {
-    runtime.log(JSON.stringify(summaries, null, 2));
+    writeRuntimeJson(runtime, summaries);
     return;
   }
 

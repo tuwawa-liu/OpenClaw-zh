@@ -1,7 +1,8 @@
 import type { Command } from "commander";
 import { resolveChannelDefaultAccountId } from "../channels/plugins/helpers.js";
 import { getChannelPlugin } from "../channels/plugins/index.js";
-import { loadConfig } from "../config/config.js";
+import { resolveInstallableChannelPlugin } from "../commands/channel-setup/channel-plugin-resolution.js";
+import { loadConfig, writeConfigFile } from "../config/config.js";
 import { danger } from "../globals.js";
 import { t } from "../i18n/index.js";
 import { resolveMessageChannelSelection } from "../infra/outbound/channel-selection.js";
@@ -97,13 +98,32 @@ export function registerDirectoryCli(program: Command) {
       .option("--json", t("directoryCli.optJson"), false);
 
   const resolve = async (opts: { channel?: string; account?: string }) => {
-    const cfg = loadConfig();
-    const selection = await resolveMessageChannelSelection({
-      cfg,
-      channel: opts.channel ?? null,
-    });
+    let cfg = loadConfig();
+    const explicitChannel = opts.channel?.trim();
+    const resolvedExplicit = explicitChannel
+      ? await resolveInstallableChannelPlugin({
+          cfg,
+          runtime: defaultRuntime,
+          rawChannel: explicitChannel,
+          allowInstall: true,
+          supports: (plugin) => Boolean(plugin.directory),
+        })
+      : null;
+    if (resolvedExplicit?.configChanged) {
+      cfg = resolvedExplicit.cfg;
+      await writeConfigFile(cfg);
+    }
+    const selection = explicitChannel
+      ? {
+          channel: resolvedExplicit?.channelId,
+        }
+      : await resolveMessageChannelSelection({
+          cfg,
+          channel: opts.channel ?? null,
+        });
     const channelId = selection.channel;
-    const plugin = getChannelPlugin(channelId);
+    const plugin =
+      resolvedExplicit?.plugin ?? (channelId ? getChannelPlugin(channelId) : undefined);
     if (!plugin) {
       throw new Error(t("directoryCli.unsupportedChannel", { channelId: String(channelId) }));
     }
@@ -141,7 +161,7 @@ export function registerDirectoryCli(program: Command) {
       runtime: defaultRuntime,
     });
     if (params.opts.json) {
-      defaultRuntime.log(JSON.stringify(result, null, 2));
+      defaultRuntime.writeJson(result);
       return;
     }
     printDirectoryList({ title: params.title, emptyMessage: params.emptyMessage, entries: result });
@@ -160,7 +180,7 @@ export function registerDirectoryCli(program: Command) {
         }
         const result = await fn({ cfg, accountId, runtime: defaultRuntime });
         if (opts.json) {
-          defaultRuntime.log(JSON.stringify(result, null, 2));
+          defaultRuntime.writeJson(result);
           return;
         }
         if (!result) {
@@ -253,7 +273,7 @@ export function registerDirectoryCli(program: Command) {
           runtime: defaultRuntime,
         });
         if (opts.json) {
-          defaultRuntime.log(JSON.stringify(result, null, 2));
+          defaultRuntime.writeJson(result);
           return;
         }
         printDirectoryList({

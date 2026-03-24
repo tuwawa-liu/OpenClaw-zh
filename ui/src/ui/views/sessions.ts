@@ -20,7 +20,7 @@ export type SessionsProps = {
   sortDir: "asc" | "desc";
   page: number;
   pageSize: number;
-  actionsOpenKey: string | null;
+  selectedKeys: Set<string>;
   onFiltersChange: (next: {
     activeMinutes: string;
     limit: string;
@@ -31,7 +31,6 @@ export type SessionsProps = {
   onSortChange: (column: "key" | "kind" | "updated" | "tokens", dir: "asc" | "desc") => void;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
-  onActionsOpenChange: (key: string | null) => void;
   onRefresh: () => void;
   onPatch: (
     key: string,
@@ -43,7 +42,12 @@ export type SessionsProps = {
       reasoningLevel?: string | null;
     },
   ) => void;
-  onDelete: (key: string) => void;
+  onToggleSelect: (key: string) => void;
+  onSelectPage: (keys: string[]) => void;
+  onDeselectPage: (keys: string[]) => void;
+  onDeselectAll: () => void;
+  onDeleteSelected: () => void;
+  onNavigateToChat?: (sessionKey: string) => void;
 };
 
 const THINK_LEVELS = ["", "off", "minimal", "low", "medium", "high", "xhigh"] as const;
@@ -227,11 +231,16 @@ export function renderSessions(props: SessionsProps) {
   const page = Math.min(props.page, totalPages - 1);
   const paginated = paginateRows(sorted, page, props.pageSize);
 
-  const sortHeader = (col: "key" | "kind" | "updated" | "tokens", label: string) => {
+  const sortHeader = (
+    col: "key" | "kind" | "updated" | "tokens",
+    label: string,
+    extraClass = "",
+  ) => {
     const isActive = props.sortColumn === col;
     const nextDir = isActive && props.sortDir === "asc" ? ("desc" as const) : ("asc" as const);
     return html`
       <th
+        class=${extraClass}
         data-sortable
         data-sort-dir=${isActive ? props.sortDir : ""}
         @click=${() => props.onSortChange(col, isActive ? nextDir : "desc")}
@@ -243,18 +252,7 @@ export function renderSessions(props: SessionsProps) {
   };
 
   return html`
-    ${
-      props.actionsOpenKey
-        ? html`
-            <div
-              class="data-table-overlay"
-              @click=${() => props.onActionsOpenChange(null)}
-              aria-hidden="true"
-            ></div>
-          `
-        : nothing
-    }
-    <section class="card" style=${props.actionsOpenKey ? "position: relative; z-index: 41;" : ""}>
+    <section class="card">
       <div class="row" style="justify-content: space-between; margin-bottom: 12px;">
         <div>
           <div class="card-title">${t("sessions.title")}</div>
@@ -350,11 +348,54 @@ export function renderSessions(props: SessionsProps) {
           <div>${t("sessions.actionsHeader")}</div>
         </div>
 
+        ${
+          props.selectedKeys.size > 0
+            ? html`
+                <div class="data-table-bulk-bar">
+                  <span>${props.selectedKeys.size} selected</span>
+                  <button
+                    class="btn btn--sm"
+                    @click=${props.onDeselectAll}
+                  >
+                    Unselect
+                  </button>
+                  <button
+                    class="btn btn--sm danger"
+                    ?disabled=${props.loading}
+                    @click=${props.onDeleteSelected}
+                  >
+                    ${icons.trash} Delete
+                  </button>
+                </div>
+              `
+            : nothing
+        }
+
         <div class="data-table-container">
           <table class="data-table">
             <thead>
               <tr>
-                ${sortHeader("key", "Key")}
+                <th class="data-table-checkbox-col">
+                  ${
+                    paginated.length > 0
+                      ? html`<input
+                        type="checkbox"
+                        .checked=${paginated.length > 0 && paginated.every((r) => props.selectedKeys.has(r.key))}
+                        .indeterminate=${paginated.some((r) => props.selectedKeys.has(r.key)) && !paginated.every((r) => props.selectedKeys.has(r.key))}
+                        @change=${() => {
+                          const allSelected = paginated.every((r) => props.selectedKeys.has(r.key));
+                          if (allSelected) {
+                            props.onDeselectPage(paginated.map((r) => r.key));
+                          } else {
+                            props.onSelectPage(paginated.map((r) => r.key));
+                          }
+                        }}
+                        aria-label="Select all on page"
+                      />`
+                      : nothing
+                  }
+                </th>
+                ${sortHeader("key", "Key", "data-table-key-col")}
                 <th>Label</th>
                 ${sortHeader("kind", "Kind")}
                 ${sortHeader("updated", "Updated")}
@@ -363,7 +404,6 @@ export function renderSessions(props: SessionsProps) {
                 <th>Fast</th>
                 <th>Verbose</th>
                 <th>Reasoning</th>
-                <th style="width: 60px;"></th>
               </tr>
             </thead>
             <tbody>
@@ -381,10 +421,10 @@ export function renderSessions(props: SessionsProps) {
                         row,
                         props.basePath,
                         props.onPatch,
-                        props.onDelete,
-                        props.onActionsOpenChange,
-                        props.actionsOpenKey,
+                        props.selectedKeys.has(row.key),
+                        props.onToggleSelect,
                         props.loading,
+                        props.onNavigateToChat,
                       ),
                     )
               }
@@ -408,10 +448,10 @@ function renderRow(
   row: GatewaySessionRow,
   basePath: string,
   onPatch: SessionsProps["onPatch"],
-  onDelete: SessionsProps["onDelete"],
-  onActionsOpenChange: (key: string | null) => void,
-  actionsOpenKey: string | null,
+  selected: boolean,
+  onToggleSelect: SessionsProps["onToggleSelect"],
   disabled: boolean,
+  onNavigateToChat?: (sessionKey: string) => void,
 ) {
   const updated = row.updatedAt ? formatRelativeTimestamp(row.updatedAt) : t("presenterExtra.na");
   const rawThinking = row.thinkingLevel ?? "";
@@ -437,7 +477,6 @@ function renderRow(
   const chatUrl = canLink
     ? `${pathForTab("chat", basePath)}?session=${encodeURIComponent(row.key)}`
     : null;
-  const isMenuOpen = actionsOpenKey === row.key;
   const badgeClass =
     row.kind === "direct"
       ? "data-table-badge--direct"
@@ -449,9 +488,40 @@ function renderRow(
 
   return html`
     <tr>
-      <td>
+      <td class="data-table-checkbox-col">
+        <input
+          type="checkbox"
+          .checked=${selected}
+          @change=${() => onToggleSelect(row.key)}
+          aria-label="Select session"
+        />
+      </td>
+      <td class="data-table-key-col">
         <div class="mono session-key-cell">
-          ${canLink ? html`<a href=${chatUrl} class="session-link">${row.key}</a>` : row.key}
+          ${
+            canLink
+              ? html`<a
+                  href=${chatUrl}
+                  class="session-link"
+                  @click=${(e: MouseEvent) => {
+                    if (
+                      e.defaultPrevented ||
+                      e.button !== 0 ||
+                      e.metaKey ||
+                      e.ctrlKey ||
+                      e.shiftKey ||
+                      e.altKey
+                    ) {
+                      return;
+                    }
+                    if (onNavigateToChat) {
+                      e.preventDefault();
+                      onNavigateToChat(row.key);
+                    }
+                  }}
+                >${row.key}</a>`
+              : row.key
+          }
           ${
             showDisplayName
               ? html`<span class="muted session-key-display-name">${displayName}</span>`
@@ -542,12 +612,7 @@ function renderRow(
               </option>`,
           )}
         </select>
-      </div>
-      <div>
-        <button class="btn danger" ?disabled=${disabled} @click=${() => onDelete(row.key)}>
-          ${t("sessions.delete")}
-        </button>
-      </div>
-    </div>
+      </td>
+    </tr>
   `;
 }

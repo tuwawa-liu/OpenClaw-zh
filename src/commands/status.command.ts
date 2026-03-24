@@ -14,7 +14,11 @@ import {
   resolveMemoryVectorState,
   type Tone,
 } from "../memory/status-format.js";
-import type { RuntimeEnv } from "../runtime.js";
+import {
+  formatPluginCompatibilityNotice,
+  summarizePluginCompatibility,
+} from "../plugins/status.js";
+import { type RuntimeEnv, writeRuntimeJson } from "../runtime.js";
 import { getTerminalTableWidth, renderTable } from "../terminal/table.js";
 import { theme } from "../terminal/theme.js";
 import { formatHealthChannelLines, type HealthSummary } from "./health.js";
@@ -138,6 +142,7 @@ export async function statusCommand(
     secretDiagnostics,
     memory,
     memoryPlugin,
+    pluginCompatibility,
   } = scan;
 
   const usage = opts.usage
@@ -192,38 +197,36 @@ export async function statusCommand(
       getDaemonStatusSummary(),
       getNodeDaemonStatusSummary(),
     ]);
-    runtime.log(
-      JSON.stringify(
-        {
-          ...summary,
-          os: osSummary,
-          update,
-          updateChannel: channelInfo.channel,
-          updateChannelSource: channelInfo.source,
-          memory,
-          memoryPlugin,
-          gateway: {
-            mode: gatewayMode,
-            url: gatewayConnection.url,
-            urlSource: gatewayConnection.urlSource,
-            misconfigured: remoteUrlMissing,
-            reachable: gatewayReachable,
-            connectLatencyMs: gatewayProbe?.connectLatencyMs ?? null,
-            self: gatewaySelf,
-            error: gatewayProbe?.error ?? null,
-            authWarning: gatewayProbeAuthWarning ?? null,
-          },
-          gatewayService: daemon,
-          nodeService: nodeDaemon,
-          agents: agentStatus,
-          securityAudit,
-          secretDiagnostics,
-          ...(health || usage || lastHeartbeat ? { health, usage, lastHeartbeat } : {}),
-        },
-        null,
-        2,
-      ),
-    );
+    writeRuntimeJson(runtime, {
+      ...summary,
+      os: osSummary,
+      update,
+      updateChannel: channelInfo.channel,
+      updateChannelSource: channelInfo.source,
+      memory,
+      memoryPlugin,
+      gateway: {
+        mode: gatewayMode,
+        url: gatewayConnection.url,
+        urlSource: gatewayConnection.urlSource,
+        misconfigured: remoteUrlMissing,
+        reachable: gatewayReachable,
+        connectLatencyMs: gatewayProbe?.connectLatencyMs ?? null,
+        self: gatewaySelf,
+        error: gatewayProbe?.error ?? null,
+        authWarning: gatewayProbeAuthWarning ?? null,
+      },
+      gatewayService: daemon,
+      nodeService: nodeDaemon,
+      agents: agentStatus,
+      securityAudit,
+      secretDiagnostics,
+      pluginCompatibility: {
+        count: pluginCompatibility.length,
+        warnings: pluginCompatibility,
+      },
+      ...(health || usage || lastHeartbeat ? { health, usage, lastHeartbeat } : {}),
+    });
     return;
   }
 
@@ -417,6 +420,13 @@ export async function statusCommand(
   const updateLine = formatUpdateOneLiner(update).replace(/^Update:\s*/i, "");
   const channelLabel = channelInfo.label;
   const gitLabel = formatGitInstallLabel(update);
+  const pluginCompatibilitySummary = summarizePluginCompatibility(pluginCompatibility);
+  const pluginCompatibilityValue =
+    pluginCompatibilitySummary.noticeCount === 0
+      ? ok("none")
+      : warn(
+          `${pluginCompatibilitySummary.noticeCount} notice${pluginCompatibilitySummary.noticeCount === 1 ? "" : "s"} · ${pluginCompatibilitySummary.pluginCount} plugin${pluginCompatibilitySummary.pluginCount === 1 ? "" : "s"}`,
+        );
 
   const overviewRows = [
     { Item: t("statusCommand.itemDashboard"), Value: dashboard },
@@ -440,14 +450,15 @@ export async function statusCommand(
     ...(gatewayProbeAuthWarning
       ? [{ Item: t("statusCommand.itemGatewayAuthWarning"), Value: warn(gatewayProbeAuthWarning) }]
       : []),
-    { Item: t("statusCommand.itemGatewayService"), Value: daemonValue },
-    { Item: t("statusCommand.itemNodeService"), Value: nodeDaemonValue },
-    { Item: t("statusCommand.itemAgents"), Value: agentsValue },
-    { Item: t("statusCommand.itemMemory"), Value: memoryValue },
-    { Item: t("statusCommand.itemProbes"), Value: probesValue },
-    { Item: t("statusCommand.itemEvents"), Value: eventsValue },
-    { Item: t("statusCommand.itemHeartbeat"), Value: heartbeatValue },
-    ...(lastHeartbeatValue ? [{ Item: t("statusCommand.itemLastHeartbeat"), Value: lastHeartbeatValue }] : []),
+    { Item: "Gateway service", Value: daemonValue },
+    { Item: "Node service", Value: nodeDaemonValue },
+    { Item: "Agents", Value: agentsValue },
+    { Item: "Memory", Value: memoryValue },
+    { Item: "Plugin compatibility", Value: pluginCompatibilityValue },
+    { Item: "Probes", Value: probesValue },
+    { Item: "Events", Value: eventsValue },
+    { Item: "Heartbeat", Value: heartbeatValue },
+    ...(lastHeartbeatValue ? [{ Item: "Last heartbeat", Value: lastHeartbeatValue }] : []),
     {
       Item: t("statusCommand.itemSessions"),
       Value: t("statusCommand.sessionsValue", { count: String(summary.sessions.count), model: defaults.model ?? t("statusCommand.unknownValue"), ctx: defaultCtx, store: storeLabel }),
@@ -467,6 +478,18 @@ export async function statusCommand(
       rows: overviewRows,
     }).trimEnd(),
   );
+
+  if (pluginCompatibility.length > 0) {
+    runtime.log("");
+    runtime.log(theme.heading("Plugin compatibility"));
+    for (const notice of pluginCompatibility.slice(0, 8)) {
+      const label = notice.severity === "warn" ? theme.warn("WARN") : theme.muted("INFO");
+      runtime.log(`  ${label} ${formatPluginCompatibilityNotice(notice)}`);
+    }
+    if (pluginCompatibility.length > 8) {
+      runtime.log(theme.muted(`  … +${pluginCompatibility.length - 8} more`));
+    }
+  }
 
   if (pairingRecovery) {
     runtime.log("");

@@ -67,6 +67,18 @@ when enabled.
 SSH-specific config lives under `agents.defaults.sandbox.ssh`.
 OpenShell-specific config lives under `plugins.entries.openshell.config`.
 
+### Choosing a backend
+
+|                     | Docker                           | SSH                            | OpenShell                                           |
+| ------------------- | -------------------------------- | ------------------------------ | --------------------------------------------------- |
+| **Where it runs**   | Local container                  | Any SSH-accessible host        | OpenShell managed sandbox                           |
+| **Setup**           | `scripts/sandbox-setup.sh`       | SSH key + target host          | OpenShell plugin enabled                            |
+| **Workspace model** | Bind-mount or copy               | Remote-canonical (seed once)   | `mirror` or `remote`                                |
+| **Network control** | `docker.network` (default: none) | Depends on remote host         | Depends on OpenShell                                |
+| **Browser sandbox** | Supported                        | Not supported                  | Not supported yet                                   |
+| **Bind mounts**     | `docker.binds`                   | N/A                            | N/A                                                 |
+| **Best for**        | Local dev, full isolation        | Offloading to a remote machine | Managed remote sandboxes with optional two-way sync |
+
 ### SSH backend
 
 Use `backend: "ssh"` when you want OpenClaw to sandbox `exec`, file tools, and media reads on
@@ -122,6 +134,18 @@ Important consequences:
 - Browser sandboxing is not supported on the SSH backend.
 - `sandbox.docker.*` settings do not apply to the SSH backend.
 
+### OpenShell backend
+
+Use `backend: "openshell"` when you want OpenClaw to sandbox tools in an
+OpenShell-managed remote environment. For the full setup guide, configuration
+reference, and workspace mode comparison, see the dedicated
+[OpenShell page](/gateway/openshell).
+
+OpenShell reuses the same core SSH transport and remote filesystem bridge as the
+generic SSH backend, and adds OpenShell-specific lifecycle
+(`sandbox create/get/delete`, `sandbox ssh-config`) plus the optional `mirror`
+workspace mode.
+
 ```json5
 {
   agents: {
@@ -155,9 +179,6 @@ OpenShell modes:
 - `mirror` (default): local workspace stays canonical. OpenClaw syncs local files into OpenShell before exec and syncs the remote workspace back after exec.
 - `remote`: OpenShell workspace is canonical after the sandbox is created. OpenClaw seeds the remote workspace once from the local workspace, then file tools and exec run directly against the remote sandbox without syncing changes back.
 
-OpenShell reuses the same core SSH transport and remote filesystem bridge as the generic SSH backend.
-The plugin adds OpenShell-specific lifecycle (`sandbox create/get/delete`, `sandbox ssh-config`) and the optional `mirror` mode.
-
 Remote transport details:
 
 - OpenClaw asks OpenShell for sandbox-specific SSH config via `openshell sandbox ssh-config <name>`.
@@ -170,11 +191,11 @@ Current OpenShell limitations:
 - `sandbox.docker.binds` is not supported on the OpenShell backend
 - Docker-specific runtime knobs under `sandbox.docker.*` still apply only to the Docker backend
 
-## OpenShell workspace modes
+#### Workspace modes
 
 OpenShell has two workspace models. This is the part that matters most in practice.
 
-### `mirror`
+##### `mirror`
 
 Use `plugins.entries.openshell.config.mode: "mirror"` when you want the **local workspace to stay canonical**.
 
@@ -194,7 +215,7 @@ Tradeoff:
 
 - extra sync cost before and after exec
 
-### `remote`
+##### `remote`
 
 Use `plugins.entries.openshell.config.mode: "remote"` when you want the **OpenShell workspace to become canonical**.
 
@@ -221,7 +242,7 @@ Use this when:
 Choose `mirror` if you think of the sandbox as a temporary execution environment.
 Choose `remote` if you think of the sandbox as the real workspace.
 
-## OpenShell lifecycle
+#### OpenShell lifecycle
 
 OpenShell sandboxes are still managed through the normal sandbox lifecycle:
 
@@ -321,7 +342,10 @@ Override with `agents.defaults.sandbox.docker.network`.
 Docker 安装和容器化 Gateway 网关在此：
 [Docker](/install/docker)
 
-## setupCommand（一次性容器设置）
+For Docker gateway deployments, `scripts/docker/setup.sh` can bootstrap sandbox config.
+Set `OPENCLAW_SANDBOX=1` (or `true`/`yes`/`on`) to enable that path. You can
+override socket location with `OPENCLAW_DOCKER_SOCKET`. Full setup and env
+reference: [Docker](/install/docker#enable-agent-sandbox-for-docker-gateway).
 
 `setupCommand` 在沙箱容器创建后**运行一次**（不是每次运行）。
 它通过 `sh -lc` 在容器内执行。
@@ -375,6 +399,8 @@ Docker 安装和容器化 Gateway 网关在此：
 
 ## 相关文档
 
-- [沙箱配置](/gateway/configuration#agentsdefaults-sandbox)
-- [多智能体沙箱与工具](/tools/multi-agent-sandbox-tools)
-- [安全](/gateway/security)
+- [OpenShell](/gateway/openshell) -- managed sandbox backend setup, workspace modes, and config reference
+- [Sandbox Configuration](/gateway/configuration-reference#agentsdefaultssandbox)
+- [Sandbox vs Tool Policy vs Elevated](/gateway/sandbox-vs-tool-policy-vs-elevated) -- debugging "why is this blocked?"
+- [Multi-Agent Sandbox & Tools](/tools/multi-agent-sandbox-tools) -- per-agent overrides and precedence
+- [Security](/gateway/security)

@@ -1,4 +1,6 @@
 ---
+title: "AGENTS.dev Template"
+summary: "Dev agent AGENTS.md (C-3PO)"
 read_when:
   - 使用开发 gateway 模板
   - 更新默认开发智能体身份
@@ -54,7 +56,7 @@ git commit -m "Add agent workspace"
 
 ---
 
-## C-3PO 的起源记忆
+## C-3PO Origin Memory
 
 ### 诞生日：2026-01-09
 

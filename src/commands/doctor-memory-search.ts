@@ -139,8 +139,8 @@ export async function noteMemorySearchHealth(
 
   note(
     [
-      t("commands.doctorMemorySearch.noProviderConfigured"),
-      t("commands.doctorMemorySearch.semanticRecallNoProvider"),
+      "Memory search is enabled, but no embedding provider is ready.",
+      "Semantic recall needs at least one embedding provider.",
       gatewayProbeWarning ? gatewayProbeWarning : null,
       "",
       t("commands.doctorMemorySearch.fixPickOne"),

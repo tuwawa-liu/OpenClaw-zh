@@ -1,14 +1,9 @@
 ---
-description: Real-world OpenClaw projects from the community
-summary: 社区构建的基于 OpenClaw 的项目和集成
-title: 案例展示
-x-i18n:
-  generated_at: "2026-02-03T10:11:36Z"
-  model: claude-opus-4-5
-  provider: pi
-  source_hash: b3460f6a7b9948799a6082fee90fa8e5ac1d43e34872aea51ba431813dcead7a
-  source_path: start/showcase.md
-  workflow: 15
+title: "Showcase"
+summary: "Community-built projects and integrations powered by OpenClaw"
+read_when:
+  - Looking for real OpenClaw usage examples
+  - Updating community project highlights
 ---
 
 # 案例展示
@@ -235,7 +230,7 @@ Claude Code 发现并确认了净化器控制，然后 OpenClaw 接管来管理�
 <Card title="可视化晨间简报场景" icon="robot" href="https://x.com/buddyhadry/status/2010005331925954739">
   **@buddyhadry** • `automation` `briefing` `images` `telegram`
 
-定时提示每天早上通过 OpenClaw 角色生成一张"场景"图片（天气、任务、日期、喜欢的帖子/引言）。
+A scheduled prompt generates a single "scene" image each morning (weather, tasks, date, favorite post/quote) via an OpenClaw persona.
 </Card>
 
 <Card title="板式网球场地预订" icon="calendar-check" href="https://github.com/joshp123/padel-cli">

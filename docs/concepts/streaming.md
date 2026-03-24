@@ -91,7 +91,7 @@ OpenClaw 有两个独立的"流式传输"层：
 - 模式：`off`（默认）、`natural`（800–2500ms）、`custom`（`minMs`/`maxMs`）。
 - 仅适用于**块回复**，不适用于最终回复或工具摘要。
 
-## "流式传输块或全部内容"
+## "Stream chunks or everything"
 
 这映射到：
 

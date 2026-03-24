@@ -82,6 +82,25 @@ x-i18n:
 - 以原始记录格式返回消息数组。
 - 当给定 `sessionId` 时，OpenClaw 将其解析为相应的会话键（缺失的 id 会报错）。
 
+## Gateway session history and live transcript APIs
+
+Control UI and gateway clients can use the lower level history and live transcript surfaces directly.
+
+HTTP:
+
+- `GET /sessions/{sessionKey}/history`
+- Query params: `limit`, `cursor`, `includeTools=1`, `follow=1`
+- Unknown sessions return HTTP `404` with `error.type = "not_found"`
+- `follow=1` upgrades the response to an SSE stream of transcript updates for that session
+
+WebSocket:
+
+- `sessions.subscribe` subscribes to all session lifecycle and transcript events visible to the client
+- `sessions.messages.subscribe { key }` subscribes only to `session.message` events for one session
+- `sessions.messages.unsubscribe { key }` removes that targeted transcript subscription
+- `session.message` carries appended transcript messages plus live usage metadata when available
+- `sessions.changed` emits `phase: "message"` for transcript appends so session lists can refresh counters and previews
+
 ## sessions_send
 
 向另一个会话发送消息。
@@ -149,24 +168,40 @@ x-i18n:
 
 ## sessions_spawn
 
-在隔离会话中生成子智能体运行，并将结果通告回请求者聊天渠道。
+Spawn an isolated delegated session.
+
+- Default runtime: OpenClaw sub-agent (`runtime: "subagent"`).
+- ACP harness sessions use `runtime: "acp"` and follow ACP-specific targeting/policy rules.
+- This section focuses on sub-agent behavior unless noted otherwise. For ACP-specific behavior, see [ACP Agents](/tools/acp-agents).
 
 参数：
 
-- `task`（必填）
-- `label?`（可选；用于日志/UI）
-- `agentId?`（可选；如果允许，在另一个智能体 id 下生成）
-- `model?`（可选；覆盖子智能体模型；无效值会报错）
-- `runTimeoutSeconds?`（默认 0；设置时，在 N 秒后中止子智能体运行）
-- `cleanup?`（`delete|keep`，默认 `keep`）
+- `task` (required)
+- `runtime?` (`subagent|acp`; defaults to `subagent`)
+- `label?` (optional; used for logs/UI)
+- `agentId?` (optional)
+  - `runtime: "subagent"`: target another OpenClaw agent id if allowed by `subagents.allowAgents`
+  - `runtime: "acp"`: target an ACP harness id if allowed by `acp.allowedAgents`
+- `model?` (optional; overrides the sub-agent model; invalid values error)
+- `thinking?` (optional; overrides thinking level for the sub-agent run)
+- `runTimeoutSeconds?` (defaults to `agents.defaults.subagents.runTimeoutSeconds` when set, otherwise `0`; when set, aborts the sub-agent run after N seconds)
+- `thread?` (default false; request thread-bound routing for this spawn when supported by the channel/plugin)
+- `mode?` (`run|session`; defaults to `run`, but defaults to `session` when `thread=true`; `mode="session"` requires `thread=true`)
+- `cleanup?` (`delete|keep`, default `keep`)
+- `sandbox?` (`inherit|require`, default `inherit`; `require` rejects spawn unless the target child runtime is sandboxed)
+- `attachments?` (optional array of inline files; subagent runtime only, ACP rejects). Each entry: `{ name, content, encoding?: "utf8" | "base64", mimeType? }`. Files are materialized into the child workspace at `.openclaw/attachments/<uuid>/`. Returns a receipt with sha256 per file.
+- `attachAs?` (optional; `{ mountPath? }` hint reserved for future mount implementations)
 
 允许列表：
 
-- `agents.list[].subagents.allowAgents`：通过 `agentId` 允许的智能体 id 列表（`["*"]` 允许任意）。默认：仅请求者智能体。
+- `runtime: "subagent"`: `agents.list[].subagents.allowAgents` controls which OpenClaw agent ids are allowed via `agentId` (`["*"]` to allow any). Default: only the requester agent.
+- `runtime: "acp"`: `acp.allowedAgents` controls which ACP harness ids are allowed. This is a separate policy from `subagents.allowAgents`.
+- Sandbox inheritance guard: if the requester session is sandboxed, `sessions_spawn` rejects targets that would run unsandboxed.
 
 发现：
 
-- 使用 `agents_list` 发现哪些智能体 id 允许用于 `sessions_spawn`。
+- Use `agents_list` to discover allowed targets for `runtime: "subagent"`.
+- For `runtime: "acp"`, use configured ACP harness ids and `acp.allowedAgents`; `agents_list` does not list ACP harness targets.
 
 行为：
 

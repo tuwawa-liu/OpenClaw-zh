@@ -1,4 +1,6 @@
 ---
+title: "IDENTITY Template"
+summary: "Agent identity record"
 read_when:
   - 手动引导工作区
 summary: 智能体身份记录

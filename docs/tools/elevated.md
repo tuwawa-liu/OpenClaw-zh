@@ -1,64 +1,114 @@
 ---
+summary: "Elevated exec mode: run commands on the gateway host from a sandboxed agent"
 read_when:
-  - 调整提升模式默认值、允许列表或斜杠命令行为
-summary: 提升的 exec 模式和 /elevated 指令
-title: 提升模式
-x-i18n:
-  generated_at: "2026-02-03T07:55:23Z"
-  model: claude-opus-4-5
-  provider: pi
-  source_hash: 83767a01609304026d145feb0aa0b0533e8cf8b16cd200f724d9e3e8cf2920c3
-  source_path: tools/elevated.md
-  workflow: 15
+  - Adjusting elevated mode defaults, allowlists, or slash command behavior
+  - Understanding how sandboxed agents can access the host
+title: "Elevated Mode"
 ---
 
-# 提升模式（/elevated 指令）
+# Elevated Mode
 
-## 功能说明
+When an agent runs inside a sandbox, its `exec` commands are confined to the
+sandbox environment. **Elevated mode** lets the agent break out and run commands
+on the gateway host instead, with configurable approval gates.
 
-- `/elevated on` 在 Gateway 网关主机上运行并保留 exec 审批（与 `/elevated ask` 相同）。
-- `/elevated full` 在 Gateway 网关主机上运行**并**自动批准 exec（跳过 exec 审批）。
-- `/elevated ask` 在 Gateway 网关主机上运行但保留 exec 审批（与 `/elevated on` 相同）。
-- `on`/`ask` **不会**强制 `exec.security=full`；配置的安全/询问策略仍然适用。
-- 仅在智能体被**沙箱隔离**时改变行为（否则 exec 已经在主机上运行）。
-- 指令形式：`/elevated on|off|ask|full`、`/elev on|off|ask|full`。
-- 仅接受 `on|off|ask|full`；其他任何内容返回提示且不改变状态。
+<Info>
+  Elevated mode only changes behavior when the agent is **sandboxed**. For
+  unsandboxed agents, exec already runs on the host.
+</Info>
 
-## 它控制什么（以及不控制什么）
+## Directives
 
-- **可用性门控**：`tools.elevated` 是全局基线。`agents.list[].tools.elevated` 可以进一步限制每个智能体的提升（两者都必须允许）。
-- **每会话状态**：`/elevated on|off|ask|full` 为当前会话键设置提升级别。
-- **内联指令**：消息内的 `/elevated on|ask|full` 仅适用于该消息。
-- **群组**：在群聊中，仅当智能体被提及时才遵守提升指令。绕过提及要求的纯命令消息被视为已提及。
-- **主机执行**：elevated 强制 `exec` 到 Gateway 网关主机；`full` 还设置 `security=full`。
-- **审批**：`full` 跳过 exec 审批；`on`/`ask` 在允许列表/询问规则要求时遵守审批。
-- **非沙箱隔离智能体**：对位置无影响；仅影响门控、日志和状态。
-- **工具策略仍然适用**：如果 `exec` 被工具策略拒绝，则无法使用 elevated。
-- **与 `/exec` 分开**：`/exec` 为授权发送者调整每会话默认值，不需要 elevated。
+Control elevated mode per-session with slash commands:
+
+| Directive        | What it does                                        |
+| ---------------- | --------------------------------------------------- |
+| `/elevated on`   | Run on the gateway host, keep exec approvals        |
+| `/elevated ask`  | Same as `on` (alias)                                |
+| `/elevated full` | Run on the gateway host **and** skip exec approvals |
+| `/elevated off`  | Return to sandbox-confined execution                |
+
+Also available as `/elev on|off|ask|full`.
+
+Send `/elevated` with no argument to see the current level.
+
+## How it works
+
+<Steps>
+  <Step title="Check availability">
+    Elevated must be enabled in config and the sender must be on the allowlist:
+
+    ```json5
+    {
+      tools: {
+        elevated: {
+          enabled: true,
+          allowFrom: {
+            discord: ["user-id-123"],
+            whatsapp: ["+15555550123"],
+          },
+        },
+      },
+    }
+    ```
+
+  </Step>
+
+  <Step title="Set the level">
+    Send a directive-only message to set the session default:
+
+    ```
+    /elevated full
+    ```
+
+    Or use it inline (applies to that message only):
+
+    ```
+    /elevated on run the deployment script
+    ```
+
+  </Step>
+
+  <Step title="Commands run on the host">
+    With elevated active, `exec` calls route to the gateway host instead of the
+    sandbox. In `full` mode, exec approvals are skipped. In `on`/`ask` mode,
+    configured approval rules still apply.
+  </Step>
+</Steps>
 
 ## 解析顺序
 
-1. 消息上的内联指令（仅适用于该消息）。
-2. 会话覆盖（通过发送仅含指令的消息设置）。
-3. 全局默认值（配置中的 `agents.defaults.elevatedDefault`）。
+1. **Inline directive** on the message (applies only to that message)
+2. **Session override** (set by sending a directive-only message)
+3. **Global default** (`agents.defaults.elevatedDefault` in config)
 
-## 设置会话默认值
+## Availability and allowlists
 
-- 发送一条**仅**包含指令的消息（允许空白），例如 `/elevated full`。
-- 发送确认回复（`Elevated mode set to full...` / `Elevated mode disabled.`）。
-- 如果 elevated 访问被禁用或发送者不在批准的允许列表中，指令会回复一个可操作的错误且不改变会话状态。
-- 发送不带参数的 `/elevated`（或 `/elevated:`）以查看当前的 elevated 级别。
+- **Global gate**: `tools.elevated.enabled` (must be `true`)
+- **Sender allowlist**: `tools.elevated.allowFrom` with per-channel lists
+- **Per-agent gate**: `agents.list[].tools.elevated.enabled` (can only further restrict)
+- **Per-agent allowlist**: `agents.list[].tools.elevated.allowFrom` (sender must match both global + per-agent)
+- **Discord fallback**: if `tools.elevated.allowFrom.discord` is omitted, `channels.discord.allowFrom` is used as fallback
+- **All gates must pass**; otherwise elevated is treated as unavailable
 
-## 可用性 + 允许列表
+Allowlist entry formats:
 
-- 功能门控：`tools.elevated.enabled`（即使代码支持，也可以通过配置将默认值设为关闭）。
-- 发送者允许列表：`tools.elevated.allowFrom`，带有每提供商允许列表（例如 `discord`、`whatsapp`）。
-- 每智能体门控：`agents.list[].tools.elevated.enabled`（可选；只能进一步限制）。
-- 每智能体允许列表：`agents.list[].tools.elevated.allowFrom`（可选；设置时，发送者必须同时匹配全局 + 每智能体允许列表）。
-- Discord 回退：如果省略 `tools.elevated.allowFrom.discord`，则使用 `channels.discord.dm.allowFrom` 列表作为回退。设置 `tools.elevated.allowFrom.discord`（即使是 `[]`）以覆盖。每智能体允许列表**不**使用回退。
-- 所有门控都必须通过；否则 elevated 被视为不可用。
+| Prefix                  | Matches                         |
+| ----------------------- | ------------------------------- |
+| (none)                  | Sender ID, E.164, or From field |
+| `name:`                 | Sender display name             |
+| `username:`             | Sender username                 |
+| `tag:`                  | Sender tag                      |
+| `id:`, `from:`, `e164:` | Explicit identity targeting     |
 
-## 日志 + 状态
+## What elevated does not control
 
-- Elevated exec 调用以 info 级别记录。
-- 会话状态包括 elevated 模式（例如 `elevated=ask`、`elevated=full`）。
+- **Tool policy**: if `exec` is denied by tool policy, elevated cannot override it
+- **Separate from `/exec`**: the `/exec` directive adjusts per-session exec defaults for authorized senders and does not require elevated mode
+
+## Related
+
+- [Exec tool](/tools/exec) — shell command execution
+- [Exec approvals](/tools/exec-approvals) — approval and allowlist system
+- [Sandboxing](/gateway/sandboxing) — sandbox configuration
+- [Sandbox vs Tool Policy vs Elevated](/gateway/sandbox-vs-tool-policy-vs-elevated)

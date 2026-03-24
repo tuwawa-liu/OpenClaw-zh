@@ -28,20 +28,22 @@ which helps with JS-heavy sites or pages that block plain HTTP fetches.
 
 ```json5
 {
-  plugins: {
-    entries: {
-      firecrawl: {
-        enabled: true,
-      },
-    },
-  },
   tools: {
     web: {
       search: {
         provider: "firecrawl",
-        firecrawl: {
-          apiKey: "FIRECRAWL_API_KEY_HERE",
-          baseUrl: "https://api.firecrawl.dev",
+      },
+    },
+  },
+  plugins: {
+    entries: {
+      firecrawl: {
+        enabled: true,
+        config: {
+          webSearch: {
+            apiKey: "FIRECRAWL_API_KEY_HERE",
+            baseUrl: "https://api.firecrawl.dev",
+          },
         },
       },
     },
@@ -134,4 +136,8 @@ OpenClaw 对 Firecrawl 请求始终使用 `proxy: "auto"` 加 `storeInCache: tru
 2. Firecrawl（如果已配置）
 3. 基本 HTML 清理（最后回退）
 
-参见 [Web 工具](/tools/web) 了解完整的 Web 工具设置。
+## Related
+
+- [Web Search overview](/tools/web) -- all providers and auto-detection
+- [Web Fetch](/tools/web-fetch) -- web_fetch tool with Firecrawl fallback
+- [Tavily](/tools/tavily) -- search + extract tools

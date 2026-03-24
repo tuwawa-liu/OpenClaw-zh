@@ -42,7 +42,7 @@ openclaw pairing list telegram
 openclaw pairing approve telegram <CODE>
 ```
 
-支持的渠道：`telegram`、`whatsapp`、`signal`、`imessage`、`discord`、`slack`。
+Supported channels: `bluebubbles`, `discord`, `feishu`, `googlechat`, `imessage`, `irc`, `line`, `matrix`, `mattermost`, `msteams`, `nextcloud-talk`, `nostr`, `signal`, `slack`, `synology-chat`, `telegram`, `twitch`, `whatsapp`, `zalo`, `zalouser`.
 
 ### 状态存储位置
 
@@ -57,7 +57,29 @@ openclaw pairing approve telegram <CODE>
 
 节点作为 `role: node` 的**设备**连接到 Gateway 网关。Gateway 网关创建一个必须被批准的设备配对请求。
 
-### 批准节点设备
+## 2) Node device pairing (iOS/Android/macOS/headless nodes)
+
+Nodes connect to the Gateway as **devices** with `role: node`. The Gateway
+creates a device pairing request that must be approved.
+
+### Pair via Telegram (recommended for iOS)
+
+If you use the `device-pair` plugin, you can do first-time device pairing entirely from Telegram:
+
+1. In Telegram, message your bot: `/pair`
+2. The bot replies with two messages: an instruction message and a separate **setup code** message (easy to copy/paste in Telegram).
+3. On your phone, open the OpenClaw iOS app → Settings → Gateway.
+4. Paste the setup code and connect.
+5. Back in Telegram: `/pair pending` (review request IDs, role, and scopes), then approve.
+
+The setup code is a base64-encoded JSON payload that contains:
+
+- `url`: the Gateway WebSocket URL (`ws://...` or `wss://...`)
+- `bootstrapToken`: a short-lived single-device bootstrap token used for the initial pairing handshake
+
+Treat the setup code like a password while it is valid.
+
+### Approve a node device
 
 ```bash
 openclaw devices list
@@ -65,7 +87,11 @@ openclaw devices approve <requestId>
 openclaw devices reject <requestId>
 ```
 
-### 状态存储位置
+If the same device retries with different auth details (for example different
+role/scopes/public key), the previous pending request is superseded and a new
+`requestId` is created.
+
+### Node pairing state storage
 
 存储在 `~/.openclaw/devices/` 下：
 

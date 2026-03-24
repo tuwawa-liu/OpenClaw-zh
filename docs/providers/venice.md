@@ -132,7 +132,7 @@ openclaw models list | grep venice
 
 ## 可用模型（共 25 个）
 
-### 私密模型（15 个）— 完全私密，无日志记录
+### Private Models (26) - Fully Private, No Logging
 
 | 模型 ID                          | 名称                    | 上下文（token） | 特性         |
 | -------------------------------- | ----------------------- | --------------- | ------------ |
@@ -152,7 +152,7 @@ openclaw models list | grep venice
 | `openai-gpt-oss-120b`            | OpenAI GPT OSS 120B     | 131k            | 通用         |
 | `zai-org-glm-4.7`                | GLM 4.7                 | 202k            | 推理，多语言 |
 
-### 匿名化模型（10 个）— 通过 Venice 代理
+### Anonymized Models (15) - Via Venice Proxy
 
 | 模型 ID                  | 原始模型          | 上下文（token） | 特性       |
 | ------------------------ | ----------------- | --------------- | ---------- |

@@ -1,17 +1,9 @@
 ---
 read_when:
-  - 在 Oracle Cloud 上设置 OpenClaw
-  - 寻找 OpenClaw 的低成本 VPS 托管
-  - 想要在小型服务器上 24/7 运行 OpenClaw
-summary: 在 Oracle Cloud 上运行 OpenClaw（Always Free ARM）
-title: Oracle Cloud
-x-i18n:
-  generated_at: "2026-02-03T07:53:25Z"
-  model: claude-opus-4-5
-  provider: pi
-  source_hash: d3cc337b40ea512b5756ac15ec4341fecad417ede75f717fea3035678c7c6697
-  source_path: platforms/oracle.md
-  workflow: 15
+  - Setting up OpenClaw on Oracle Cloud
+  - Looking for low-cost VPS hosting for OpenClaw
+  - Want 24/7 OpenClaw on a small server
+title: "Oracle Cloud (Platform)"
 ---
 
 # 在 Oracle Cloud（OCI）上运行 OpenClaw
@@ -187,7 +179,7 @@ https://openclaw.<tailnet-name>.ts.net/
 
 此设置通常消除了纯粹为了阻止互联网范围的 SSH 暴力破解而需要额外的基于主机的防火墙规则的*需求*——但你仍应保持操作系统更新，运行 `openclaw security audit`，并验证你没有意外地在公共接口上监听。
 
-### 已经受保护的内容
+### Already protected
 
 | 传统步骤        | 是否需要？ | 原因                                             |
 | --------------- | ---------- | ------------------------------------------------ |
@@ -243,7 +235,7 @@ ssh -L 18789:127.0.0.1:18789 ubuntu@openclaw
 - 在非高峰时段（清晨）重试
 - 选择 shape 时使用"Always Free"过滤器
 
-### Tailscale 无法连接
+### Tailscale will not connect
 
 ```bash
 # 检查状态
@@ -253,7 +245,7 @@ sudo tailscale status
 sudo tailscale up --ssh --hostname=openclaw --reset
 ```
 
-### Gateway 网关无法启动
+### Gateway will not start
 
 ```bash
 openclaw gateway status
@@ -261,7 +253,7 @@ openclaw doctor --non-interactive
 journalctl --user -u openclaw-gateway -n 50
 ```
 
-### 无法访问控制 UI
+### Cannot reach Control UI
 
 ```bash
 # 验证 Tailscale Serve 正在运行

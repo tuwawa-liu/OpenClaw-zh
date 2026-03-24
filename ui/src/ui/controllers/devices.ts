@@ -17,6 +17,8 @@ export type PendingDevice = {
   deviceId: string;
   displayName?: string;
   role?: string;
+  roles?: string[];
+  scopes?: string[];
   remoteIp?: string;
   isRepair?: boolean;
   ts?: number;

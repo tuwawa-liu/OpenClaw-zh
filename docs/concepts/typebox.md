@@ -183,7 +183,7 @@ ws.on("message", (data) => {
 });
 ```
 
-## 实践示例：端到端添加方法
+## Worked example: add a method end-to-end
 
 示例：添加一个新的 `system.echo` 请求，返回 `{ ok: true, text }`。
 

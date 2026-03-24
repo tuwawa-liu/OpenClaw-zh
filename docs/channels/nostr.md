@@ -67,13 +67,13 @@ nak key generate
 
 2. 添加到配置：
 
-```json
+```json5
 {
-  "channels": {
-    "nostr": {
-      "privateKey": "${NOSTR_PRIVATE_KEY}"
-    }
-  }
+  channels: {
+    nostr: {
+      privateKey: "${NOSTR_PRIVATE_KEY}",
+    },
+  },
 }
 ```
 
@@ -103,23 +103,23 @@ export NOSTR_PRIVATE_KEY="nsec1..."
 
 示例：
 
-```json
+```json5
 {
-  "channels": {
-    "nostr": {
-      "privateKey": "${NOSTR_PRIVATE_KEY}",
-      "profile": {
-        "name": "openclaw",
-        "displayName": "OpenClaw",
-        "about": "Personal assistant DM bot",
-        "picture": "https://example.com/avatar.png",
-        "banner": "https://example.com/banner.png",
-        "website": "https://example.com",
-        "nip05": "openclaw@example.com",
-        "lud16": "openclaw@example.com"
-      }
-    }
-  }
+  channels: {
+    nostr: {
+      privateKey: "${NOSTR_PRIVATE_KEY}",
+      profile: {
+        name: "openclaw",
+        displayName: "OpenClaw",
+        about: "Personal assistant DM bot",
+        picture: "https://example.com/avatar.png",
+        banner: "https://example.com/banner.png",
+        website: "https://example.com",
+        nip05: "openclaw@example.com",
+        lud16: "openclaw@example.com",
+      },
+    },
+  },
 }
 ```
 
@@ -137,17 +137,23 @@ export NOSTR_PRIVATE_KEY="nsec1..."
 - **open**：公开接收私信（需要 `allowFrom: ["*"]`）。
 - **disabled**：忽略接收的私信。
 
-### 允许列表示例
+Enforcement notes:
 
-```json
+- Sender policy is checked before signature verification and NIP-04 decryption.
+- Pairing replies are sent without processing the original DM body.
+- Inbound DMs are rate-limited and oversized payloads are dropped before decrypt.
+
+### Allowlist example
+
+```json5
 {
-  "channels": {
-    "nostr": {
-      "privateKey": "${NOSTR_PRIVATE_KEY}",
-      "dmPolicy": "allowlist",
-      "allowFrom": ["npub1abc...", "npub1xyz..."]
-    }
-  }
+  channels: {
+    nostr: {
+      privateKey: "${NOSTR_PRIVATE_KEY}",
+      dmPolicy: "allowlist",
+      allowFrom: ["npub1abc...", "npub1xyz..."],
+    },
+  },
 }
 ```
 
@@ -162,14 +168,14 @@ export NOSTR_PRIVATE_KEY="nsec1..."
 
 默认值：`relay.damus.io` 和 `nos.lol`。
 
-```json
+```json5
 {
-  "channels": {
-    "nostr": {
-      "privateKey": "${NOSTR_PRIVATE_KEY}",
-      "relays": ["wss://relay.damus.io", "wss://relay.primal.net", "wss://nostr.wine"]
-    }
-  }
+  channels: {
+    nostr: {
+      privateKey: "${NOSTR_PRIVATE_KEY}",
+      relays: ["wss://relay.damus.io", "wss://relay.primal.net", "wss://nostr.wine"],
+    },
+  },
 }
 ```
 
@@ -198,14 +204,14 @@ export NOSTR_PRIVATE_KEY="nsec1..."
 docker run -p 7777:7777 ghcr.io/hoytech/strfry
 ```
 
-```json
+```json5
 {
-  "channels": {
-    "nostr": {
-      "privateKey": "${NOSTR_PRIVATE_KEY}",
-      "relays": ["ws://localhost:7777"]
-    }
-  }
+  channels: {
+    nostr: {
+      privateKey: "${NOSTR_PRIVATE_KEY}",
+      relays: ["ws://localhost:7777"],
+    },
+  },
 }
 ```
 
@@ -238,9 +244,10 @@ docker run -p 7777:7777 ghcr.io/hoytech/strfry
 
 ## 安全
 
-- 切勿提交私钥。
-- 使用环境变量存储密钥。
-- 生产环境机器人考虑使用 `allowlist`。
+- Never commit private keys.
+- Use environment variables for keys.
+- Consider `allowlist` for production bots.
+- Pairing and allowlist policy is enforced before decrypt, so unknown senders cannot force full crypto work.
 
 ## 限制（MVP）
 

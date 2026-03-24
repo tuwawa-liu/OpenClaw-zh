@@ -47,7 +47,7 @@ openclaw message send --channel slack --target user:U012ABCDEF --message "hello"
 - Zalo（插件）：用户 ID（Bot API）
 - Zalo Personal / `zalouser`（插件）：来自 `zca` 的会话 ID（私聊/群组）（`me`、`friend list`、`group list`）
 
-## Self（"我"）
+## Self ("me")
 
 ```bash
 openclaw directory self --channel zalouser

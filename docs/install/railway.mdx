@@ -1,25 +1,21 @@
 ---
-title: 在 Railway 上部署
-x-i18n:
-  generated_at: "2026-02-01T21:36:21Z"
-  model: claude-opus-4-5
-  provider: pi
-  source_hash: 6d5c2ec2f779bb240e778b5e18ffb8138ce175c4bbdf58b2064a6ad200bf4d1b
-  source_path: railway.mdx
-  workflow: 15
+summary: "Deploy OpenClaw on Railway with one-click template"
+read_when:
+  - Deploying OpenClaw to Railway
+  - You want a one-click cloud deploy with browser-based Control UI
+title: "Railway"
 ---
 
-通过一键模板在 Railway 上部署 OpenClaw，并在浏览器中完成设置。
-这是最简单的"无需在服务器上使用终端"的方式：Railway 为你运行 Gateway网关，
-你只需通过 `/setup` 网页向导完成所有配置。
+Deploy OpenClaw on Railway with a one-click template and access it through the web Control UI.
+This is the easiest "no terminal on the server" path: Railway runs the Gateway for you.
 
 ## 快速检查清单（新用户）
 
-1. 点击下方的 **Deploy on Railway**。
-2. 添加一个挂载到 `/data` 的 **Volume**。
-3. 设置必需的**变量**（至少需要 `SETUP_PASSWORD`）。
-4. 在端口 `8080` 上启用 **HTTP Proxy**。
-5. 打开 `https://<your-railway-domain>/setup` 并完成向导。
+1. Click **Deploy on Railway** (below).
+2. Add a **Volume** mounted at `/data`.
+3. Set the required **Variables** (at least `OPENCLAW_GATEWAY_PORT` and `OPENCLAW_GATEWAY_TOKEN`).
+4. Enable **HTTP Proxy** on port `8080`.
+5. Open `https://<your-railway-domain>/openclaw` and connect using your `OPENCLAW_GATEWAY_TOKEN`.
 
 ## 一键部署
 
@@ -36,11 +32,6 @@ Railway 会：
 
 然后打开：
 
-<<<<<<< HEAD
-- `https://<your-railway-domain>/setup` — 设置向导（需密码保护）
-- `https://<your-railway-domain>/openclaw` — 控制面板 UI
-=======
-- `https://<your-railway-domain>/setup` — web setup (password protected)
 - `https://<your-railway-domain>/openclaw` — Control UI
 >>>>>>> upstream/main
 
@@ -53,10 +44,7 @@ Railway 会：
 - 在 `/setup/export` 导出备份，方便日后从 Railway 迁移
 =======
 - Hosted OpenClaw Gateway + Control UI
-- Web setup at `/setup` (no terminal commands)
 - Persistent storage via Railway Volume (`/data`) so config/credentials/workspace survive redeploys
-- Backup export at `/setup/export` to migrate off Railway later
->>>>>>> upstream/main
 
 ## 必需的 Railway 设置
 
@@ -76,47 +64,31 @@ Railway 会：
 
 在服务上设置以下变量：
 
-- `SETUP_PASSWORD`（必需）
-- `PORT=8080`（必需 — 必须与公共网络中的端口一致）
-- `OPENCLAW_STATE_DIR=/data/.openclaw`（推荐）
-- `OPENCLAW_WORKSPACE_DIR=/data/workspace`（推荐）
-- `OPENCLAW_GATEWAY_TOKEN`（推荐；请视为管理员密钥）
+- `OPENCLAW_GATEWAY_PORT=8080` (required — must match the port in Public Networking)
+- `OPENCLAW_GATEWAY_TOKEN` (required; treat as an admin secret)
+- `OPENCLAW_STATE_DIR=/data/.openclaw` (recommended)
+- `OPENCLAW_WORKSPACE_DIR=/data/workspace` (recommended)
 
-## 设置流程
+## Connect a channel
 
-1. 访问 `https://<your-railway-domain>/setup` 并输入你的 `SETUP_PASSWORD`。
-2. 选择模型/认证提供商并粘贴你的密钥。
-3. （可选）添加 Telegram/Discord/Slack 令牌。
-4. 点击 **Run setup**。
+Use the Control UI at `/openclaw` or run `openclaw onboard` via Railway's shell for channel setup instructions:
 
-<<<<<<< HEAD
-如果 Telegram 私信设置为配对模式，设置向导可以批准配对码。
-=======
-If Telegram DMs are set to pairing, web setup can approve the pairing code.
->>>>>>> upstream/main
-
-## 获取聊天令牌
-
-### Telegram 机器人令牌
-
-1. 在 Telegram 中给 `@BotFather` 发消息
-2. 执行 `/newbot`
-3. 复制令牌（格式类似 `123456789:AA...`）
-4. 将其粘贴到 `/setup` 中
-
-### Discord 机器人令牌
-
-1. 前往 https://discord.com/developers/applications
-2. **New Application** → 选择一个名称
-3. **Bot** → **Add Bot**
-4. 在 Bot → Privileged Gateway Intents 下**启用 MESSAGE CONTENT INTENT**（必需，否则机器人启动时会崩溃）
-5. 复制 **Bot Token** 并粘贴到 `/setup` 中
-6. 邀请机器人加入你的服务器（OAuth2 URL Generator；scopes：`bot`、`applications.commands`）
+- [Telegram](/channels/telegram) (fastest — just a bot token)
+- [Discord](/channels/discord)
+- [All channels](/channels)
 
 ## 备份与迁移
 
-在以下地址下载备份：
+Export your configuration and workspace:
 
-- `https://<your-railway-domain>/setup/export`
+```bash
+openclaw backup create
+```
 
-这会导出你的 OpenClaw 状态和工作区，方便你迁移到其他主机而不丢失配置或记忆。
+This creates a portable backup archive you can restore on any OpenClaw host. See [Backup](/cli/backup) for details.
+
+## Next steps
+
+- Set up messaging channels: [Channels](/channels)
+- Configure the Gateway: [Gateway configuration](/gateway/configuration)
+- Keep OpenClaw up to date: [Updating](/install/updating)

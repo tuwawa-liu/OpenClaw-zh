@@ -1,6 +1,11 @@
 import type { DmPolicy } from "openclaw/plugin-sdk/config-runtime";
 import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk/routing";
-import { resolveSetupAccountId, setSetupChannelEnabled } from "openclaw/plugin-sdk/setup";
+import {
+  createAllowFromSection,
+  createPromptParsedAllowFromForAccount,
+  createStandardChannelSetupStatus,
+  setSetupChannelEnabled,
+} from "openclaw/plugin-sdk/setup";
 import type { ChannelSetupDmPolicy } from "openclaw/plugin-sdk/setup";
 import type { ChannelSetupWizard } from "openclaw/plugin-sdk/setup";
 import { formatDocsLink } from "openclaw/plugin-sdk/setup";
@@ -48,42 +53,27 @@ function normalizeGroupEntry(raw: string): string | null {
   return `#${normalized.replace(/^#+/, "")}`;
 }
 
-async function promptIrcAllowFrom(params: {
-  cfg: CoreConfig;
-  prompter: WizardPrompter;
-  accountId?: string;
-}): Promise<CoreConfig> {
-  const existing = params.cfg.channels?.irc?.allowFrom ?? [];
-
-  await params.prompter.note(
-    [
-      "通过发送者将 IRC 私信加入白名单。",
-      "示例：",
-      "- alice",
-      "- alice!ident@example.org",
-      "多个条目：用逗号分隔。",
-    ].join("\n"),
-    "IRC 白名单",
-  );
-
-  const raw = await params.prompter.text({
-    message: "IRC allowFrom（昵称或 昵称!用户@主机）",
-    placeholder: "alice, bob!ident@example.org",
-    initialValue: existing[0] ? String(existing[0]) : undefined,
-    validate: (value) => (String(value ?? "").trim() ? undefined : "必填"),
-  });
-
-  const parsed = parseListInput(String(raw));
-  const normalized = [
-    ...new Set(
-      parsed
-        .map((entry) => normalizeIrcAllowEntry(entry))
-        .map((entry) => entry.trim())
-        .filter(Boolean),
-    ),
-  ];
-  return setIrcAllowFrom(params.cfg, normalized);
-}
+const promptIrcAllowFrom = createPromptParsedAllowFromForAccount<CoreConfig>({
+  defaultAccountId: (cfg) => resolveDefaultIrcAccountId(cfg),
+  noteTitle: "IRC allowlist",
+  noteLines: [
+    "Allowlist IRC DMs by sender.",
+    "Examples:",
+    "- alice",
+    "- alice!ident@example.org",
+    "Multiple entries: comma-separated.",
+  ],
+  message: "IRC allowFrom (nick or nick!user@host)",
+  placeholder: "alice, bob!ident@example.org",
+  parseEntries: (raw) => ({
+    entries: parseListInput(raw)
+      .map((entry) => normalizeIrcAllowEntry(entry))
+      .map((entry) => entry.trim())
+      .filter(Boolean),
+  }),
+  getExistingAllowFrom: ({ cfg }) => cfg.channels?.irc?.allowFrom ?? [],
+  applyAllowFrom: ({ cfg, allowFrom }) => setIrcAllowFrom(cfg, allowFrom),
+});
 
 async function promptIrcNickServConfig(params: {
   cfg: CoreConfig;
@@ -173,28 +163,26 @@ const ircDmPolicy: ChannelSetupDmPolicy = {
     await promptIrcAllowFrom({
       cfg: cfg as CoreConfig,
       prompter,
-      accountId: resolveSetupAccountId({
-        accountId,
-        defaultAccountId: resolveDefaultIrcAccountId(cfg as CoreConfig),
-      }),
+      accountId,
     }),
 };
 
 export const ircSetupWizard: ChannelSetupWizard = {
   channel,
-  status: {
-    configuredLabel: "已配置",
-    unconfiguredLabel: "需要主机 + 昵称",
-    configuredHint: "已配置",
-    unconfiguredHint: "需要主机 + 昵称",
+  status: createStandardChannelSetupStatus({
+    channelLabel: "IRC",
+    configuredLabel: "configured",
+    unconfiguredLabel: "needs host + nick",
+    configuredHint: "configured",
+    unconfiguredHint: "needs host + nick",
     configuredScore: 1,
     unconfiguredScore: 0,
+    includeStatusLine: true,
     resolveConfigured: ({ cfg }) =>
       listIrcAccountIds(cfg as CoreConfig).some(
         (accountId) => resolveIrcAccount({ cfg: cfg as CoreConfig, accountId }).configured,
       ),
-    resolveStatusLines: ({ configured }) => [`IRC：${configured ? "已配置" : "需要主机 + 昵称"}`],
-  },
+  }),
   introNote: {
     title: "IRC 设置",
     lines: [
@@ -386,8 +374,8 @@ export const ircSetupWizard: ChannelSetupWizard = {
         normalizeGroupEntry,
       ),
   },
-  allowFrom: {
-    helpTitle: "IRC 白名单",
+  allowFrom: createAllowFromSection({
+    helpTitle: "IRC allowlist",
     helpLines: [
       "通过发送者将 IRC 私信加入白名单。",
       "示例：",
@@ -402,17 +390,8 @@ export const ircSetupWizard: ChannelSetupWizard = {
       const normalized = normalizeIrcAllowEntry(raw);
       return normalized || null;
     },
-    resolveEntries: async ({ entries }) =>
-      entries.map((entry) => {
-        const normalized = normalizeIrcAllowEntry(entry);
-        return {
-          input: entry,
-          resolved: Boolean(normalized),
-          id: normalized || null,
-        };
-      }),
     apply: async ({ cfg, allowFrom }) => setIrcAllowFrom(cfg as CoreConfig, allowFrom),
-  },
+  }),
   finalize: async ({ cfg, accountId, prompter }) => {
     let next = cfg as CoreConfig;
 

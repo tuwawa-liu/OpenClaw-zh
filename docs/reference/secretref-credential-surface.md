@@ -30,6 +30,14 @@ title: "SecretRef 凭证表面"
 - `talk.providers.*.apiKey`
 - `messages.tts.elevenlabs.apiKey`
 - `messages.tts.openai.apiKey`
+- `tools.web.fetch.firecrawl.apiKey`
+- `plugins.entries.brave.config.webSearch.apiKey`
+- `plugins.entries.google.config.webSearch.apiKey`
+- `plugins.entries.xai.config.webSearch.apiKey`
+- `plugins.entries.moonshot.config.webSearch.apiKey`
+- `plugins.entries.perplexity.config.webSearch.apiKey`
+- `plugins.entries.firecrawl.config.webSearch.apiKey`
+- `plugins.entries.tavily.config.webSearch.apiKey`
 - `tools.web.search.apiKey`
 - `tools.web.search.gemini.apiKey`
 - `tools.web.search.grok.apiKey`
@@ -97,12 +105,16 @@ title: "SecretRef 凭证表面"
 
 备注：
 
-- 认证配置文件计划目标需要 `agentId`。
-- 计划条目的目标路径为 `profiles.*.key` / `profiles.*.token`，并写入同级引用（`keyRef` / `tokenRef`）。
-- 认证配置文件引用包含在运行时解析和审计覆盖中。
-- 对于 Web 搜索：
-  - 在显式提供商模式下（设置了 `tools.web.search.provider`），仅选定提供商的密钥处于活跃状态。
-  - 在自动模式下（未设置 `tools.web.search.provider`），`tools.web.search.apiKey` 和特定提供商的密钥均处于活跃状态。
+- Auth-profile plan targets require `agentId`.
+- Plan entries target `profiles.*.key` / `profiles.*.token` and write sibling refs (`keyRef` / `tokenRef`).
+- Auth-profile refs are included in runtime resolution and audit coverage.
+- For SecretRef-managed model providers, generated `agents/*/agent/models.json` entries persist non-secret markers (not resolved secret values) for `apiKey`/header surfaces.
+- Marker persistence is source-authoritative: OpenClaw writes markers from the active source config snapshot (pre-resolution), not from resolved runtime secret values.
+- For web search:
+  - In explicit provider mode (`tools.web.search.provider` set), only the selected provider key is active.
+  - In auto mode (`tools.web.search.provider` unset), only the first provider key that resolves by precedence is active.
+  - In auto mode, non-selected provider refs are treated as inactive until selected.
+  - Legacy `tools.web.search.*` provider paths still resolve during the compatibility window, but the canonical SecretRef surface is `plugins.entries.<plugin>.config.webSearch.*`.
 
 ## 不支持的凭证
 

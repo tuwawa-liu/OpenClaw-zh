@@ -1,16 +1,8 @@
 ---
 read_when:
-  - 在 DigitalOcean 上设置 OpenClaw
-  - 寻找便宜的 VPS 托管来运行 OpenClaw
-summary: 在 DigitalOcean 上运行 OpenClaw（简单的付费 VPS 选项）
-title: DigitalOcean
-x-i18n:
-  generated_at: "2026-02-03T07:51:55Z"
-  model: claude-opus-4-5
-  provider: pi
-  source_hash: d60559b8751da37413e5364e83c88254b476b2283386a0b07b2ca6b4e16157fc
-  source_path: platforms/digitalocean.md
-  workflow: 15
+  - Setting up OpenClaw on DigitalOcean
+  - Looking for cheap VPS hosting for OpenClaw
+title: "DigitalOcean (Platform)"
 ---
 
 # 在 DigitalOcean 上运行 OpenClaw
@@ -234,7 +226,7 @@ Oracle Cloud 提供 **Always Free** ARM 实例，比这里任何付费选项都�
 
 ## 故障排除
 
-### Gateway 网关无法启动
+### Gateway will not start
 
 ```bash
 openclaw gateway status

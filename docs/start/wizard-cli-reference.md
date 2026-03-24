@@ -149,7 +149,7 @@ For the short guide, see [Onboarding (CLI)](/start/wizard).
   <Accordion title="OpenAI API 密钥">
     如果存在则使用 `OPENAI_API_KEY`，否则提示输入密钥，然后将凭证存储在认证配置文件中。
 
-    当模型未设置、为 `openai/*` 或 `openai-codex/*` 时，将 `agents.defaults.model` 设置为 `openai/gpt-5.1-codex`。
+    Sets `agents.defaults.model` to `openai/gpt-5.4` when model is unset, `openai/*`, or `openai-codex/*`.
 
   </Accordion>
   <Accordion title="xAI (Grok) API 密钥">
@@ -170,9 +170,9 @@ For the short guide, see [Onboarding (CLI)](/start/wizard).
     提示输入账号 ID、Gateway ID 和 `CLOUDFLARE_AI_GATEWAY_API_KEY`。
     更多详情：[Cloudflare AI Gateway](/providers/cloudflare-ai-gateway)。
   </Accordion>
-  <Accordion title="MiniMax M2.5">
-    配置自动写入。
-    更多详情：[MiniMax](/providers/minimax)。
+  <Accordion title="MiniMax">
+    Config is auto-written. Hosted default is `MiniMax-M2.7`; `MiniMax-M2.5` stays available.
+    More detail: [MiniMax](/providers/minimax).
   </Accordion>
   <Accordion title="Synthetic（Anthropic 兼容）">
     提示输入 `SYNTHETIC_API_KEY`。

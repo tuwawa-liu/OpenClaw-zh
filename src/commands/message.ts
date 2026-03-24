@@ -11,7 +11,7 @@ import { loadConfig } from "../config/config.js";
 import { t } from "../i18n/index.js";
 import type { OutboundSendDeps } from "../infra/outbound/deliver.js";
 import { runMessageAction } from "../infra/outbound/message-action-runner.js";
-import type { RuntimeEnv } from "../runtime.js";
+import { type RuntimeEnv, writeRuntimeJson } from "../runtime.js";
 import { GATEWAY_CLIENT_MODES, GATEWAY_CLIENT_NAMES } from "../utils/message-channel.js";
 import { buildMessageCliJson, formatMessageCliText } from "./message-format.js";
 
@@ -81,7 +81,7 @@ export async function messageCommand(
     : await run();
 
   if (json) {
-    runtime.log(JSON.stringify(buildMessageCliJson(result), null, 2));
+    writeRuntimeJson(runtime, buildMessageCliJson(result));
     return;
   }
 

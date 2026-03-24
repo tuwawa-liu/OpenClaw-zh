@@ -1,5 +1,6 @@
 ---
-description: Typed workflow runtime for OpenClaw — composable pipelines with approval gates.
+title: Lobster
+summary: "Typed workflow runtime for OpenClaw with resumable approval gates."
 read_when:
   - 你想要具有显式审批的确定性多步骤工作流
   - 你需要恢复工作流而不重新运行早期步骤
@@ -339,8 +340,8 @@ OpenProse 与 Lobster 配合良好：使用 `/prose` 编排多智能体准备，
 
 ## 了解更多
 
-- [插件](/tools/plugin)
-- [插件工具开发](/plugins/agent-tools)
+- [Plugins](/tools/plugin)
+- [Plugin tool authoring](/plugins/building-plugins#registering-agent-tools)
 
 ## 案例研究：社区工作流
 

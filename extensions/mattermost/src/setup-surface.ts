@@ -1,13 +1,16 @@
 import {
-  applySetupAccountConfigPatch,
-  DEFAULT_ACCOUNT_ID,
-  hasConfiguredSecretInput,
-  type OpenClawConfig,
-} from "openclaw/plugin-sdk/mattermost";
-import { type ChannelSetupWizard } from "openclaw/plugin-sdk/setup";
-import { formatDocsLink } from "openclaw/plugin-sdk/setup";
+  createStandardChannelSetupStatus,
+  formatDocsLink,
+  type ChannelSetupWizard,
+} from "openclaw/plugin-sdk/setup";
 import { listMattermostAccountIds } from "./mattermost/accounts.js";
 import { normalizeMattermostBaseUrl } from "./mattermost/client.js";
+import {
+  applySetupAccountConfigPatch,
+  DEFAULT_ACCOUNT_ID,
+  type OpenClawConfig,
+} from "./runtime-api.js";
+import { hasConfiguredSecretInput } from "./secret-input.js";
 import {
   isMattermostConfigured,
   mattermostSetupAdapter,
@@ -19,18 +22,19 @@ export { mattermostSetupAdapter } from "./setup-core.js";
 
 export const mattermostSetupWizard: ChannelSetupWizard = {
   channel,
-  status: {
-    configuredLabel: "已配置",
-    unconfiguredLabel: "需要令牌 + URL",
-    configuredHint: "已配置",
-    unconfiguredHint: "需要设置",
+  status: createStandardChannelSetupStatus({
+    channelLabel: "Mattermost",
+    configuredLabel: "configured",
+    unconfiguredLabel: "needs token + url",
+    configuredHint: "configured",
+    unconfiguredHint: "needs setup",
     configuredScore: 2,
     unconfiguredScore: 1,
     resolveConfigured: ({ cfg }) =>
       listMattermostAccountIds(cfg).some((accountId) =>
         isMattermostConfigured(resolveMattermostAccountWithSecrets(cfg, accountId)),
       ),
-  },
+  }),
   introNote: {
     title: "Mattermost 机器人令牌",
     lines: [

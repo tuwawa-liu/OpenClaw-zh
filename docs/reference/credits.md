@@ -12,7 +12,9 @@ x-i18n:
   workflow: 15
 ---
 
-## 名称由来
+# Credits and Acknowledgments
+
+## The name
 
 OpenClaw = CLAW + TARDIS，因为每只太空龙虾都需要一台时空机器。
 

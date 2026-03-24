@@ -3,7 +3,7 @@ import { listChannelPlugins } from "../../channels/plugins/index.js";
 import { t } from "../../i18n/index.js";
 import { getResolvedLoggerSettings } from "../../logging.js";
 import { parseLogLine } from "../../logging/parse-log-line.js";
-import { defaultRuntime, type RuntimeEnv } from "../../runtime.js";
+import { defaultRuntime, type RuntimeEnv, writeRuntimeJson } from "../../runtime.js";
 import { theme } from "../../terminal/theme.js";
 
 export type ChannelsLogsOptions = {
@@ -94,7 +94,7 @@ export async function channelsLogsCommand(
   const lines = filtered.slice(Math.max(0, filtered.length - limit));
 
   if (opts.json) {
-    runtime.log(JSON.stringify({ file, channel, lines }, null, 2));
+    writeRuntimeJson(runtime, { file, channel, lines });
     return;
   }
 

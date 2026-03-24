@@ -1,10 +1,13 @@
-import type { ChannelSetupInput } from "openclaw/plugin-sdk/channel-runtime";
+import type { ChannelSetupInput } from "openclaw/plugin-sdk/channel-setup";
 import type { OpenClawConfig } from "openclaw/plugin-sdk/config-runtime";
-import { hasConfiguredSecretInput } from "openclaw/plugin-sdk/config-runtime";
 import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk/routing";
-import { setSetupChannelEnabled } from "openclaw/plugin-sdk/setup";
-import { type ChannelSetupWizard } from "openclaw/plugin-sdk/setup";
-import { formatDocsLink } from "openclaw/plugin-sdk/setup";
+import { hasConfiguredSecretInput } from "openclaw/plugin-sdk/secret-input";
+import {
+  createStandardChannelSetupStatus,
+  formatDocsLink,
+  setSetupChannelEnabled,
+  type ChannelSetupWizard,
+} from "openclaw/plugin-sdk/setup";
 import { listNextcloudTalkAccountIds, resolveNextcloudTalkAccount } from "./accounts.js";
 import {
   clearNextcloudTalkAccountFields,
@@ -22,11 +25,12 @@ const CONFIGURE_API_FLAG = "__nextcloudTalkConfigureApiCredentials";
 export const nextcloudTalkSetupWizard: ChannelSetupWizard = {
   channel,
   stepOrder: "text-first",
-  status: {
-    configuredLabel: "已配置",
-    unconfiguredLabel: "需要设置",
-    configuredHint: "已配置",
-    unconfiguredHint: "自托管聊天",
+  status: createStandardChannelSetupStatus({
+    channelLabel: "Nextcloud Talk",
+    configuredLabel: "configured",
+    unconfiguredLabel: "needs setup",
+    configuredHint: "configured",
+    unconfiguredHint: "self-hosted chat",
     configuredScore: 1,
     unconfiguredScore: 5,
     resolveConfigured: ({ cfg }) =>
@@ -34,7 +38,7 @@ export const nextcloudTalkSetupWizard: ChannelSetupWizard = {
         const account = resolveNextcloudTalkAccount({ cfg: cfg as CoreConfig, accountId });
         return Boolean(account.secret && account.baseUrl);
       }),
-  },
+  }),
   introNote: {
     title: "Nextcloud Talk 机器人设置",
     lines: [

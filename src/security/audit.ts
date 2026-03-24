@@ -11,12 +11,16 @@ import type { ConfigFileSnapshot, OpenClawConfig } from "../config/config.js";
 import { resolveConfigPath, resolveStateDir } from "../config/paths.js";
 import { hasConfiguredSecretInput } from "../config/types.secrets.js";
 import { resolveGatewayAuth } from "../gateway/auth.js";
+import { type ExecApprovalsFile, loadExecApprovals } from "../infra/exec-approvals.js";
+import { isInterpreterLikeAllowlistPattern } from "../infra/exec-inline-eval.js";
 import {
   listInterpreterLikeSafeBins,
   resolveMergedSafeBinProfileFixtures,
 } from "../infra/exec-safe-bin-runtime-policy.js";
+import { listRiskyConfiguredSafeBins } from "../infra/exec-safe-bin-semantics.js";
 import { normalizeTrustedSafeBinDirs } from "../infra/exec-safe-bin-trust.js";
 import { isBlockedHostnameOrIp, isPrivateNetworkAllowedByPolicy } from "../infra/net/ssrf.js";
+import { DEFAULT_AGENT_ID } from "../routing/session-key.js";
 import {
   formatPermissionDetail,
   formatPermissionRemediation,
@@ -383,11 +387,8 @@ function collectGatewayConfigFindings(
     : [];
   const hasToken = typeof auth.token === "string" && auth.token.trim().length > 0;
   const hasPassword = typeof auth.password === "string" && auth.password.trim().length > 0;
-  const envTokenConfigured =
-    hasNonEmptyString(env.OPENCLAW_GATEWAY_TOKEN) || hasNonEmptyString(env.CLAWDBOT_GATEWAY_TOKEN);
-  const envPasswordConfigured =
-    hasNonEmptyString(env.OPENCLAW_GATEWAY_PASSWORD) ||
-    hasNonEmptyString(env.CLAWDBOT_GATEWAY_PASSWORD);
+  const envTokenConfigured = hasNonEmptyString(env.OPENCLAW_GATEWAY_TOKEN);
+  const envPasswordConfigured = hasNonEmptyString(env.OPENCLAW_GATEWAY_PASSWORD);
   const tokenConfiguredFromConfig = hasConfiguredSecretInput(
     sourceConfig.gateway?.auth?.token,
     sourceConfig.secrets?.defaults,
@@ -512,9 +513,9 @@ function collectGatewayConfigFindings(
       severity: exposed ? "critical" : "warn",
       title: "控制 UI 允许源包含通配符",
       detail:
-        'gateway.controlUi.allowedOrigins 包含 "*"，这实际上禁用了控制 UI/WebChat 请求的源允许列表。',
+        'gateway.controlUi.allowedOrigins includes "*" which means allow any browser origin for Control UI/WebChat requests. This disables origin allowlisting and should be treated as an intentional allow-all policy.',
       remediation:
-        "用明确的受信任源替换通配符源（例如 https://control.example.com）。",
+        'Replace wildcard origins with explicit trusted origins (for example https://control.example.com). Do not use "*" outside tightly controlled local testing.',
     });
   }
   if (dangerouslyAllowHostHeaderOriginFallback) {
@@ -771,7 +772,6 @@ function collectBrowserControlFindings(
   const tokenConfigured =
     Boolean(browserAuth.token) ||
     hasNonEmptyString(env.OPENCLAW_GATEWAY_TOKEN) ||
-    hasNonEmptyString(env.CLAWDBOT_GATEWAY_TOKEN) ||
     hasConfiguredSecretInput(cfg.gateway?.auth?.token, cfg.secrets?.defaults);
   const passwordCanWin =
     explicitAuthMode === "password" ||
@@ -783,7 +783,6 @@ function collectBrowserControlFindings(
     Boolean(browserAuth.password) ||
     (passwordCanWin &&
       (hasNonEmptyString(env.OPENCLAW_GATEWAY_PASSWORD) ||
-        hasNonEmptyString(env.CLAWDBOT_GATEWAY_PASSWORD) ||
         hasConfiguredSecretInput(cfg.gateway?.auth?.password, cfg.secrets?.defaults)));
   if (!tokenConfigured && !passwordConfigured) {
     findings.push({
@@ -893,8 +892,10 @@ function collectElevatedFindings(cfg: OpenClawConfig): SecurityAuditFinding[] {
 function collectExecRuntimeFindings(cfg: OpenClawConfig): SecurityAuditFinding[] {
   const findings: SecurityAuditFinding[] = [];
   const globalExecHost = cfg.tools?.exec?.host;
+  const globalStrictInlineEval = cfg.tools?.exec?.strictInlineEval === true;
   const defaultSandboxMode = resolveSandboxConfigForAgent(cfg).mode;
   const defaultHostIsExplicitSandbox = globalExecHost === "sandbox";
+  const approvals = loadExecApprovals();
 
   if (defaultHostIsExplicitSandbox && defaultSandboxMode === "off") {
     findings.push({
@@ -932,6 +933,94 @@ function collectExecRuntimeFindings(cfg: OpenClawConfig): SecurityAuditFinding[]
         "沙箱模式关闭时，执行直接在网关主机上运行。",
       remediation:
         '为这些代理启用沙箱模式（`agents.list[].sandbox.mode`）或设置它们的 tools.exec.host 为 "gateway"。',
+    });
+  }
+
+  const effectiveExecScopes = Array.from(
+    new Map(
+      [
+        {
+          id: DEFAULT_AGENT_ID,
+          security: cfg.tools?.exec?.security ?? "deny",
+          host: cfg.tools?.exec?.host ?? "sandbox",
+        },
+        ...agents
+          .filter(
+            (entry): entry is NonNullable<(typeof agents)[number]> =>
+              Boolean(entry) && typeof entry === "object" && typeof entry.id === "string",
+          )
+          .map((entry) => ({
+            id: entry.id,
+            security: entry.tools?.exec?.security ?? cfg.tools?.exec?.security ?? "deny",
+            host: entry.tools?.exec?.host ?? cfg.tools?.exec?.host ?? "sandbox",
+          })),
+      ].map((entry) => [entry.id, entry] as const),
+    ).values(),
+  );
+  const fullExecScopes = effectiveExecScopes.filter((entry) => entry.security === "full");
+  const execEnabledScopes = effectiveExecScopes.filter((entry) => entry.security !== "deny");
+  const openExecSurfacePaths = collectOpenExecSurfacePaths(cfg);
+
+  if (fullExecScopes.length > 0) {
+    findings.push({
+      checkId: "tools.exec.security_full_configured",
+      severity: openExecSurfacePaths.length > 0 ? "critical" : "warn",
+      title: "Exec security=full is configured",
+      detail:
+        `Full exec trust is enabled for: ${fullExecScopes.map((entry) => entry.id).join(", ")}.` +
+        (openExecSurfacePaths.length > 0
+          ? ` Open channel access was also detected at:\n${openExecSurfacePaths.map((entry) => `- ${entry}`).join("\n")}`
+          : ""),
+      remediation:
+        'Prefer tools.exec.security="allowlist" with ask prompts, and reserve "full" for tightly scoped break-glass agents only.',
+    });
+  }
+
+  if (openExecSurfacePaths.length > 0 && execEnabledScopes.length > 0) {
+    findings.push({
+      checkId: "security.exposure.open_channels_with_exec",
+      severity: fullExecScopes.length > 0 ? "critical" : "warn",
+      title: "Open channels can reach exec-enabled agents",
+      detail:
+        `Open DM/group access detected at:\n${openExecSurfacePaths.map((entry) => `- ${entry}`).join("\n")}\n` +
+        `Exec-enabled scopes:\n${execEnabledScopes.map((entry) => `- ${entry.id}: security=${entry.security}, host=${entry.host}`).join("\n")}`,
+      remediation:
+        "Tighten dmPolicy/groupPolicy to pairing or allowlist, or disable exec for agents reachable from shared/public channels.",
+    });
+  }
+
+  const autoAllowSkillsHits = collectAutoAllowSkillsHits(approvals);
+  if (autoAllowSkillsHits.length > 0) {
+    findings.push({
+      checkId: "tools.exec.auto_allow_skills_enabled",
+      severity: "warn",
+      title: "autoAllowSkills is enabled for exec approvals",
+      detail:
+        `Implicit skill-bin allowlisting is enabled at:\n${autoAllowSkillsHits.map((entry) => `- ${entry}`).join("\n")}\n` +
+        "This widens host exec trust beyond explicit manual allowlist entries.",
+      remediation:
+        "Disable autoAllowSkills in exec approvals and keep manual allowlists tight when you need explicit host-exec trust.",
+    });
+  }
+
+  const interpreterAllowlistHits = collectInterpreterAllowlistHits({
+    approvals,
+    strictInlineEvalForAgentId: (agentId) => {
+      if (!agentId || agentId === "*" || agentId === DEFAULT_AGENT_ID) {
+        return globalStrictInlineEval;
+      }
+      const agent = agents.find((entry) => entry?.id === agentId);
+      return agent?.tools?.exec?.strictInlineEval === true || globalStrictInlineEval;
+    },
+  });
+  if (interpreterAllowlistHits.length > 0) {
+    findings.push({
+      checkId: "tools.exec.allowlist_interpreter_without_strict_inline_eval",
+      severity: "warn",
+      title: "Interpreter allowlist entries are missing strictInlineEval hardening",
+      detail: `Interpreter/runtime allowlist entries were found without strictInlineEval enabled:\n${interpreterAllowlistHits.map((entry) => `- ${entry}`).join("\n")}`,
+      remediation:
+        "Set tools.exec.strictInlineEval=true (or per-agent tools.exec.strictInlineEval=true) when allowlisting interpreters like python, node, ruby, perl, php, lua, or osascript.",
     });
   }
 
@@ -1018,12 +1107,16 @@ function collectExecRuntimeFindings(cfg: OpenClawConfig): SecurityAuditFinding[]
   }
 
   const interpreterHits: string[] = [];
+  const riskySemanticSafeBinHits: string[] = [];
   const globalSafeBins = normalizeConfiguredSafeBins(globalExec?.safeBins);
   if (globalSafeBins.length > 0) {
     const merged = resolveMergedSafeBinProfileFixtures({ global: globalExec }) ?? {};
     const interpreters = listInterpreterLikeSafeBins(globalSafeBins).filter((bin) => !merged[bin]);
     if (interpreters.length > 0) {
       interpreterHits.push(`- tools.exec.safeBins: ${interpreters.join(", ")}`);
+    }
+    for (const hit of listRiskyConfiguredSafeBins(globalSafeBins)) {
+      riskySemanticSafeBinHits.push(`- tools.exec.safeBins: ${hit.bin} (${hit.warning})`);
     }
   }
 
@@ -1043,11 +1136,21 @@ function collectExecRuntimeFindings(cfg: OpenClawConfig): SecurityAuditFinding[]
       }) ?? {};
     const interpreters = listInterpreterLikeSafeBins(agentSafeBins).filter((bin) => !merged[bin]);
     if (interpreters.length === 0) {
+      for (const hit of listRiskyConfiguredSafeBins(agentSafeBins)) {
+        riskySemanticSafeBinHits.push(
+          `- agents.list.${entry.id}.tools.exec.safeBins: ${hit.bin} (${hit.warning})`,
+        );
+      }
       continue;
     }
     interpreterHits.push(
       `- agents.list.${entry.id}.tools.exec.safeBins: ${interpreters.join(", ")}`,
     );
+    for (const hit of listRiskyConfiguredSafeBins(agentSafeBins)) {
+      riskySemanticSafeBinHits.push(
+        `- agents.list.${entry.id}.tools.exec.safeBins: ${hit.bin} (${hit.warning})`,
+      );
+    }
   }
 
   if (interpreterHits.length > 0) {
@@ -1060,6 +1163,19 @@ function collectExecRuntimeFindings(cfg: OpenClawConfig): SecurityAuditFinding[]
         "这些条目在与宽松的 argv 配置文件一起使用时可能将 safeBins 变成广泛的执行面。",
       remediation:
         "从 safeBins 中移除解释器/运行时二进制（优先使用允许列表条目）或定义加固的 tools.exec.safeBinProfiles.<bin> 规则。",
+    });
+  }
+
+  if (riskySemanticSafeBinHits.length > 0) {
+    findings.push({
+      checkId: "tools.exec.safe_bins_broad_behavior",
+      severity: "warn",
+      title: "safeBins includes binaries with broader semantics than low-risk stream filters",
+      detail:
+        `Detected risky safeBins entries:\n${riskySemanticSafeBinHits.join("\n")}\n` +
+        "These tools expose semantics that do not fit the low-risk stdin-filter fast path.",
+      remediation:
+        "Remove these binaries from safeBins and prefer explicit allowlist entries or approval-gated execution.",
     });
   }
 
@@ -1079,6 +1195,73 @@ function collectExecRuntimeFindings(cfg: OpenClawConfig): SecurityAuditFinding[]
   }
 
   return findings;
+}
+
+function collectOpenExecSurfacePaths(cfg: OpenClawConfig): string[] {
+  const channels = asRecord(cfg.channels);
+  if (!channels) {
+    return [];
+  }
+  const hits = new Set<string>();
+  const seen = new WeakSet<object>();
+  const visit = (value: unknown, scope: string) => {
+    const record = asRecord(value);
+    if (!record || seen.has(record)) {
+      return;
+    }
+    seen.add(record);
+    if (record.groupPolicy === "open") {
+      hits.add(`${scope}.groupPolicy`);
+    }
+    if (record.dmPolicy === "open") {
+      hits.add(`${scope}.dmPolicy`);
+    }
+    for (const [key, nested] of Object.entries(record)) {
+      if (key === "groups" || key === "accounts" || key === "dms") {
+        visit(nested, `${scope}.${key}`);
+        continue;
+      }
+      if (asRecord(nested)) {
+        visit(nested, `${scope}.${key}`);
+      }
+    }
+  };
+  for (const [channelId, channelValue] of Object.entries(channels)) {
+    visit(channelValue, `channels.${channelId}`);
+  }
+  return Array.from(hits).toSorted();
+}
+
+function collectAutoAllowSkillsHits(approvals: ExecApprovalsFile): string[] {
+  const hits: string[] = [];
+  if (approvals.defaults?.autoAllowSkills === true) {
+    hits.push("defaults.autoAllowSkills");
+  }
+  for (const [agentId, agent] of Object.entries(approvals.agents ?? {})) {
+    if (agent?.autoAllowSkills === true) {
+      hits.push(`agents.${agentId}.autoAllowSkills`);
+    }
+  }
+  return hits;
+}
+
+function collectInterpreterAllowlistHits(params: {
+  approvals: ExecApprovalsFile;
+  strictInlineEvalForAgentId: (agentId: string | undefined) => boolean;
+}): string[] {
+  const hits: string[] = [];
+  for (const [agentId, agent] of Object.entries(params.approvals.agents ?? {})) {
+    if (!agent || params.strictInlineEvalForAgentId(agentId)) {
+      continue;
+    }
+    for (const entry of agent.allowlist ?? []) {
+      if (!isInterpreterLikeAllowlistPattern(entry.pattern)) {
+        continue;
+      }
+      hits.push(`agents.${agentId}.allowlist: ${entry.pattern}`);
+    }
+  }
+  return hits;
 }
 
 async function maybeProbeGateway(params: {

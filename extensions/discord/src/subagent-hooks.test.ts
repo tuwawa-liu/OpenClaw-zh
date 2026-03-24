@@ -1,9 +1,9 @@
-import type { OpenClawPluginApi } from "openclaw/plugin-sdk/discord";
+import type { OpenClawPluginApi } from "openclaw/plugin-sdk/core";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   getRequiredHookHandler,
   registerHookHandlersForTest,
-} from "../../test-utils/subagent-hooks.js";
+} from "../../../test/helpers/extensions/subagent-hooks.js";
 import { registerDiscordSubagentHooks } from "./subagent-hooks.js";
 
 type ThreadBindingRecord = {

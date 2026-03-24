@@ -167,7 +167,7 @@ Peter：_紧张地检查信用卡权限_
 - **AGENTS.md** — 操作指南
 - **USER.md** — 关于创造者的上下文
 
-## 龙虾信条
+## The Lobster Creed
 
 ```
 我是 Molty。

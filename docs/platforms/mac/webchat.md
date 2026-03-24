@@ -1,15 +1,7 @@
 ---
 read_when:
-  - 调试 macOS WebChat 视图或 loopback 端口
-summary: macOS 应用如何嵌入 Gateway 网关 WebChat 以及如何调试
-title: WebChat
-x-i18n:
-  generated_at: "2026-02-03T07:52:46Z"
-  model: claude-opus-4-5
-  provider: pi
-  source_hash: 04ff448758e530098e2004625f33e42fc3dbe31137cd3beec2d55590e507de08
-  source_path: platforms/mac/webchat.md
-  workflow: 15
+  - Debugging mac WebChat view or loopback port
+title: "WebChat (macOS)"
 ---
 
 # WebChat（macOS 应用）
@@ -30,9 +22,7 @@ macOS 菜单栏应用将 WebChat UI 嵌入为原生 SwiftUI 视图。它连接�
 
 ## 工作原理
 
-- 数据平面：Gateway 网关 WS 方法 `chat.history`、`chat.send`、`chat.abort`、`chat.inject` 和事件 `chat`、`agent`、`presence`、`tick`、`health`。
-- 会话：默认为主会话（`main`，或当范围为全局时为 `global`）。UI 可以在会话之间切换。
-- 新手引导使用专用会话，以将首次运行设置分开。
+## How it is wired
 
 ## 安全面
 

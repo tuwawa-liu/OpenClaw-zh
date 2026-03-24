@@ -51,5 +51,7 @@ Venice 是我们推荐的 Venice AI 设置，用于隐私优先的推理，并�
 - [MiniMax](/providers/minimax)
 - [Venice（Venice AI）](/providers/venice)
 - [Amazon Bedrock](/providers/bedrock)
+- [Qianfan](/providers/qianfan)
+- [xAI](/providers/xai)
 
 有关完整的提供商目录（xAI、Groq、Mistral 等）和高级配置，请参阅[模型提供商](/concepts/model-providers)。

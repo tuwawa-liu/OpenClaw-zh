@@ -39,6 +39,10 @@ x-i18n:
   `supportsXHighThinking`, `resolveDefaultThinkingLevel`,
   `isModernModelRef`, `prepareRuntimeAuth`, `resolveUsageAuth`, and
   `fetchUsageSnapshot`.
+- Note: provider runtime `capabilities` is shared runner metadata (provider
+  family, transcript/tooling quirks, transport/cache hints). It is not the
+  same as the [public capability model](/plugins/architecture#public-capability-model)
+  which describes what a plugin registers (text inference, speech, etc.).
 
 ## 内置提供商（pi-ai 目录）
 
@@ -242,7 +246,41 @@ OpenClaw ships with the pi‑ai catalog. These providers require **no**
 
 ## 通过 `models.providers` 配置的提供商（自定义/基础 URL）
 
-使用 `models.providers`（或 `models.json`）添加**自定义**提供商或 OpenAI/Anthropic 兼容的代理。
+### Other bundled provider plugins
+
+- OpenRouter: `openrouter` (`OPENROUTER_API_KEY`)
+- Example model: `openrouter/anthropic/claude-sonnet-4-6`
+- Kilo Gateway: `kilocode` (`KILOCODE_API_KEY`)
+- Example model: `kilocode/anthropic/claude-opus-4.6`
+- MiniMax: `minimax` (`MINIMAX_API_KEY`)
+- Moonshot: `moonshot` (`MOONSHOT_API_KEY`)
+- Kimi Coding: `kimi-coding` (`KIMI_API_KEY` or `KIMICODE_API_KEY`)
+- Qianfan: `qianfan` (`QIANFAN_API_KEY`)
+- Model Studio: `modelstudio` (`MODELSTUDIO_API_KEY`)
+- NVIDIA: `nvidia` (`NVIDIA_API_KEY`)
+- Together: `together` (`TOGETHER_API_KEY`)
+- Venice: `venice` (`VENICE_API_KEY`)
+- Xiaomi: `xiaomi` (`XIAOMI_API_KEY`)
+- Vercel AI Gateway: `vercel-ai-gateway` (`AI_GATEWAY_API_KEY`)
+- Hugging Face Inference: `huggingface` (`HUGGINGFACE_HUB_TOKEN` or `HF_TOKEN`)
+- Cloudflare AI Gateway: `cloudflare-ai-gateway` (`CLOUDFLARE_AI_GATEWAY_API_KEY`)
+- Volcengine: `volcengine` (`VOLCANO_ENGINE_API_KEY`)
+- BytePlus: `byteplus` (`BYTEPLUS_API_KEY`)
+- xAI: `xai` (`XAI_API_KEY`)
+- Mistral: `mistral` (`MISTRAL_API_KEY`)
+- Example model: `mistral/mistral-large-latest`
+- CLI: `openclaw onboard --auth-choice mistral-api-key`
+- Groq: `groq` (`GROQ_API_KEY`)
+- Cerebras: `cerebras` (`CEREBRAS_API_KEY`)
+  - GLM models on Cerebras use ids `zai-glm-4.7` and `zai-glm-4.6`.
+  - OpenAI-compatible base URL: `https://api.cerebras.ai/v1`.
+- GitHub Copilot: `github-copilot` (`COPILOT_GITHUB_TOKEN` / `GH_TOKEN` / `GITHUB_TOKEN`)
+- Hugging Face Inference example model: `huggingface/deepseek-ai/DeepSeek-R1`; CLI: `openclaw onboard --auth-choice huggingface-api-key`. See [Hugging Face (Inference)](/providers/huggingface).
+
+## Providers via `models.providers` (custom/base URL)
+
+Use `models.providers` (or `models.json`) to add **custom** providers or
+OpenAI/Anthropic‑compatible proxies.
 
 Many of the bundled provider plugins below already publish a default catalog.
 Use explicit `models.providers.<id>` entries only when you want to override the

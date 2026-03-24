@@ -1,5 +1,4 @@
-import { t } from "../../i18n/index.js";
-import type { RuntimeEnv } from "../../runtime.js";
+import { type RuntimeEnv, writeRuntimeJson } from "../../runtime.js";
 import { colorize, theme } from "../../terminal/theme.js";
 import { formatTag, isRich, pad, truncate } from "./list.format.js";
 import type { ModelRow } from "./list.types.js";
@@ -17,16 +16,10 @@ export function printModelTable(
   opts: { json?: boolean; plain?: boolean } = {},
 ) {
   if (opts.json) {
-    runtime.log(
-      JSON.stringify(
-        {
-          count: rows.length,
-          models: rows,
-        },
-        null,
-        2,
-      ),
-    );
+    writeRuntimeJson(runtime, {
+      count: rows.length,
+      models: rows,
+    });
     return;
   }
 

@@ -130,7 +130,7 @@ OPENCLAW_TWITCH_ACCESS_TOKEN=oauth:abc123...
 
 **为什么用用户 ID？** 用户名可以更改，允许冒充。用户 ID 是永久的。
 
-查找你的 Twitch 用户 ID：https://www.streamweasels.com/tools/convert-twitch-username-%20to-user-id/（将你的 Twitch 用户名转换为 ID）
+Find your Twitch user ID: [https://www.streamweasels.com/tools/convert-twitch-username-to-user-id/](https://www.streamweasels.com/tools/convert-twitch-username-to-user-id/) (Convert your Twitch username to ID)
 
 ## 令牌刷新（可选）
 
@@ -262,7 +262,7 @@ openclaw doctor
 openclaw channels status --probe
 ```
 
-### 机器人不响应消息
+### Bot does not respond to messages
 
 **检查访问控制：** 确保你的用户 ID 在 `allowFrom` 中，或临时移除 `allowFrom` 并设置 `allowedRoles: ["all"]` 来测试。
 

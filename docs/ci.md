@@ -1,7 +1,6 @@
 ---
-title: CI 流水线
-description: OpenClaw CI 流水线的工作方式
-summary: "CI 任务图、范围门控和本地命令等效项"
+title: CI Pipeline
+summary: "CI job graph, scope gates, and local command equivalents"
 read_when:
   - 需要了解为什么 CI 任务运行了或没有运行
   - 调试失败的 GitHub Actions 检查
@@ -13,20 +12,21 @@ CI 在每次推送到 `main` 和每个拉取请求时运行。它使用智能范
 
 ## 任务概览
 
-| 任务              | 用途                                           | 运行条件                                 |
-| ----------------- | ---------------------------------------------- | ---------------------------------------- |
-| `docs-scope`      | 检测仅文档更改                                 | 始终                                     |
-| `changed-scope`   | 检测哪些区域更改（node/macos/android/windows） | 非文档 PR                                |
-| `check`           | TypeScript 类型、lint、格式                    | 推送到 `main`，或包含 Node 相关更改的 PR |
-| `check-docs`      | Markdown lint + 断链检查                       | 文档更改                                 |
-| `code-analysis`   | LOC 阈值检查（1000 行）                        | 仅 PR                                    |
-| `secrets`         | 检测泄露的密钥                                 | 始终                                     |
-| `build-artifacts` | 构建 dist 一次，与其他任务共享                 | 非文档，node 更改                        |
-| `release-check`   | 验证 npm pack 内容                             | 构建后                                   |
-| `checks`          | Node/Bun 测试 + 协议检查                       | 非文档，node 更改                        |
-| `checks-windows`  | Windows 专用测试                               | 非文档，windows 相关更改                 |
-| `macos`           | Swift lint/构建/测试 + TS 测试                 | 包含 macos 更改的 PR                     |
-| `android`         | Gradle 构建 + 测试                             | 非文档，android 更改                     |
+| Job               | Purpose                                                                   | When it runs                                     |
+| ----------------- | ------------------------------------------------------------------------- | ------------------------------------------------ |
+| `preflight`       | Docs scope, change scope, key scan, workflow audit, prod dependency audit | Always; node-based audit only on non-doc changes |
+| `docs-scope`      | Detect docs-only changes                                                  | Always                                           |
+| `changed-scope`   | Detect which areas changed (node/macos/android/windows)                   | Non-doc changes                                  |
+| `check`           | TypeScript types, lint, format                                            | Non-docs, node changes                           |
+| `check-docs`      | Markdown lint + broken link check                                         | Docs changed                                     |
+| `secrets`         | Detect leaked secrets                                                     | Always                                           |
+| `build-artifacts` | Build dist once, share with `release-check`                               | Pushes to `main`, node changes                   |
+| `release-check`   | Validate npm pack contents                                                | Pushes to `main` after build                     |
+| `checks`          | Node tests + protocol check on PRs; Bun compat on push                    | Non-docs, node changes                           |
+| `compat-node22`   | Minimum supported Node runtime compatibility                              | Pushes to `main`, node changes                   |
+| `checks-windows`  | Windows-specific tests                                                    | Non-docs, windows-relevant changes               |
+| `macos`           | Swift lint/build/test + TS tests                                          | PRs with macos changes                           |
+| `android`         | Gradle build + tests                                                      | Non-docs, android changes                        |
 
 ## 快速失败顺序
 
@@ -36,7 +36,8 @@ CI 在每次推送到 `main` 和每个拉取请求时运行。它使用智能范
 2. `build-artifacts`（依赖上述任务）
 3. `checks`、`checks-windows`、`macos`、`android`（依赖构建）
 
-范围逻辑位于 `scripts/ci-changed-scope.mjs`，并在 `src/scripts/ci-changed-scope.test.ts` 中有单元测试覆盖。
+Scope logic lives in `scripts/ci-changed-scope.mjs` and is covered by unit tests in `src/scripts/ci-changed-scope.test.ts`.
+The same shared scope module also drives the separate `install-smoke` workflow through a narrower `changed-smoke` gate, so Docker/install smoke only runs for install, packaging, and container-relevant changes.
 
 ## 运行器
 

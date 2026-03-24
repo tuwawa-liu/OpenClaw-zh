@@ -16,7 +16,7 @@ x-i18n:
 
 目标：多个*隔离的*智能体（独立的工作区 + `agentDir` + 会话），加上多个渠道账户（例如两个 WhatsApp）在一个运行的 Gateway 网关中。入站消息通过绑定路由到智能体。
 
-## 什么是"一个智能体"？
+## What is "one agent"?
 
 一个**智能体**是一个完全独立作用域的大脑，拥有自己的：
 
@@ -214,7 +214,7 @@ openclaw agents list --bindings
         id: "chat",
         name: "Everyday",
         workspace: "~/.openclaw/workspace-chat",
-        model: "anthropic/claude-sonnet-4-5",
+        model: "anthropic/claude-sonnet-4-6",
       },
       {
         id: "opus",
@@ -248,7 +248,7 @@ openclaw agents list --bindings
         id: "chat",
         name: "Everyday",
         workspace: "~/.openclaw/workspace-chat",
-        model: "anthropic/claude-sonnet-4-5",
+        model: "anthropic/claude-sonnet-4-6",
       },
       {
         id: "opus",
@@ -321,7 +321,7 @@ openclaw agents list --bindings
 
 ## 每智能体沙箱和工具配置
 
-从 v2026.1.6 开始，每个智能体可以有自己的沙箱和工具限制：
+Each agent can have its own sandbox and tool restrictions:
 
 ```js
 {

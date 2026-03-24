@@ -1,16 +1,8 @@
 ---
 read_when:
-  - 更改日志输出或格式
-  - 调试 CLI 或 Gateway 网关输出
-summary: 日志输出界面、文件日志、WS 日志样式和控制台格式化
-title: 日志
-x-i18n:
-  generated_at: "2026-02-03T07:48:14Z"
-  model: claude-opus-4-5
-  provider: pi
-  source_hash: efb8eda5e77e3809369a8ff569fac110323a86b3945797093f20e9bc98f39b2e
-  source_path: gateway/logging.md
-  workflow: 15
+  - Changing logging output or formats
+  - Debugging CLI or gateway output
+title: "Gateway Logging"
 ---
 
 # 日志

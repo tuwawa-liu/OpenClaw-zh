@@ -1,4 +1,12 @@
-# 贡献 OpenClaw 威胁模型
+---
+title: "Contributing to the Threat Model"
+summary: "How to contribute to the OpenClaw threat model"
+read_when:
+  - You want to contribute security findings or threat scenarios
+  - Reviewing or updating the threat model
+---
+
+# Contributing to the OpenClaw Threat Model
 
 感谢您帮助提高 OpenClaw 的安全性。本威胁模型是一份持续更新的文档，欢迎任何人参与贡献——您不需要是安全专家。
 

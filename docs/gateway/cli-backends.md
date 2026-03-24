@@ -114,8 +114,9 @@ agents.defaults.cliBackends
           input: "arg",
           modelArg: "--model",
           modelAliases: {
-            "claude-opus-4-5": "opus",
-            "claude-sonnet-4-5": "sonnet",
+            "claude-opus-4-6": "opus",
+            "claude-opus-4-6": "opus",
+            "claude-sonnet-4-6": "sonnet",
           },
           sessionArg: "--session",
           sessionMode: "existing",

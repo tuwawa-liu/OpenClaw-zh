@@ -11,8 +11,10 @@ x-i18n:
   workflow: 15
 ---
 
-# HEARTBEAT.md
+# HEARTBEAT.md Template
 
-# 保持此文件为空（或仅包含注释）以跳过心跳 API 调用。
+```markdown
+# Keep this file empty (or with only comments) to skip heartbeat API calls.
 
-# 当你希望智能体定期检查某些内容时，在下方添加任务。
+# Add tasks below when you want the agent to check something periodically.
+```

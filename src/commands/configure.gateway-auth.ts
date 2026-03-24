@@ -3,7 +3,7 @@ import { resolveDefaultAgentWorkspaceDir } from "../agents/workspace.js";
 import type { OpenClawConfig, GatewayAuthConfig } from "../config/config.js";
 import { isSecretRef, type SecretInput } from "../config/types.secrets.js";
 import { resolveProviderPluginChoice } from "../plugins/provider-wizard.js";
-import { resolvePluginProviders } from "../plugins/providers.js";
+import { resolvePluginProviders } from "../plugins/providers.runtime.js";
 import type { RuntimeEnv } from "../runtime.js";
 import type { WizardPrompter } from "../wizard/prompts.js";
 import { t } from "../i18n/index.js";
@@ -111,6 +111,13 @@ export async function promptAuthConfig(
   });
 
   let next = cfg;
+  const preferredProvider =
+    authChoice === "skip"
+      ? undefined
+      : await resolvePreferredProviderForAuthChoice({
+          choice: authChoice,
+          config: cfg,
+        });
   if (authChoice === "custom-api-key") {
     const customResult = await promptCustomApiConfig({ prompter, runtime, config: next });
     next = customResult.config;
@@ -130,10 +137,7 @@ export async function promptAuthConfig(
       allowKeep: true,
       ignoreAllowlist: true,
       includeProviderPluginSetups: true,
-      preferredProvider: await resolvePreferredProviderForAuthChoice({
-        choice: authChoice,
-        config: next,
-      }),
+      preferredProvider,
       workspaceDir: resolveDefaultAgentWorkspaceDir(),
       runtime,
     });
@@ -158,6 +162,7 @@ export async function promptAuthConfig(
       allowedKeys: modelAllowlist?.allowedKeys,
       initialSelections: modelAllowlist?.initialSelections,
       message: modelAllowlist?.message,
+      preferredProvider,
     });
     if (allowlistSelection.models) {
       next = applyModelAllowlist(next, allowlistSelection.models);

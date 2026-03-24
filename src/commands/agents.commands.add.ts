@@ -11,7 +11,7 @@ import { writeConfigFile } from "../config/config.js";
 import { logConfigUpdated } from "../config/logging.js";
 import { t } from "../i18n/index.js";
 import { DEFAULT_AGENT_ID, normalizeAgentId } from "../routing/session-key.js";
-import type { RuntimeEnv } from "../runtime.js";
+import { type RuntimeEnv, writeRuntimeJson } from "../runtime.js";
 import { defaultRuntime } from "../runtime.js";
 import { resolveUserPath, shortenHomePath } from "../utils.js";
 import { createClackPrompter } from "../wizard/clack-prompter.js";
@@ -154,7 +154,7 @@ export async function agentsAddCommand(
       },
     };
     if (opts.json) {
-      runtime.log(JSON.stringify(payload, null, 2));
+      writeRuntimeJson(runtime, payload);
     } else {
       runtime.log(t("commands.agents.agentLine", { id: agentId }));
       runtime.log(t("commands.agents.workspaceLine", { dir: shortenHomePath(workspaceDir) }));
@@ -357,7 +357,7 @@ export async function agentsAddCommand(
       agentDir,
     };
     if (opts.json) {
-      runtime.log(JSON.stringify(payload, null, 2));
+      writeRuntimeJson(runtime, payload);
     }
     await prompter.outro(t("commands.agents.agentReady", { id: agentId }));
   } catch (err) {

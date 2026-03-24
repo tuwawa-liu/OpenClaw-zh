@@ -1,16 +1,8 @@
 ---
 read_when:
-  - 你想选择一个模型提供商
-  - 你需要快速了解支持的 LLM 后端
-summary: OpenClaw 支持的模型提供商（LLM）
-title: 模型提供商
-x-i18n:
-  generated_at: "2026-02-03T07:53:32Z"
-  model: claude-opus-4-5
-  provider: pi
-  source_hash: eb4a97438adcf610499253afcf8b2af6624f4be098df389a6c3746f14c4a901b
-  source_path: providers/index.md
-  workflow: 15
+  - You want to choose a model provider
+  - You need a quick overview of supported LLM backends
+title: "Provider Directory"
 ---
 
 # 模型提供商
@@ -42,18 +34,37 @@ Venice 是我们推荐的 Venice AI 设置，用于隐私优先的推理，并�
 ## 提供商文档
 
 - [Amazon Bedrock](/providers/bedrock)
-- [Anthropic（API + Claude Code CLI）](/providers/anthropic)
-- [GLM 模型](/providers/glm)
+- [Anthropic (API + Claude Code CLI)](/providers/anthropic)
+- [Cloudflare AI Gateway](/providers/cloudflare-ai-gateway)
+- [DeepSeek](/providers/deepseek)
+- [GitHub Copilot](/providers/github-copilot)
+- [GLM models](/providers/glm)
+- [Google (Gemini)](/providers/google)
+- [Groq (LPU inference)](/providers/groq)
+- [Hugging Face (Inference)](/providers/huggingface)
+- [Kilocode](/providers/kilocode)
+- [LiteLLM (unified gateway)](/providers/litellm)
 - [MiniMax](/providers/minimax)
 - [Mistral](/providers/mistral)
-- [Moonshot AI（Kimi + Kimi Coding）](/providers/moonshot)
+- [Model Studio (Alibaba Cloud)](/providers/modelstudio)
+- [Moonshot AI (Kimi + Kimi Coding)](/providers/moonshot)
 - [NVIDIA](/providers/nvidia)
-- [Ollama（本地模型）](/providers/ollama)
-- [OpenAI（API + Codex）](/providers/openai)
-- [OpenCode（Zen + Go）](/providers/opencode)
+- [Ollama (cloud + local models)](/providers/ollama)
+- [OpenAI (API + Codex)](/providers/openai)
+- [OpenCode](/providers/opencode)
+- [OpenCode Go](/providers/opencode-go)
 - [OpenRouter](/providers/openrouter)
-- [Qwen（OAuth）](/providers/qwen)
-- [Venice（Venice AI，注重隐私）](/providers/venice)
+- [Perplexity (web search)](/providers/perplexity-provider)
+- [Qianfan](/providers/qianfan)
+- [Qwen (OAuth)](/providers/qwen)
+- [SGLang (local models)](/providers/sglang)
+- [Synthetic](/providers/synthetic)
+- [Together AI](/providers/together)
+- [Venice (Venice AI, privacy-focused)](/providers/venice)
+- [Vercel AI Gateway](/providers/vercel-ai-gateway)
+- [vLLM (local models)](/providers/vllm)
+- [Volcengine (Doubao)](/providers/volcengine)
+- [xAI](/providers/xai)
 - [Xiaomi](/providers/xiaomi)
 - [Z.AI](/providers/zai)
 

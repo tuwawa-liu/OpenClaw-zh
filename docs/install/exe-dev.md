@@ -22,10 +22,10 @@ x-i18n:
 ## 新手快速路径
 
 1. [https://exe.new/openclaw](https://exe.new/openclaw)
-2. 根据需要填写你的认证密钥/令牌
-3. 点击 VM 旁边的"Agent"，然后等待...
-4. ???
-5. 完成
+2. Fill in your auth key/token as needed
+3. Click on "Agent" next to your VM and wait for Shelley to finish provisioning
+4. Open `https://<vm-name>.exe.xyz/` and paste your gateway token to authenticate
+5. Approve any pending device pairing requests with `openclaw devices approve <requestId>`
 
 ## 你需要什么
 

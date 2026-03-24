@@ -87,14 +87,10 @@ export function registerSecurityCli(program: Command) {
       });
 
       if (opts.json) {
-        defaultRuntime.log(
-          JSON.stringify(
-            fixResult
-              ? { fix: fixResult, report, secretDiagnostics }
-              : { ...report, secretDiagnostics },
-            null,
-            2,
-          ),
+        defaultRuntime.writeJson(
+          fixResult
+            ? { fix: fixResult, report, secretDiagnostics }
+            : { ...report, secretDiagnostics },
         );
         return;
       }

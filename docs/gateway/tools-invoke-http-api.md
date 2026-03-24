@@ -15,7 +15,7 @@ x-i18n:
 
 # 工具调用（HTTP）
 
-OpenClaw 的 Gateway 网关暴露了一个简单的 HTTP 端点用于直接调用单个工具。它始终启用，但受 Gateway 网关认证和工具策略限制。
+OpenClaw’s Gateway exposes a simple HTTP endpoint for invoking a single tool directly. It is always enabled and uses Gateway auth plus tool policy, but callers that pass Gateway bearer auth are treated as trusted operators for that gateway.
 
 - `POST /tools/invoke`
 - 与 Gateway 网关相同的端口（WS + HTTP 多路复用）：`http://<gateway-host>:<port>/tools/invoke`
@@ -30,8 +30,10 @@ OpenClaw 的 Gateway 网关暴露了一个简单的 HTTP 端点用于直接调�
 
 说明：
 
-- 当 `gateway.auth.mode="token"` 时，使用 `gateway.auth.token`（或 `OPENCLAW_GATEWAY_TOKEN`）。
-- 当 `gateway.auth.mode="password"` 时，使用 `gateway.auth.password`（或 `OPENCLAW_GATEWAY_PASSWORD`）。
+- When `gateway.auth.mode="token"`, use `gateway.auth.token` (or `OPENCLAW_GATEWAY_TOKEN`).
+- When `gateway.auth.mode="password"`, use `gateway.auth.password` (or `OPENCLAW_GATEWAY_PASSWORD`).
+- If `gateway.auth.rateLimit` is configured and too many auth failures occur, the endpoint returns `429` with `Retry-After`.
+- Treat this credential as a full-access operator secret for that gateway. It is not a scoped API token for a narrower `/tools/invoke` role.
 
 ## 请求体
 
@@ -65,10 +67,19 @@ OpenClaw 的 Gateway 网关暴露了一个简单的 HTTP 端点用于直接调�
 
 如果工具不被策略允许，端点返回 **404**。
 
-为帮助群组策略解析上下文，你可以选择设置：
+Important boundary notes:
 
-- `x-openclaw-message-channel: <channel>`（示例：`slack`、`telegram`）
-- `x-openclaw-account-id: <accountId>`（当存在多个账户时）
+- `POST /tools/invoke` is in the same trusted-operator bucket as other Gateway HTTP APIs such as `/v1/chat/completions`, `/v1/responses`, and `/api/channels/*`.
+- Exec approvals are operator guardrails, not a separate authorization boundary for this HTTP endpoint. If a tool is reachable here via Gateway auth + tool policy, `/tools/invoke` does not add an extra per-call approval prompt.
+- Do not share Gateway bearer credentials with untrusted callers. If you need separation across trust boundaries, run separate gateways (and ideally separate OS users/hosts).
+
+Gateway HTTP also applies a hard deny list by default (even if session policy allows the tool):
+
+- `cron`
+- `sessions_spawn`
+- `sessions_send`
+- `gateway`
+- `whatsapp_login`
 
 ## 响应
 

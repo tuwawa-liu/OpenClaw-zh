@@ -136,7 +136,7 @@ async function saveSnapshotTargeted(params: {
       ? saveSnapshotLocal(params.file)
       : await saveSnapshot(params.opts, params.nodeId, params.file, params.baseHash);
   if (params.opts.json) {
-    defaultRuntime.log(JSON.stringify(next));
+    defaultRuntime.writeJson(next, 0);
     return;
   }
   defaultRuntime.log(theme.muted(`Target: ${params.targetLabel}`));
@@ -366,7 +366,7 @@ export function registerExecApprovalsCli(program: Command) {
       try {
         const { snapshot, nodeId, source } = await loadSnapshotTarget(opts);
         if (opts.json) {
-          defaultRuntime.log(JSON.stringify(snapshot));
+          defaultRuntime.writeJson(snapshot, 0);
           return;
         }
 

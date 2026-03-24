@@ -91,7 +91,7 @@ OpenClaw 有两个钩子系统：
 - **`session_start` / `session_end`**：会话生命周期边界。
 - **`gateway_start` / `gateway_stop`**：Gateway 网关生命周期事件。
 
-参见[插件](/tools/plugin#plugin-hooks)了解钩子 API 和注册详情。
+See [Plugin hooks](/plugins/architecture#provider-runtime-hooks) for the hook API and registration details.
 
 ## 流式传输 + 部分回复
 

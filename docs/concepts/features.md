@@ -12,7 +12,9 @@ x-i18n:
   workflow: 15
 ---
 
-## 亮点
+# Features
+
+## Highlights
 
 <Columns>
   <Card title="渠道" icon="message-square">
@@ -37,23 +39,42 @@ x-i18n:
 
 ## 完整列表
 
-- 通过 WhatsApp Web（Baileys）集成 WhatsApp
-- Telegram 机器人支持（grammY）
-- Discord 机器人支持（channels.discord.js）
-- Mattermost 机器人支持（插件）
-- 通过本地 imsg CLI 集成 iMessage（macOS）
-- Pi 的智能体桥接，支持 RPC 模式和工具流式传输
-- 长响应的流式传输和分块处理
-- 多智能体路由，按工作区或发送者隔离会话
-- 通过 OAuth 进行 Anthropic 和 OpenAI 的订阅认证
-- 会话：私信合并为共享的 `main`；群组相互隔离
-- 群聊支持，通过提及激活
-- 图片、音频和文档的媒体支持
-- 可选的语音消息转录钩子
-- WebChat 和 macOS 菜单栏应用
-- iOS 节点，支持配对和 Canvas 界面
-- Android 节点，支持配对、Canvas、聊天和相机
+**Channels:**
 
-<Note>
-旧版 Claude、Codex、Gemini 和 Opencode 路径已被移除。Pi 是唯一的编程智能体路径。
-</Note>
+- WhatsApp, Telegram, Discord, iMessage (built-in)
+- Mattermost, Matrix, Microsoft Teams, Nostr, and more (plugins)
+- Group chat support with mention-based activation
+- DM safety with allowlists and pairing
+
+**Agent:**
+
+- Embedded agent runtime with tool streaming
+- Multi-agent routing with isolated sessions per workspace or sender
+- Sessions: direct chats collapse into shared `main`; groups are isolated
+- Streaming and chunking for long responses
+
+**Auth and providers:**
+
+- 35+ model providers (Anthropic, OpenAI, Google, and more)
+- Subscription auth via OAuth (e.g. OpenAI Codex)
+- Custom and self-hosted provider support (vLLM, SGLang, Ollama, and any OpenAI-compatible or Anthropic-compatible endpoint)
+
+**Media:**
+
+- Images, audio, video, and documents in and out
+- Voice note transcription
+- Text-to-speech with multiple providers
+
+**Apps and interfaces:**
+
+- WebChat and browser Control UI
+- macOS menu bar companion app
+- iOS node with pairing, Canvas, camera, screen recording, location, and voice
+- Android node with pairing, chat, voice, Canvas, camera, and device commands
+
+**Tools and automation:**
+
+- Browser automation, exec, sandboxing
+- Web search (Brave, Perplexity, Gemini, Grok, Kimi, Firecrawl)
+- Cron jobs and heartbeat scheduling
+- Skills, plugins, and workflow pipelines (Lobster)

@@ -19,7 +19,7 @@ OpenClaw 使用 Bonjour（mDNS / DNS‑SD）作为**仅限局域网的便捷方�
 活跃的 Gateway 网关（WebSocket 端点）。这是尽力而为的，**不能**替代 SSH 或
 基于 Tailnet 的连接。
 
-## 通过 Tailscale 的广域 Bonjour（单播 DNS‑SD）
+## Wide-area Bonjour (Unicast DNS-SD) over Tailscale
 
 如果节点和 Gateway 网关在不同的网络上，多播 mDNS 无法跨越
 边界。你可以通过切换到基于 Tailscale 的**单播 DNS‑SD**
@@ -45,7 +45,7 @@ iOS/Android 节点同时浏览 `local.` 和你配置的广域域名。
 }
 ```
 
-### 一次性 DNS 服务器设置（Gateway 网关主机）
+### One-time DNS server setup (gateway host)
 
 ```bash
 openclaw dns setup --apply
@@ -91,7 +91,7 @@ Gateway 网关 WS 端口（默认 `18789`）默认绑定到 loopback。对于局
 
 - `_openclaw-gw._tcp` — Gateway 网关传输信标（被 macOS/iOS/Android 节点使用）。
 
-## TXT 键（非机密提示）
+## TXT keys (non-secret hints)
 
 Gateway 网关广播小型非机密提示以方便 UI 流程：
 

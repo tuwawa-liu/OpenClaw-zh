@@ -1,5 +1,6 @@
 ---
-summary: "在受信代理后面使用基于标头的身份验证运行 OpenClaw 网关"
+title: "Trusted Proxy Auth"
+summary: "Delegate gateway authentication to a trusted reverse proxy (Pomerium, Caddy, nginx + OAuth)"
 read_when:
   - 在 Pomerium、Caddy、nginx 或 Traefik 后面运行 OpenClaw
   - 调试基于标头的跳过令牌/密码认证

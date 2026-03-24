@@ -7,48 +7,64 @@ title: "Podman"
 
 # Podman
 
-在 **无根** Podman 容器中运行 OpenClaw Gateway。使用与 Docker 相同的镜像（从仓库 [Dockerfile](https://github.com/openclaw/openclaw/blob/main/Dockerfile) 构建）。
+Run the OpenClaw Gateway in a **rootless** Podman container. Uses the same image as Docker (built from the repo [Dockerfile](https://github.com/openclaw/openclaw/blob/main/Dockerfile)).
 
-## 前提条件
+## Prerequisites
 
-- Podman（无根模式）
-- 一次性设置需要 Sudo（创建用户、构建镜像）
+- **Podman** (rootless mode)
+- **sudo** access for one-time setup (creating the dedicated user and building the image)
 
 ## 快速开始
 
-**1. 一次性设置**（从仓库根目录；创建用户、构建镜像、安装启动脚本）：
+<Steps>
+  <Step title="One-time setup">
+    From the repo root, run the setup script. It creates a dedicated `openclaw` user, builds the container image, and installs the launch script:
 
-```bash
-./setup-podman.sh
-```
+    ```bash
+    ./scripts/podman/setup.sh
+    ```
 
-这还会创建一个最小的 `~openclaw/.openclaw/openclaw.json`（设置 `gateway.mode="local"`），使 Gateway 可以在不运行向导的情况下启动。
+    This also creates a minimal config at `~openclaw/.openclaw/openclaw.json` (sets `gateway.mode` to `"local"`) so the Gateway can start without running the wizard.
 
-默认情况下容器 **不** 作为 systemd 服务安装，你需要手动启动（见下文）。如需生产环境风格的自动启动和重启设置，请改为安装 systemd Quadlet 用户服务：
+    By default the container is **not** installed as a systemd service -- you start it manually in the next step. For a production-style setup with auto-start and restarts, pass `--quadlet` instead:
 
-```bash
-./setup-podman.sh --quadlet
-```
+    ```bash
+    ./scripts/podman/setup.sh --quadlet
+    ```
 
-（或设置 `OPENCLAW_PODMAN_QUADLET=1`；使用 `--container` 仅安装容器和启动脚本。）
+    (Or set `OPENCLAW_PODMAN_QUADLET=1`. Use `--container` to install only the container and launch script.)
 
-**2. 启动 Gateway**（手动，用于快速冒烟测试）：
+    **Optional build-time env vars** (set before running `scripts/podman/setup.sh`):
 
-```bash
-./scripts/run-openclaw-podman.sh launch
-```
+    - `OPENCLAW_DOCKER_APT_PACKAGES` -- install extra apt packages during image build.
+    - `OPENCLAW_EXTENSIONS` -- pre-install extension dependencies (space-separated names, e.g. `diagnostics-otel matrix`).
 
-**3. 入门向导**（例如添加频道或提供商）：
+  </Step>
 
-```bash
-./scripts/run-openclaw-podman.sh launch setup
-```
+  <Step title="Start the Gateway">
+    For a quick manual launch:
 
-然后打开 `http://127.0.0.1:18789/` 并使用 `~openclaw/.openclaw/.env` 中的令牌（或 setup 打印的值）。
+    ```bash
+    ./scripts/run-openclaw-podman.sh launch
+    ```
+
+  </Step>
+
+  <Step title="Run the onboarding wizard">
+    To add channels or providers interactively:
+
+    ```bash
+    ./scripts/run-openclaw-podman.sh launch setup
+    ```
+
+    Then open `http://127.0.0.1:18789/` and use the token from `~openclaw/.openclaw/.env` (or the value printed by setup).
+
+  </Step>
+</Steps>
 
 ## Systemd（Quadlet，可选）
 
-如果你运行了 `./setup-podman.sh --quadlet`（或 `OPENCLAW_PODMAN_QUADLET=1`），会安装一个 [Podman Quadlet](https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html) 单元，使 Gateway 作为 openclaw 用户的 systemd 用户服务运行。服务在设置结束时启用并启动。
+If you ran `./scripts/podman/setup.sh --quadlet` (or `OPENCLAW_PODMAN_QUADLET=1`), a [Podman Quadlet](https://docs.podman.io/en/latest/markdown/podman-systemd.unit.5.html) unit is installed so the gateway runs as a systemd user service for the openclaw user. The service is enabled and started at the end of setup.
 
 - **启动：** `sudo systemctl --machine openclaw@ --user start openclaw.service`
 - **停止：** `sudo systemctl --machine openclaw@ --user stop openclaw.service`
@@ -57,11 +73,11 @@ title: "Podman"
 
 Quadlet 文件位于 `~openclaw/.config/containers/systemd/openclaw.container`。要更改端口或环境变量，编辑该文件（或其引用的 `.env`），然后 `sudo systemctl --machine openclaw@ --user daemon-reload` 并重启服务。开机时，如果为 openclaw 启用了 lingering（setup 在 loginctl 可用时会执行此操作），服务会自动启动。
 
-要在初始设置未使用 Quadlet 的情况下添加它，请重新运行：`./setup-podman.sh --quadlet`。
+To add quadlet **after** an initial setup that did not use it, re-run: `./scripts/podman/setup.sh --quadlet`.
 
 ## openclaw 用户（非登录）
 
-`setup-podman.sh` 创建一个专用系统用户 `openclaw`：
+`scripts/podman/setup.sh` creates a dedicated system user `openclaw`:
 
 - **Shell：** `nologin` — 不允许交互式登录；减少攻击面。
 - **主目录：** 例如 `/home/openclaw` — 存放 `~/.openclaw`（配置、工作区）和启动脚本 `run-openclaw-podman.sh`。
@@ -82,11 +98,11 @@ Quadlet 文件位于 `~openclaw/.config/containers/systemd/openclaw.container`�
 
 ## 环境变量和配置
 
-- **令牌：** 存储在 `~openclaw/.openclaw/.env` 中，键为 `OPENCLAW_GATEWAY_TOKEN`。`setup-podman.sh` 和 `run-openclaw-podman.sh` 在缺失时会生成（使用 `openssl`、`python3` 或 `od`）。
-- **可选：** 在该 `.env` 中可以设置提供商密钥（如 `GROQ_API_KEY`、`OLLAMA_API_KEY`）和其他 OpenClaw 环境变量。
-- **主机端口：** 默认脚本映射 `18789`（Gateway）和 `18790`（Bridge）。通过 `OPENCLAW_PODMAN_GATEWAY_HOST_PORT` 和 `OPENCLAW_PODMAN_BRIDGE_HOST_PORT` 覆盖 **主机** 端口映射。
-- **Gateway 绑定：** 默认情况下，`run-openclaw-podman.sh` 以 `--bind loopback` 启动 Gateway 以实现安全的本地访问。要在局域网公开，设置 `OPENCLAW_GATEWAY_BIND=lan` 并在 `openclaw.json` 中配置 `gateway.controlUi.allowedOrigins`（或显式启用 host-header 回退）。
-- **路径：** 主机配置和工作区默认为 `~openclaw/.openclaw` 和 `~openclaw/.openclaw/workspace`。通过 `OPENCLAW_CONFIG_DIR` 和 `OPENCLAW_WORKSPACE_DIR` 覆盖启动脚本使用的主机路径。
+- **Token:** Stored in `~openclaw/.openclaw/.env` as `OPENCLAW_GATEWAY_TOKEN`. `scripts/podman/setup.sh` and `run-openclaw-podman.sh` generate it if missing (uses `openssl`, `python3`, or `od`).
+- **Optional:** In that `.env` you can set provider keys (e.g. `GROQ_API_KEY`, `OLLAMA_API_KEY`) and other OpenClaw env vars.
+- **Host ports:** By default the script maps `18789` (gateway) and `18790` (bridge). Override the **host** port mapping with `OPENCLAW_PODMAN_GATEWAY_HOST_PORT` and `OPENCLAW_PODMAN_BRIDGE_HOST_PORT` when launching.
+- **Gateway bind:** By default, `run-openclaw-podman.sh` starts the gateway with `--bind loopback` for safe local access. To expose on LAN, set `OPENCLAW_GATEWAY_BIND=lan` and configure `gateway.controlUi.allowedOrigins` (or explicitly enable host-header fallback) in `openclaw.json`.
+- **Paths:** Host config and workspace default to `~openclaw/.openclaw` and `~openclaw/.openclaw/workspace`. Override the host paths used by the launch script with `OPENCLAW_CONFIG_DIR` and `OPENCLAW_WORKSPACE_DIR`.
 
 ## 常用命令
 
@@ -95,7 +111,7 @@ Quadlet 文件位于 `~openclaw/.config/containers/systemd/openclaw.container`�
 - **重新启动：** 使用 Quadlet：`sudo systemctl --machine openclaw@ --user start openclaw.service`。使用脚本：重新运行启动脚本或 `podman start openclaw`
 - **移除容器：** `sudo -u openclaw podman rm -f openclaw` — 主机上的配置和工作区会保留
 
-## 故障排除
+`scripts/podman/setup.sh` now stages the image tar in a private temp directory and prints the chosen base dir during setup. For non-root runs it accepts `TMPDIR` only when that base is safe to use; otherwise it falls back to `/var/tmp`, then `/tmp`. The saved tar stays owner-only and is streamed into the target user’s `podman load`, so private caller temp dirs do not block setup.
 
 - **配置或 auth-profiles 上的权限被拒绝（EACCES）：** 容器默认使用 `--userns=keep-id`，以运行脚本的主机用户相同的 uid/gid 运行。确保你的主机 `OPENCLAW_CONFIG_DIR` 和 `OPENCLAW_WORKSPACE_DIR` 属于该用户。
 - **Gateway 启动被阻止（缺少 `gateway.mode=local`）：** 确保 `~openclaw/.openclaw/openclaw.json` 存在并设置了 `gateway.mode="local"`。`setup-podman.sh` 在缺失时会创建此文件。
@@ -106,4 +122,15 @@ Quadlet 文件位于 `~openclaw/.config/containers/systemd/openclaw.container`�
 
 ## 可选：以你自己的用户运行
 
-要以你的普通用户身份运行 Gateway（不创建专用 openclaw 用户）：构建镜像，创建 `~/.openclaw/.env`（包含 `OPENCLAW_GATEWAY_TOKEN`），然后使用 `--userns=keep-id` 和挂载到你的 `~/.openclaw` 运行容器。启动脚本专为 openclaw 用户流程设计；对于单用户设置，你可以手动运行脚本中的 `podman run` 命令，将配置和工作区指向你的主目录。推荐大多数用户使用 `setup-podman.sh` 并以 openclaw 用户运行，以隔离配置和进程。
+## Troubleshooting
+
+- **Permission denied (EACCES) on config or auth-profiles:** The container defaults to `--userns=keep-id` and runs as the same uid/gid as the host user running the script. Ensure your host `OPENCLAW_CONFIG_DIR` and `OPENCLAW_WORKSPACE_DIR` are owned by that user.
+- **Gateway start blocked (missing `gateway.mode=local`):** Ensure `~openclaw/.openclaw/openclaw.json` exists and sets `gateway.mode="local"`. `scripts/podman/setup.sh` creates this file if missing.
+- **Rootless Podman fails for user openclaw:** Check `/etc/subuid` and `/etc/subgid` contain a line for `openclaw` (e.g. `openclaw:100000:65536`). Add it if missing and restart.
+- **Container name in use:** The launch script uses `podman run --replace`, so the existing container is replaced when you start again. To clean up manually: `podman rm -f openclaw`.
+- **Script not found when running as openclaw:** Ensure `scripts/podman/setup.sh` was run so that `run-openclaw-podman.sh` is copied to openclaw’s home (e.g. `/home/openclaw/run-openclaw-podman.sh`).
+- **Quadlet service not found or fails to start:** Run `sudo systemctl --machine openclaw@ --user daemon-reload` after editing the `.container` file. Quadlet requires cgroups v2: `podman info --format '{{.Host.CgroupsVersion}}'` should show `2`.
+
+## Optional: run as your own user
+
+To run the gateway as your normal user (no dedicated openclaw user): build the image, create `~/.openclaw/.env` with `OPENCLAW_GATEWAY_TOKEN`, and run the container with `--userns=keep-id` and mounts to your `~/.openclaw`. The launch script is designed for the openclaw-user flow; for a single-user setup you can instead run the `podman run` command from the script manually, pointing config and workspace to your home. Recommended for most users: use `scripts/podman/setup.sh` and run as the openclaw user so config and process are isolated.

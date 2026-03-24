@@ -1,4 +1,5 @@
 ---
+summary: "ClawHub guide: public registry, native OpenClaw install flows, and ClawHub CLI workflows"
 read_when:
   - 向新用户介绍 ClawHub
   - 安装、搜索或发布 Skills
@@ -16,11 +17,42 @@ x-i18n:
 
 # ClawHub
 
-ClawHub 是 **OpenClaw 的公共 Skills 注册中心**。它是一项免费服务：所有 Skills 都是公开的、开放的，所有人都可以查看、共享和复用。Skills 就是一个包含 `SKILL.md` 文件（以及辅助文本文件）的文件夹。你可以在网页应用中浏览 Skills，也可以使用 CLI 来搜索、安装、更新和发布 Skills。
+ClawHub is the public registry for **OpenClaw skills and plugins**.
+
+- Use native `openclaw` commands to search/install/update skills and install
+  plugins from ClawHub.
+- Use the separate `clawhub` CLI when you need registry auth, publish, delete,
+  undelete, or sync workflows.
 
 网站：[clawhub.com](https://clawhub.com)
 
-## 适用人群（新手友好）
+## Native OpenClaw flows
+
+Skills:
+
+```bash
+openclaw skills search "calendar"
+openclaw skills install <skill-slug>
+openclaw skills update --all
+```
+
+Plugins:
+
+```bash
+openclaw plugins install clawhub:<package>
+openclaw plugins update --all
+```
+
+Bare npm-safe plugin specs are also tried against ClawHub before npm:
+
+```bash
+openclaw plugins install openclaw-codex-app-server
+```
+
+Native `openclaw` commands install into your active workspace and persist source
+metadata so later `update` calls can stay on ClawHub.
+
+## What ClawHub is
 
 如果你想为 OpenClaw 智能体添加新功能，ClawHub 是查找和安装 Skills 的最简单方式。你不需要了解后端的工作原理。你可以：
 
@@ -31,16 +63,36 @@ ClawHub 是 **OpenClaw 的公共 Skills 注册中心**。它是一项免费服�
 
 ## 快速入门（非技术人员）
 
-1. 安装 CLI（参见下一节）。
-2. 搜索你需要的内容：
-   - `clawhub search "calendar"`
-3. 安装一个 Skills：
-   - `clawhub install <skill-slug>`
-4. 启动一个新的 OpenClaw 会话，以加载新 Skills。
+## What you can do
 
-## 安装 CLI
+- Publish new skills and new versions of existing skills.
+- Discover skills by name, tags, or search.
+- Download skill bundles and inspect their files.
+- Report skills that are abusive or unsafe.
+- If you are a moderator, hide, unhide, delete, or ban.
 
-任选其一：
+## Who this is for (beginner-friendly)
+
+If you want to add new capabilities to your OpenClaw agent, ClawHub is the easiest way to find and install skills. You do not need to know how the backend works. You can:
+
+- Search for skills by plain language.
+- Install a skill into your workspace.
+- Update skills later with one command.
+- Back up your own skills by publishing them.
+
+## Quick start (non-technical)
+
+1. Search for something you need:
+   - `openclaw skills search "calendar"`
+2. Install a skill:
+   - `openclaw skills install <skill-slug>`
+3. Start a new OpenClaw session so it picks up the new skill.
+4. If you want to publish or manage registry auth, install the separate
+   `clawhub` CLI too.
+
+## Install the ClawHub CLI
+
+You only need this for registry-authenticated workflows such as publish/sync:
 
 ```bash
 npm i -g clawhub
@@ -52,7 +104,16 @@ pnpm add -g clawhub
 
 ## 在 OpenClaw 中的定位
 
-默认情况下，CLI 会将 Skills 安装到当前工作目录下的 `./skills`。如果已配置 OpenClaw 工作区，`clawhub` 会回退到该工作区，除非你通过 `--workdir`（或 `CLAWHUB_WORKDIR`）进行覆盖。OpenClaw 从 `<workspace>/skills` 加载工作区 Skills，并会在**下一个**会话中生效。如果你已经在使用 `~/.openclaw/skills` 或内置 Skills，工作区 Skills 优先级更高。
+Native `openclaw skills install` installs into the active workspace `skills/`
+directory. `openclaw plugins install clawhub:...` records a normal managed
+plugin install plus ClawHub source metadata for updates.
+
+The separate `clawhub` CLI also installs skills into `./skills` under your
+current working directory. If an OpenClaw workspace is configured, `clawhub`
+falls back to that workspace unless you override `--workdir` (or
+`CLAWHUB_WORKDIR`). OpenClaw loads workspace skills from `<workspace>/skills`
+and will pick them up in the **next** session. If you already use
+`~/.openclaw/skills` or bundled skills, workspace skills take precedence.
 
 有关 Skills 加载、共享和权限控制的更多详情，请参阅
 [Skills](/tools/skills)。

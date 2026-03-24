@@ -60,13 +60,14 @@ pnpm ios:open
 
 发布行为：
 
-- 本地开发继续使用来自 `scripts/ios-configure-signing.sh` 的每开发者唯一 Bundle ID。
-- Beta 发布使用规范的 `ai.openclaw.client*` Bundle ID，通过在 `apps/ios/build/BetaRelease.xcconfig` 中生成临时 xcconfig 实现。
-- Beta 流程不会修改 `apps/ios/.local-signing.xcconfig` 或 `apps/ios/LocalSigning.xcconfig`。
-- 根目录 `package.json.version` 是 iOS 的唯一版本来源。
-- 根版本如 `2026.3.11-beta.1` 会变为：
-  - `CFBundleShortVersionString = 2026.3.11`
-  - `CFBundleVersion = 2026.3.11 的下一个 TestFlight 构建号`
+- Local development keeps using unique per-developer bundle IDs from `scripts/ios-configure-signing.sh`.
+- Beta release uses canonical `ai.openclaw.client*` bundle IDs through a temporary generated xcconfig in `apps/ios/build/BetaRelease.xcconfig`.
+- Beta release also switches the app to `OpenClawPushTransport=relay`, `OpenClawPushDistribution=official`, and `OpenClawPushAPNsEnvironment=production`.
+- The beta flow does not modify `apps/ios/.local-signing.xcconfig` or `apps/ios/LocalSigning.xcconfig`.
+- Root `package.json.version` is the only version source for iOS.
+- A root version like `2026.3.22-beta.1` becomes:
+  - `CFBundleShortVersionString = 2026.3.22`
+  - `CFBundleVersion = next TestFlight build number for 2026.3.22`
 
 仅归档（不上传）：
 

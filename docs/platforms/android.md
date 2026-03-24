@@ -16,7 +16,7 @@ x-i18n:
 
 # Android 应用（节点）
 
-## 支持概览
+> **Note:** The Android app has not been publicly released yet. The source code is available in the [OpenClaw repository](https://github.com/openclaw/openclaw) under `apps/android`. You can build it yourself using Java 17 and the Android SDK (`./gradlew :app:assemblePlayDebug`). See [apps/android/README.md](https://github.com/openclaw/openclaw/blob/main/apps/android/README.md) for build instructions.
 
 - 角色：配套节点应用（Android 不托管 Gateway 网关）。
 - 需要 Gateway 网关：是（在 macOS、Linux 或通过 WSL2 的 Windows 上运行）。
@@ -152,4 +152,18 @@ Canvas 命令（仅前台）：
 - `camera.snap`（jpg）
 - `camera.clip`（mp4）
 
-参见 [Camera 节点](/nodes/camera) 了解参数和 CLI 助手。
+See [Camera node](/nodes/camera) for parameters and CLI helpers.
+
+### 8) Voice + expanded Android command surface
+
+- Voice: Android uses a single mic on/off flow in the Voice tab with transcript capture and TTS playback (ElevenLabs when configured, system TTS fallback). Voice stops when the app leaves the foreground.
+- Voice wake/talk-mode toggles are currently removed from Android UX/runtime.
+- Additional Android command families (availability depends on device + permissions):
+  - `device.status`, `device.info`, `device.permissions`, `device.health`
+  - `notifications.list`, `notifications.actions`
+  - `photos.latest`
+  - `contacts.search`, `contacts.add`
+  - `calendar.events`, `calendar.add`
+  - `callLog.search`
+  - `sms.search`
+  - `motion.activity`, `motion.pedometer`

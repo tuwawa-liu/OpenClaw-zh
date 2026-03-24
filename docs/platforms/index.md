@@ -32,11 +32,12 @@ Windows 原生配套应用也在计划中；推荐通过 WSL2 使用 Gateway 网
 
 ## VPS 和托管
 
-- VPS 中心：[VPS 托管](/vps)
-- Fly.io：[Fly.io](/install/fly)
-- Hetzner（Docker）：[Hetzner](/install/hetzner)
-- GCP（Compute Engine）：[GCP](/install/gcp)
-- exe.dev（VM + HTTPS 代理）：[exe.dev](/install/exe-dev)
+- VPS hub: [VPS hosting](/vps)
+- Fly.io: [Fly.io](/install/fly)
+- Hetzner (Docker): [Hetzner](/install/hetzner)
+- GCP (Compute Engine): [GCP](/install/gcp)
+- Azure (Linux VM): [Azure](/install/azure)
+- exe.dev (VM + HTTPS proxy): [exe.dev](/install/exe-dev)
 
 ## 常用链接
 

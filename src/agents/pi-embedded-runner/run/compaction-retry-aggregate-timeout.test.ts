@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 import { waitForCompactionRetryWithAggregateTimeout } from "./compaction-retry-aggregate-timeout.js";
 
 type AggregateTimeoutParams = Parameters<typeof waitForCompactionRetryWithAggregateTimeout>[0];
+type TimeoutCallback = NonNullable<AggregateTimeoutParams["onTimeout"]>;
+type TimeoutCallbackMock = ReturnType<typeof vi.fn<TimeoutCallback>>;
 
 async function withFakeTimers(run: () => Promise<void>) {
   vi.useFakeTimers();
@@ -13,7 +15,7 @@ async function withFakeTimers(run: () => Promise<void>) {
   }
 }
 
-function expectClearedTimeoutState(onTimeout: ReturnType<typeof vi.fn>, timedOut: boolean) {
+function expectClearedTimeoutState(onTimeout: TimeoutCallbackMock, timedOut: boolean) {
   if (timedOut) {
     expect(onTimeout).toHaveBeenCalledTimes(1);
   } else {
@@ -25,8 +27,9 @@ function expectClearedTimeoutState(onTimeout: ReturnType<typeof vi.fn>, timedOut
 function buildAggregateTimeoutParams(
   overrides: Partial<AggregateTimeoutParams> &
     Pick<AggregateTimeoutParams, "waitForCompactionRetry">,
-): AggregateTimeoutParams & { onTimeout: ReturnType<typeof vi.fn> } {
-  const onTimeout = overrides.onTimeout ?? vi.fn();
+): AggregateTimeoutParams & { onTimeout: TimeoutCallbackMock } {
+  const onTimeout =
+    (overrides.onTimeout as TimeoutCallbackMock | undefined) ?? vi.fn<TimeoutCallback>();
   return {
     waitForCompactionRetry: overrides.waitForCompactionRetry,
     abortable: overrides.abortable ?? (async (promise) => await promise),

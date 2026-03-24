@@ -1,16 +1,8 @@
 ---
 read_when:
-  - 你想使用 Brave Search 进行 web_search
-  - 你需要 BRAVE_API_KEY 或套餐详情
-summary: 用于 web_search 的 Brave Search API 设置
-title: Brave Search
-x-i18n:
-  generated_at: "2026-02-03T07:43:09Z"
-  model: claude-opus-4-5
-  provider: pi
-  source_hash: cdcb037b092b8a10609f02acf062b4164cb826ac22bdb3fb2909c842a1405341
-  source_path: brave-search.md
-  workflow: 15
+  - You want to use Brave Search for web_search
+  - You need a BRAVE_API_KEY or plan details
+title: "Brave Search (legacy path)"
 ---
 
 # Brave Search API
@@ -27,11 +19,21 @@ OpenClaw 使用 Brave Search 作为 `web_search` 的默认提供商。
 
 ```json5
 {
+  plugins: {
+    entries: {
+      brave: {
+        config: {
+          webSearch: {
+            apiKey: "BRAVE_API_KEY_HERE",
+          },
+        },
+      },
+    },
+  },
   tools: {
     web: {
       search: {
         provider: "brave",
-        apiKey: "BRAVE_API_KEY_HERE",
         maxResults: 5,
         timeoutSeconds: 30,
       },
@@ -40,7 +42,10 @@ OpenClaw 使用 Brave Search 作为 `web_search` 的默认提供商。
 }
 ```
 
-## 注意事项
+Provider-specific Brave search settings now live under `plugins.entries.brave.config.webSearch.*`.
+Legacy `tools.web.search.apiKey` still loads through the compatibility shim, but it is no longer the canonical config path.
+
+## Tool parameters
 
 - Data for AI 套餐与 `web_search` **不**兼容。
 - Brave 提供免费层级和付费套餐；请查看 Brave API 门户了解当前限制。

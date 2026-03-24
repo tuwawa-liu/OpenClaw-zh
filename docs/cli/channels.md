@@ -67,9 +67,9 @@ openclaw channels capabilities --channel discord --target channel:123
 
 说明：
 
-- `--channel` 是可选的；省略它可列出所有渠道（包括扩展）。
-- `--target` 接受 `channel:<id>` 或原始数字频道 id，仅适用于 Discord。
-- 探测是特定于提供商的：Discord intents + 可选的频道权限；Slack bot + user scopes；Telegram bot 标志 + webhook；Signal daemon 版本；MS Teams app token + Graph roles/scopes（在已知处标注）。没有探测功能的渠道报告 `Probe: unavailable`。
+- `--channel` is optional; omit it to list every channel (including extensions).
+- `--target` accepts `channel:<id>` or a raw numeric channel id and only applies to Discord.
+- Probes are provider-specific: Discord intents + optional channel permissions; Slack bot + user scopes; Telegram bot flags + webhook; Signal daemon version; Microsoft Teams app token + Graph roles/scopes (annotated where known). Channels without probes report `Probe: unavailable`.
 
 ## 解析名称为 ID
 

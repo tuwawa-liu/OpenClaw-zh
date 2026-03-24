@@ -123,15 +123,15 @@ export function registerGatewayCli(program: Command) {
           const params = JSON.parse(String(opts.params ?? "{}"));
           const result = await callGatewayCli(method, { ...rpcOpts, config }, params);
           if (rpcOpts.json) {
-            defaultRuntime.log(JSON.stringify(result, null, 2));
+            defaultRuntime.writeJson(result);
             return;
           }
           const rich = isRich();
           defaultRuntime.log(
             `${colorize(rich, theme.heading, "网关调用")}: ${colorize(rich, theme.muted, String(method))}`,
           );
-          defaultRuntime.log(JSON.stringify(result, null, 2));
-        }, "网关调用失败");
+          defaultRuntime.writeJson(result);
+        }, "Gateway call failed");
       }),
   );
 
@@ -147,7 +147,7 @@ export function registerGatewayCli(program: Command) {
           const config = await readBestEffortConfig();
           const result = await callGatewayCli("usage.cost", { ...rpcOpts, config }, { days });
           if (rpcOpts.json) {
-            defaultRuntime.log(JSON.stringify(result, null, 2));
+            defaultRuntime.writeJson(result);
             return;
           }
           const rich = isRich();
@@ -169,7 +169,7 @@ export function registerGatewayCli(program: Command) {
           const config = await readBestEffortConfig();
           const result = await callGatewayCli("health", { ...rpcOpts, config });
           if (rpcOpts.json) {
-            defaultRuntime.log(JSON.stringify(result, null, 2));
+            defaultRuntime.writeJson(result);
             return;
           }
           const rich = isRich();
@@ -241,18 +241,12 @@ export function registerGatewayCli(program: Command) {
             const port = pickGatewayPort(b);
             return { ...b, wsUrl: host ? `ws://${host}:${port}` : null };
           });
-          defaultRuntime.log(
-            JSON.stringify(
-              {
-                timeoutMs,
-                domains,
-                count: enriched.length,
-                beacons: enriched,
-              },
-              null,
-              2,
-            ),
-          );
+          defaultRuntime.writeJson({
+            timeoutMs,
+            domains,
+            count: enriched.length,
+            beacons: enriched,
+          });
           return;
         }
 

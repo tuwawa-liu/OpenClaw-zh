@@ -47,18 +47,25 @@ Skills 从**三个**位置加载：
 
 ## ClawHub（安装 + 同步）
 
-ClawHub 是 OpenClaw 的公共 Skills 注册表。浏览 https://clawhub.com。使用它来发现、安装、更新和备份 Skills。完整指南：[ClawHub](/tools/clawhub)。
+ClawHub is the public skills registry for OpenClaw. Browse at
+[https://clawhub.com](https://clawhub.com). Use native `openclaw skills`
+commands to discover/install/update skills, or the separate `clawhub` CLI when
+you need publish/sync workflows.
+Full guide: [ClawHub](/tools/clawhub).
 
 常见流程：
 
-- 将 Skills 安装到你的工作区：
-  - `clawhub install <skill-slug>`
-- 更新所有已安装的 Skills：
-  - `clawhub update --all`
-- 同步（扫描 + 发布更新）：
+- Install a skill into your workspace:
+  - `openclaw skills install <skill-slug>`
+- Update all installed skills:
+  - `openclaw skills update --all`
+- Sync (scan + publish updates):
   - `clawhub sync --all`
 
-默认情况下，`clawhub` 安装到当前工作目录下的 `./skills`（或回退到配置的 OpenClaw 工作区）。OpenClaw 在下一个会话中将其识别为 `<workspace>/skills`。
+Native `openclaw skills install` installs into the active workspace `skills/`
+directory. The separate `clawhub` CLI also installs into `./skills` under your
+current working directory (or falls back to the configured OpenClaw workspace).
+OpenClaw picks that up as `<workspace>/skills` on the next session.
 
 ## 安全注意事项
 
@@ -201,6 +208,12 @@ metadata:
 If you want stock image generation/editing inside OpenClaw itself, use the core
 `image_generate` tool with `agents.defaults.imageGenerationModel` instead of a
 bundled skill. Skill examples here are for custom or third-party workflows.
+
+For native image analysis, use the `image` tool with `agents.defaults.imageModel`.
+For native image generation/editing, use `image_generate` with
+`agents.defaults.imageGenerationModel`. If you pick `openai/*`, `google/*`,
+`fal/*`, or another provider-specific image model, add that provider's auth/API
+key too.
 
 Config keys match the **skill name** by default. If a skill defines
 `metadata.openclaw.skillKey`, use that key under `skills.entries`.

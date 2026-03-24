@@ -1,15 +1,7 @@
 ---
 read_when:
-  - 开发语音唤醒或按键通话路径
-summary: Mac 应用中的语音唤醒和按键通话模式及路由详情
-title: 语音唤醒
-x-i18n:
-  generated_at: "2026-02-03T10:08:23Z"
-  model: claude-opus-4-5
-  provider: pi
-  source_hash: f6440bb89f349ba5c1c9aacffe95e568681beb9899ca736dedfe2f4a366cb5e4
-  source_path: platforms/mac/voicewake.md
-  workflow: 15
+  - Working on voice wake or PTT pathways
+title: "Voice Wake (macOS)"
 ---
 
 # 语音唤醒与按键通话

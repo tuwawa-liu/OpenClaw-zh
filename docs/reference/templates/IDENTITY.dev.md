@@ -1,4 +1,6 @@
 ---
+title: "IDENTITY.dev Template"
+summary: "Dev agent identity (C-3PO)"
 read_when:
   - 使用开发 gateway 模板
   - 更新默认开发智能体身份

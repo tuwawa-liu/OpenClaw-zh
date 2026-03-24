@@ -16,6 +16,7 @@ type SecretsReloadOptions = GatewayRpcOpts & { json?: boolean };
 type SecretsAuditOptions = {
   check?: boolean;
   json?: boolean;
+  allowExec?: boolean;
 };
 type SecretsConfigureOptions = {
   apply?: boolean;
@@ -24,11 +25,13 @@ type SecretsConfigureOptions = {
   providersOnly?: boolean;
   skipProviderSetup?: boolean;
   agent?: string;
+  allowExec?: boolean;
   json?: boolean;
 };
 type SecretsApplyOptions = {
   from: string;
   dryRun?: boolean;
+  allowExec?: boolean;
   json?: boolean;
 };
 
@@ -62,7 +65,7 @@ export function registerSecretsCli(program: Command) {
         expectFinal: false,
       });
       if (opts.json) {
-        defaultRuntime.log(JSON.stringify(result, null, 2));
+        defaultRuntime.writeJson(result);
         return;
       }
       const warningCount = Number(
@@ -81,14 +84,21 @@ export function registerSecretsCli(program: Command) {
 
   secrets
     .command("audit")
-    .description(t("secretsCli.auditDescription"))
-    .option("--check", t("secretsCli.auditCheckOpt"), false)
-    .option("--json", t("secretsCli.jsonOpt"), false)
+    .description("Audit plaintext secrets, unresolved refs, and precedence drift")
+    .option("--check", "Exit non-zero when findings are present", false)
+    .option(
+      "--allow-exec",
+      "Allow exec SecretRef resolution during audit (may execute provider commands)",
+      false,
+    )
+    .option("--json", "Output JSON", false)
     .action(async (opts: SecretsAuditOptions) => {
       try {
-        const report = await runSecretsAudit();
+        const report = await runSecretsAudit({
+          allowExec: Boolean(opts.allowExec),
+        });
         if (opts.json) {
-          defaultRuntime.log(JSON.stringify(report, null, 2));
+          defaultRuntime.writeJson(report);
         } else {
           defaultRuntime.log(
             t("secretsCli.auditSummary", {
@@ -116,6 +126,11 @@ export function registerSecretsCli(program: Command) {
               );
             }
           }
+          if (report.resolution.skippedExecRefs > 0) {
+            defaultRuntime.log(
+              `Audit note: skipped ${report.resolution.skippedExecRefs} exec SecretRef resolvability check(s). Re-run with --allow-exec to execute exec providers during audit.`,
+            );
+          }
         }
         const exitCode = resolveSecretsAuditExitCode(report, Boolean(opts.check));
         if (exitCode !== 0) {
@@ -129,35 +144,42 @@ export function registerSecretsCli(program: Command) {
 
   secrets
     .command("configure")
-    .description(t("secretsCli.configureDescription"))
-    .option("--apply", t("secretsCli.configureApplyOpt"), false)
-    .option("--yes", t("secretsCli.configureYesOpt"), false)
-    .option("--providers-only", t("secretsCli.configureProvidersOnlyOpt"), false)
-    .option("--skip-provider-setup", t("secretsCli.configureSkipProviderSetupOpt"), false)
-    .option("--agent <id>", t("secretsCli.configureAgentOpt"))
-    .option("--plan-out <path>", t("secretsCli.configurePlanOutOpt"))
-    .option("--json", t("secretsCli.jsonOpt"), false)
+    .description("Interactive secrets helper (provider setup + SecretRef mapping + preflight)")
+    .option("--apply", "Apply changes immediately after preflight", false)
+    .option("--yes", "Skip apply confirmation prompt", false)
+    .option("--providers-only", "Configure secrets.providers only, skip credential mapping", false)
+    .option(
+      "--skip-provider-setup",
+      "Skip provider setup and only map credential fields to existing providers",
+      false,
+    )
+    .option(
+      "--agent <id>",
+      "Agent id for auth-profiles targets (default: configured default agent)",
+    )
+    .option(
+      "--allow-exec",
+      "Allow exec SecretRef preflight checks (may execute provider commands)",
+      false,
+    )
+    .option("--plan-out <path>", "Write generated plan JSON to a file")
+    .option("--json", "Output JSON", false)
     .action(async (opts: SecretsConfigureOptions) => {
       try {
         const configured = await runSecretsConfigureInteractive({
           providersOnly: Boolean(opts.providersOnly),
           skipProviderSetup: Boolean(opts.skipProviderSetup),
           agentId: typeof opts.agent === "string" ? opts.agent : undefined,
+          allowExecInPreflight: Boolean(opts.allowExec),
         });
         if (opts.planOut) {
           fs.writeFileSync(opts.planOut, `${JSON.stringify(configured.plan, null, 2)}\n`, "utf8");
         }
         if (opts.json) {
-          defaultRuntime.log(
-            JSON.stringify(
-              {
-                plan: configured.plan,
-                preflight: configured.preflight,
-              },
-              null,
-              2,
-            ),
-          );
+          defaultRuntime.writeJson({
+            plan: configured.plan,
+            preflight: configured.preflight,
+          });
         } else {
           defaultRuntime.log(
             t("secretsCli.preflightSummary", {
@@ -170,6 +192,14 @@ export function registerSecretsCli(program: Command) {
             for (const warning of configured.preflight.warnings) {
               defaultRuntime.log(t("secretsCli.preflightWarning", { warning }));
             }
+          }
+          if (
+            !configured.preflight.checks.resolvabilityComplete &&
+            configured.preflight.skippedExecRefs > 0
+          ) {
+            defaultRuntime.log(
+              `Preflight note: skipped ${configured.preflight.skippedExecRefs} exec SecretRef resolvability check(s). Re-run with --allow-exec to execute exec providers during preflight.`,
+            );
           }
           const providerUpserts = Object.keys(configured.plan.providerUpserts ?? {}).length;
           const providerDeletes = configured.plan.providerDeletes?.length ?? 0;
@@ -210,9 +240,10 @@ export function registerSecretsCli(program: Command) {
           const result = await runSecretsApply({
             plan: configured.plan,
             write: true,
+            allowExec: Boolean(opts.allowExec),
           });
           if (opts.json) {
-            defaultRuntime.log(JSON.stringify(result, null, 2));
+            defaultRuntime.writeJson(result);
             return;
           }
           defaultRuntime.log(
@@ -229,19 +260,21 @@ export function registerSecretsCli(program: Command) {
 
   secrets
     .command("apply")
-    .description(t("secretsCli.applyDescription"))
-    .requiredOption("--from <path>", t("secretsCli.applyFromOpt"))
-    .option("--dry-run", t("secretsCli.applyDryRunOpt"), false)
-    .option("--json", t("secretsCli.jsonOpt"), false)
+    .description("Apply a previously generated secrets plan")
+    .requiredOption("--from <path>", "Path to plan JSON")
+    .option("--dry-run", "Validate/preflight only", false)
+    .option("--allow-exec", "Allow exec SecretRef checks (may execute provider commands)", false)
+    .option("--json", "Output JSON", false)
     .action(async (opts: SecretsApplyOptions) => {
       try {
         const plan = readPlanFile(opts.from);
         const result = await runSecretsApply({
           plan,
           write: !opts.dryRun,
+          allowExec: Boolean(opts.allowExec),
         });
         if (opts.json) {
-          defaultRuntime.log(JSON.stringify(result, null, 2));
+          defaultRuntime.writeJson(result);
           return;
         }
         if (opts.dryRun) {
@@ -250,6 +283,11 @@ export function registerSecretsCli(program: Command) {
               ? t("secretsCli.dryRunChanged", { count: String(result.changedFiles.length) })
               : t("secretsCli.dryRunNoChanges"),
           );
+          if (!result.checks.resolvabilityComplete && result.skippedExecRefs > 0) {
+            defaultRuntime.log(
+              `Secrets apply dry-run note: skipped ${result.skippedExecRefs} exec SecretRef resolvability check(s). Re-run with --allow-exec to execute exec providers during dry-run.`,
+            );
+          }
           return;
         }
         defaultRuntime.log(

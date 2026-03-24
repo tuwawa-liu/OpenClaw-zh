@@ -17,7 +17,7 @@ x-i18n:
 
 OpenClaw 可以通过 pi‑ai 的 **Bedrock Converse** 流式提供商使用 **Amazon Bedrock** 模型。Bedrock 认证使用 **AWS SDK 默认凭证链**，而非 API 密钥。
 
-## pi‑ai 支持的功能
+## What pi-ai supports
 
 - 提供商：`amazon-bedrock`
 - API：`bedrock-converse-stream`

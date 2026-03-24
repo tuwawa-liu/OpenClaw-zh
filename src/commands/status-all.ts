@@ -14,7 +14,7 @@ import type { GatewayService } from "../daemon/service.js";
 import { resolveGatewayService } from "../daemon/service.js";
 import { buildGatewayConnectionDetails, callGateway } from "../gateway/call.js";
 import { normalizeControlUiBasePath } from "../gateway/control-ui-shared.js";
-import { resolveGatewayProbeAuthSafe } from "../gateway/probe-auth.js";
+import { resolveGatewayProbeAuthSafeWithSecretInputs } from "../gateway/probe-auth.js";
 import { probeGateway } from "../gateway/probe.js";
 import { t } from "../i18n/index.js";
 import { collectChannelStatusIssues } from "../infra/channels-status-issues.js";
@@ -26,6 +26,7 @@ import { getRemoteSkillEligibility } from "../infra/skills-remote.js";
 import { readTailscaleStatusJson } from "../infra/tailscale.js";
 import { normalizeUpdateChannel, resolveUpdateChannelDisplay } from "../infra/update-channels.js";
 import { checkUpdateStatus, formatGitInstallLabel } from "../infra/update-check.js";
+import { buildPluginCompatibilityNotices } from "../plugins/status.js";
 import { runExec } from "../process/exec.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { VERSION } from "../version.js";
@@ -124,10 +125,11 @@ export async function statusAllCommand(
     const remoteUrlMissing = isRemoteMode && !remoteUrlRaw;
     const gatewayMode = isRemoteMode ? "remote" : "local";
 
-    const localProbeAuthResolution = resolveGatewayProbeAuthSafe({ cfg, mode: "local" });
-    const remoteProbeAuthResolution = resolveGatewayProbeAuthSafe({ cfg, mode: "remote" });
-    const probeAuthResolution =
-      isRemoteMode && !remoteUrlMissing ? remoteProbeAuthResolution : localProbeAuthResolution;
+    const probeAuthResolution = await resolveGatewayProbeAuthSafeWithSecretInputs({
+      cfg,
+      mode: isRemoteMode && !remoteUrlMissing ? "remote" : "local",
+      env: process.env,
+    });
     const probeAuth = probeAuthResolution.auth;
 
     const gatewayProbe = await probeGateway({
@@ -188,8 +190,8 @@ export async function statusAllCommand(
     const callOverrides = remoteUrlMissing
       ? {
           url: connection.url,
-          token: localProbeAuthResolution.auth.token,
-          password: localProbeAuthResolution.auth.password,
+          token: probeAuthResolution.auth.token,
+          password: probeAuthResolution.auth.password,
         }
       : {};
 
@@ -239,6 +241,7 @@ export async function statusAllCommand(
             }
           })()
         : null;
+    const pluginCompatibility = buildPluginCompatibilityNotices({ config: cfg });
 
     const controlUiEnabled = cfg.gateway?.controlUi?.enabled ?? true;
     const dashboard = controlUiEnabled
@@ -361,6 +364,7 @@ export async function statusAllCommand(
         tailscale,
         tailscaleHttpsUrl,
         skillStatus,
+        pluginCompatibility,
         channelsStatus,
         channelIssues,
         gatewayReachable,

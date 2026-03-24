@@ -1,5 +1,7 @@
 ---
-read_when: You want per-agent sandboxing or per-agent tool allow/deny policies in a multi-agent gateway.
+summary: “Per-agent sandbox + tool restrictions, precedence, and examples”
+title: Multi-Agent Sandbox & Tools
+read_when: “You want per-agent sandboxing or per-agent tool allow/deny policies in a multi-agent gateway.”
 status: active
 summary: 按智能体的沙箱 + 工具限制、优先级和示例
 title: 多智能体沙箱与工具
@@ -14,32 +16,18 @@ x-i18n:
 
 # 多智能体沙箱与工具配置
 
-## 概述
+Each agent in a multi-agent setup can override the global sandbox and tool
+policy. This page covers per-agent configuration, precedence rules, and
+examples.
 
-多智能体设置中的每个智能体现在可以拥有自己的：
+- **Sandbox backends and modes**: see [Sandboxing](/gateway/sandboxing).
+- **Debugging blocked tools**: see [Sandbox vs Tool Policy vs Elevated](/gateway/sandbox-vs-tool-policy-vs-elevated) and `openclaw sandbox explain`.
+- **Elevated exec**: see [Elevated Mode](/tools/elevated).
 
-- **沙箱配置**（`agents.list[].sandbox` 覆盖 `agents.defaults.sandbox`）
-- **工具限制**（`tools.allow` / `tools.deny`，以及 `agents.list[].tools`）
-
-这允许你运行具有不同安全配置文件的多个智能体：
-
-- 具有完全访问权限的个人助手
-- 具有受限工具的家庭/工作智能体
-- 在沙箱中运行的面向公众的智能体
-
-`setupCommand` 属于 `sandbox.docker` 下（全局或按智能体），在容器创建时运行一次。
-
-认证是按智能体的：每个智能体从其自己的 `agentDir` 认证存储读取：
-
-```
-~/.openclaw/agents/<agentId>/agent/auth-profiles.json
-```
-
-凭证**不会**在智能体之间共享。切勿在智能体之间重用 `agentDir`。
-如果你想共享凭证，请将 `auth-profiles.json` 复制到其他智能体的 `agentDir` 中。
-
-有关沙箱隔离在运行时的行为，请参见[沙箱隔离](/gateway/sandboxing)。
-有关调试"为什么这被阻止了？"，请参见[沙箱 vs 工具策略 vs 提权](/gateway/sandbox-vs-tool-policy-vs-elevated) 和 `openclaw sandbox explain`。
+Auth is per-agent: each agent reads from its own `agentDir` auth store at
+`~/.openclaw/agents/<agentId>/agent/auth-profiles.json`.
+Credentials are **not** shared between agents. Never reuse `agentDir` across agents.
+If you want to share creds, copy `auth-profiles.json` into the other agent's `agentDir`.
 
 ---
 
@@ -228,30 +216,9 @@ agents.list[].sandbox.prune.* > agents.defaults.sandbox.prune.*
 如果设置了 `agents.list[].tools.profile`，它将覆盖该智能体的 `tools.profile`。
 提供商工具键接受 `provider`（例如 `google-antigravity`）或 `provider/model`（例如 `openai/gpt-5.2`）。
 
-### 工具组（简写）
+Tool policies support `group:*` shorthands that expand to multiple tools. See [Tool groups](/gateway/sandbox-vs-tool-policy-vs-elevated#tool-groups-shorthands) for the full list.
 
-工具策略（全局、智能体、沙箱）支持 `group:*` 条目，可扩展为多个具体工具：
-
-- `group:runtime`：`exec`、`bash`、`process`
-- `group:fs`：`read`、`write`、`edit`、`apply_patch`
-- `group:sessions`：`sessions_list`、`sessions_history`、`sessions_send`、`sessions_spawn`、`session_status`
-- `group:memory`：`memory_search`、`memory_get`
-- `group:ui`：`browser`、`canvas`
-- `group:automation`：`cron`、`gateway`
-- `group:messaging`：`message`
-- `group:nodes`：`nodes`
-- `group:openclaw`：所有内置 OpenClaw 工具（不包括提供商插件）
-
-### 提权模式
-
-`tools.elevated` 是全局基线（基于发送者的允许列表）。`agents.list[].tools.elevated` 可以为特定智能体进一步限制提权（两者都必须允许）。
-
-缓解模式：
-
-- 为不受信任的智能体拒绝 `exec`（`agents.list[].tools.deny: ["exec"]`）
-- 避免将发送者加入允许列表后路由到受限智能体
-- 如果你只想要沙箱隔离执行，全局禁用提权（`tools.elevated.enabled: false`）
-- 为敏感配置文件按智能体禁用提权（`agents.list[].tools.elevated.enabled: false`）
+Per-agent elevated overrides (`agents.list[].tools.elevated`) can further restrict elevated exec for specific agents. See [Elevated Mode](/tools/elevated) for details.
 
 ---
 
@@ -394,8 +361,11 @@ agents.list[].sandbox.prune.* > agents.defaults.sandbox.prune.*
 
 ---
 
-## 另请参阅
+## See also
 
-- [多智能体路由](/concepts/multi-agent)
-- [沙箱配置](/gateway/configuration#agentsdefaults-sandbox)
-- [会话管理](/concepts/session)
+- [Sandboxing](/gateway/sandboxing) -- full sandbox reference (modes, scopes, backends, images)
+- [Sandbox vs Tool Policy vs Elevated](/gateway/sandbox-vs-tool-policy-vs-elevated) -- debugging "why is this blocked?"
+- [Elevated Mode](/tools/elevated)
+- [Multi-Agent Routing](/concepts/multi-agent)
+- [Sandbox Configuration](/gateway/configuration-reference#agentsdefaultssandbox)
+- [Session Management](/concepts/session)

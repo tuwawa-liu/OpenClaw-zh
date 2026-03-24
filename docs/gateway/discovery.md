@@ -36,7 +36,7 @@ OpenClaw 有两个表面上看起来相似的不同问题：
 - [Gateway 网关协议](/gateway/protocol)
 - [桥接协议（旧版）](/gateway/bridge-protocol)
 
-## 为什么我们同时保留"直连"和 SSH
+## Why we keep both "direct" and SSH
 
 - **直连 WS** 在同一网络和 tailnet 内提供最佳用户体验：
   - 通过 Bonjour 在 LAN 上自动发现

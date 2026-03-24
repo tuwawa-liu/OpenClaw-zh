@@ -1,4 +1,6 @@
 ---
+title: "USER.dev Template"
+summary: "Dev agent user profile (C-3PO)"
 read_when:
   - 使用开发 Gateway 网关模板
   - 更新默认开发智能体身份

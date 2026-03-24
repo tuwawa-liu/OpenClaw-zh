@@ -14,9 +14,7 @@ x-i18n:
 
 # Gateway 网关架构
 
-最后更新：2026-01-22
-
-## 概述
+## Overview
 
 - 单个长期运行的 **Gateway 网关**拥有所有消息平台（通过 Baileys 的 WhatsApp、通过 grammY 的 Telegram、Slack、Discord、Signal、iMessage、WebChat）。
 - 控制平面客户端（macOS 应用、CLI、Web 界面、自动化）通过配置的绑定主机（默认 `127.0.0.1:18789`）上的 **WebSocket** 连接到 Gateway 网关。

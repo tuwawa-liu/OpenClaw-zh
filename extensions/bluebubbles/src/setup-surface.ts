@@ -1,13 +1,12 @@
 import {
+  createAllowFromSection,
+  createPromptParsedAllowFromForAccount,
+  createStandardChannelSetupStatus,
   DEFAULT_ACCOUNT_ID,
   formatDocsLink,
-  mergeAllowFromEntries,
-  resolveSetupAccountId,
   type ChannelSetupDmPolicy,
   type ChannelSetupWizard,
-  type DmPolicy,
   type OpenClawConfig,
-  type WizardPrompter,
 } from "openclaw/plugin-sdk/setup";
 import {
   listBlueBubblesAccountIds,
@@ -15,7 +14,6 @@ import {
   resolveDefaultBlueBubblesAccountId,
 } from "./accounts.js";
 import { applyBlueBubblesConnectionConfig } from "./config-apply.js";
-import { DEFAULT_WEBHOOK_PATH } from "./monitor-shared.js";
 import { hasConfiguredSecretInput, normalizeSecretInputString } from "./secret-input.js";
 import {
   blueBubblesSetupAdapter,
@@ -24,6 +22,7 @@ import {
 } from "./setup-core.js";
 import { parseBlueBubblesAllowTarget } from "./targets.js";
 import { normalizeBlueBubblesServerUrl } from "./types.js";
+import { DEFAULT_WEBHOOK_PATH } from "./webhook-shared.js";
 
 const channel = "bluebubbles" as const;
 const CONFIGURE_CUSTOM_WEBHOOK_FLAG = "__bluebubblesConfigureCustomWebhookPath";
@@ -50,52 +49,35 @@ function validateBlueBubblesAllowFromEntry(value: string): string | null {
   }
 }
 
-async function promptBlueBubblesAllowFrom(params: {
-  cfg: OpenClawConfig;
-  prompter: WizardPrompter;
-  accountId?: string;
-}): Promise<OpenClawConfig> {
-  const accountId = resolveSetupAccountId({
-    accountId: params.accountId,
-    defaultAccountId: resolveDefaultBlueBubblesAccountId(params.cfg),
-  });
-  const resolved = resolveBlueBubblesAccount({ cfg: params.cfg, accountId });
-  const existing = resolved.config.allowFrom ?? [];
-  await params.prompter.note(
-    [
-      "通过句柄或聊天目标将 BlueBubbles 私信加入白名单。",
-      "示例：",
-      "- +15555550123",
-      "- user@example.com",
-      "- chat_id:123",
-      "- chat_guid:iMessage;-;+15555550123",
-      "多个条目：用逗号或换行分隔。",
-      `Docs: ${formatDocsLink("/channels/bluebubbles", "bluebubbles")}`,
-    ].join("\n"),
-    "BlueBubbles 白名单",
-  );
-  const entry = await params.prompter.text({
-    message: "BlueBubbles allowFrom（句柄或 chat_id）",
-    placeholder: "+15555550123, user@example.com, chat_id:123",
-    initialValue: existing[0] ? String(existing[0]) : undefined,
-    validate: (value) => {
-      const raw = String(value ?? "").trim();
-      if (!raw) {
-        return "必填";
+const promptBlueBubblesAllowFrom = createPromptParsedAllowFromForAccount({
+  defaultAccountId: (cfg) => resolveDefaultBlueBubblesAccountId(cfg),
+  noteTitle: "BlueBubbles allowlist",
+  noteLines: [
+    "Allowlist BlueBubbles DMs by handle or chat target.",
+    "Examples:",
+    "- +15555550123",
+    "- user@example.com",
+    "- chat_id:123",
+    "- chat_guid:iMessage;-;+15555550123",
+    "Multiple entries: comma- or newline-separated.",
+    `Docs: ${formatDocsLink("/channels/bluebubbles", "bluebubbles")}`,
+  ],
+  message: "BlueBubbles allowFrom (handle or chat_id)",
+  placeholder: "+15555550123, user@example.com, chat_id:123",
+  parseEntries: (raw) => {
+    const entries = parseBlueBubblesAllowFromInput(raw);
+    for (const entry of entries) {
+      if (!validateBlueBubblesAllowFromEntry(entry)) {
+        return { entries: [], error: `Invalid entry: ${entry}` };
       }
-      const parts = parseBlueBubblesAllowFromInput(raw);
-      for (const part of parts) {
-        if (!validateBlueBubblesAllowFromEntry(part)) {
-          return `无效条目: ${part}`;
-        }
-      }
-      return undefined;
-    },
-  });
-  const parts = parseBlueBubblesAllowFromInput(String(entry));
-  const unique = mergeAllowFromEntries(undefined, parts);
-  return setBlueBubblesAllowFrom(params.cfg, accountId, unique);
-}
+    }
+    return { entries };
+  },
+  getExistingAllowFrom: ({ cfg, accountId }) =>
+    resolveBlueBubblesAccount({ cfg, accountId }).config.allowFrom ?? [],
+  applyAllowFrom: ({ cfg, accountId, allowFrom }) =>
+    setBlueBubblesAllowFrom(cfg, accountId, allowFrom),
+});
 
 function validateBlueBubblesServerUrlInput(value: unknown): string | undefined {
   const trimmed = String(value ?? "").trim();
@@ -162,18 +144,21 @@ export const blueBubblesSetupWizard: ChannelSetupWizard = {
   channel,
   stepOrder: "text-first",
   status: {
-    configuredLabel: "已配置",
-    unconfiguredLabel: "需要设置",
-    configuredHint: "已配置",
-    unconfiguredHint: "通过 BlueBubbles 应用使用 iMessage",
-    configuredScore: 1,
-    unconfiguredScore: 0,
-    resolveConfigured: ({ cfg }) =>
-      listBlueBubblesAccountIds(cfg).some((accountId) => {
-        const account = resolveBlueBubblesAccount({ cfg, accountId });
-        return account.configured;
-      }),
-    resolveStatusLines: ({ configured }) => [`BlueBubbles：${configured ? "已配置" : "需要设置"}`],
+    ...createStandardChannelSetupStatus({
+      channelLabel: "BlueBubbles",
+      configuredLabel: "configured",
+      unconfiguredLabel: "needs setup",
+      configuredHint: "configured",
+      unconfiguredHint: "iMessage via BlueBubbles app",
+      configuredScore: 1,
+      unconfiguredScore: 0,
+      includeStatusLine: true,
+      resolveConfigured: ({ cfg }) =>
+        listBlueBubblesAccountIds(cfg).some((accountId) => {
+          const account = resolveBlueBubblesAccount({ cfg, accountId });
+          return account.configured;
+        }),
+    }),
     resolveSelectionHint: ({ configured }) =>
       configured ? "已配置" : "通过 BlueBubbles 应用使用 iMessage",
   },
@@ -267,8 +252,8 @@ export const blueBubblesSetupWizard: ChannelSetupWizard = {
     ],
   },
   dmPolicy,
-  allowFrom: {
-    helpTitle: "BlueBubbles 白名单",
+  allowFrom: createAllowFromSection({
+    helpTitle: "BlueBubbles allowlist",
     helpLines: [
       "通过句柄或聊天目标将 BlueBubbles 私信加入白名单。",
       "示例：",
@@ -285,15 +270,9 @@ export const blueBubblesSetupWizard: ChannelSetupWizard = {
       "使用 BlueBubbles 句柄或聊天目标，如 +15555550123 或 chat_id:123。",
     parseInputs: parseBlueBubblesAllowFromInput,
     parseId: (raw) => validateBlueBubblesAllowFromEntry(raw),
-    resolveEntries: async ({ entries }) =>
-      entries.map((entry) => ({
-        input: entry,
-        resolved: Boolean(validateBlueBubblesAllowFromEntry(entry)),
-        id: validateBlueBubblesAllowFromEntry(entry),
-      })),
     apply: async ({ cfg, accountId, allowFrom }) =>
       setBlueBubblesAllowFrom(cfg, accountId, allowFrom),
-  },
+  }),
   disable: (cfg) => ({
     ...cfg,
     channels: {

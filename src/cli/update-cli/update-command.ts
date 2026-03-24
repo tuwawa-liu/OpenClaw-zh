@@ -74,9 +74,7 @@ const SERVICE_REFRESH_TIMEOUT_MS = 60_000;
 const SERVICE_REFRESH_PATH_ENV_KEYS = [
   "OPENCLAW_HOME",
   "OPENCLAW_STATE_DIR",
-  "CLAWDBOT_STATE_DIR",
   "OPENCLAW_CONFIG_PATH",
-  "CLAWDBOT_CONFIG_PATH",
 ] as const;
 
 const UPDATE_QUIPS = [
@@ -179,7 +177,7 @@ type UpdateDryRunPreview = {
 
 function printDryRunPreview(preview: UpdateDryRunPreview, jsonMode: boolean): void {
   if (jsonMode) {
-    defaultRuntime.log(JSON.stringify(preview, null, 2));
+    defaultRuntime.writeJson(preview);
     return;
   }
 
@@ -388,10 +386,12 @@ async function runGitUpdate(params: {
 }): Promise<UpdateRunResult> {
   const updateRoot = params.switchToGit ? resolveGitInstallDir() : params.root;
   const effectiveTimeout = params.timeoutMs ?? 20 * 60_000;
+  const installEnv = await createGlobalInstallEnv();
 
   const cloneStep = params.switchToGit
     ? await ensureGitCheckout({
         dir: updateRoot,
+        env: installEnv,
         timeoutMs: effectiveTimeout,
         progress: params.progress,
       })
@@ -432,7 +432,7 @@ async function runGitUpdate(params: {
       name: "global install",
       argv: globalInstallArgs(manager, updateRoot),
       cwd: updateRoot,
-      env: await createGlobalInstallEnv(),
+      env: installEnv,
       timeoutMs: effectiveTimeout,
       progress: params.progress,
     });
@@ -862,20 +862,6 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
     );
   }
 
-  if (requestedChannel && configSnapshot.valid) {
-    const next = {
-      ...configSnapshot.config,
-      update: {
-        ...configSnapshot.config.update,
-        channel: requestedChannel,
-      },
-    };
-    await writeConfigFile(next);
-    if (!opts.json) {
-      defaultRuntime.log(theme.muted(`Update channel set to ${requestedChannel}.`));
-    }
-  }
-
   const showProgress = !opts.json && process.stdout.isTTY;
   if (!opts.json) {
     defaultRuntime.log(theme.heading("正在更新 OpenClaw..."));
@@ -959,10 +945,31 @@ export async function updateCommand(opts: UpdateCommandOptions): Promise<void> {
     return;
   }
 
+  let postUpdateConfigSnapshot = configSnapshot;
+  if (requestedChannel && configSnapshot.valid && requestedChannel !== storedChannel) {
+    const next = {
+      ...configSnapshot.config,
+      update: {
+        ...configSnapshot.config.update,
+        channel: requestedChannel,
+      },
+    };
+    await writeConfigFile(next);
+    postUpdateConfigSnapshot = {
+      ...configSnapshot,
+      parsed: next,
+      resolved: next,
+      config: next,
+    };
+    if (!opts.json) {
+      defaultRuntime.log(theme.muted(`Update channel set to ${requestedChannel}.`));
+    }
+  }
+
   await updatePluginsAfterCoreUpdate({
     root,
     channel,
-    configSnapshot,
+    configSnapshot: postUpdateConfigSnapshot,
     opts,
   });
 

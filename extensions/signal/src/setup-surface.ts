@@ -1,9 +1,9 @@
 import {
-  detectBinary,
-  installSignalCli,
+  createDetectedBinaryStatus,
   setSetupChannelEnabled,
   type ChannelSetupWizard,
 } from "openclaw/plugin-sdk/setup";
+import { detectBinary, installSignalCli } from "openclaw/plugin-sdk/setup-tools";
 import { listSignalAccountIds, resolveSignalAccount } from "./accounts.js";
 import {
   createSignalCliPathTextInput,
@@ -19,34 +19,22 @@ const channel = "signal" as const;
 
 export const signalSetupWizard: ChannelSetupWizard = {
   channel,
-  status: {
-    configuredLabel: "已配置",
-    unconfiguredLabel: "需要设置",
-    configuredHint: "signal-cli 已找到",
-    unconfiguredHint: "signal-cli 未找到",
+  status: createDetectedBinaryStatus({
+    channelLabel: "Signal",
+    binaryLabel: "signal-cli",
+    configuredLabel: "configured",
+    unconfiguredLabel: "needs setup",
+    configuredHint: "signal-cli found",
+    unconfiguredHint: "signal-cli missing",
     configuredScore: 1,
     unconfiguredScore: 0,
     resolveConfigured: ({ cfg }) =>
       listSignalAccountIds(cfg).some(
         (accountId) => resolveSignalAccount({ cfg, accountId }).configured,
       ),
-    resolveStatusLines: async ({ cfg, configured }) => {
-      const signalCliPath = cfg.channels?.signal?.cliPath ?? "signal-cli";
-      const signalCliDetected = await detectBinary(signalCliPath);
-      return [
-        `Signal：${configured ? "已配置" : "需要设置"}`,
-        `signal-cli：${signalCliDetected ? "已找到" : "未找到"} (${signalCliPath})`,
-      ];
-    },
-    resolveSelectionHint: async ({ cfg }) => {
-      const signalCliPath = cfg.channels?.signal?.cliPath ?? "signal-cli";
-      return (await detectBinary(signalCliPath)) ? "signal-cli 已找到" : "signal-cli 未找到";
-    },
-    resolveQuickstartScore: async ({ cfg }) => {
-      const signalCliPath = cfg.channels?.signal?.cliPath ?? "signal-cli";
-      return (await detectBinary(signalCliPath)) ? 1 : 0;
-    },
-  },
+    resolveBinaryPath: ({ cfg }) => cfg.channels?.signal?.cliPath ?? "signal-cli",
+    detectBinary,
+  }),
   prepare: async ({ cfg, accountId, credentialValues, runtime, prompter, options }) => {
     if (!options?.allowSignalInstall) {
       return;

@@ -121,9 +121,9 @@ requireMention? 是 -> 被提及? 否 -> 仅存储为上下文
 
 相关：
 
-- 配置键和默认值：[Gateway 网关配置](/gateway/configuration#agentsdefaultssandbox)
-- 调试为什么工具被阻止：[沙箱 vs 工具策略 vs 提权](/gateway/sandbox-vs-tool-policy-vs-elevated)
-- 绑定挂载详情：[沙箱隔离](/gateway/sandboxing#custom-bind-mounts)
+- Configuration keys and defaults: [Gateway configuration](/gateway/configuration-reference#agentsdefaultssandbox)
+- Debugging why a tool is blocked: [Sandbox vs Tool Policy vs Elevated](/gateway/sandbox-vs-tool-policy-vs-elevated)
+- Bind mounts details: [Sandboxing](/gateway/sandboxing#custom-bind-mounts)
 
 ## 显示标签
 
@@ -289,8 +289,8 @@ requireMention? 是 -> 被提及? 否 -> 仅存储为上下文
 
 注意事项：
 
-- 群组/频道工具限制在全局/智能体工具策略之外额外应用（deny 仍然优先）。
-- 某些渠道对房间/频道使用不同的嵌套结构（例如，Discord `guilds.*.channels.*`、Slack `channels.*`、MS Teams `teams.*.channels.*`）。
+- Group/channel tool restrictions are applied in addition to global/agent tool policy (deny still wins).
+- Some channels use different nesting for rooms/channels (e.g., Discord `guilds.*.channels.*`, Slack `channels.*`, Microsoft Teams `teams.*.channels.*`).
 
 ## 群组允许列表
 

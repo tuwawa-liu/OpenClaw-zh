@@ -13,7 +13,7 @@ x-i18n:
   workflow: 15
 ---
 
-# 媒体理解（入站）— 2026-01-17
+# Media Understanding - Inbound (2026-01-17)
 
 OpenClaw 可以在回复流程运行之前**摘要入站媒体**（图片/音频/视频）。它会自动检测本地工具或提供商密钥是否可用，并且可以禁用或自定义。如果理解关闭，模型仍然会像往常一样接收原始文件/URL。
 
@@ -28,7 +28,7 @@ integration.
 - 支持**提供商 API** 和 **CLI 回退**。
 - 允许多个模型并按顺序回退（错误/大小/超时）。
 
-## 高层行为
+## High-level behavior
 
 1. 收集入站附件（`MediaPaths`、`MediaUrls`、`MediaTypes`）。
 2. 对于每个启用的能力（图片/音频/视频），根据策略选择附件（默认：**第一个**）。
@@ -334,7 +334,7 @@ CLI 模板还可以使用：
 }
 ```
 
-### 4) 多模态单条目（显式能力）
+### 4) Multi-modal single entry (explicit capabilities)
 
 ```json5
 {

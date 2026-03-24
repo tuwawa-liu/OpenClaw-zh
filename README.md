@@ -57,11 +57,7 @@ New install? Start here: [Getting started](https://docs.openclaw.ai/start/gettin
 
 ## 安装（推荐方式）
 
-### 前提条件：安装 Node.js
-
-运行环境：**Node.js ≥ 22.12.0**。
-
-**检查是否已安装**：
+Runtime: **Node 24 (recommended) or Node 22.16+**.
 
 ```bash
 node -v    # 应显示 v22.x.x 或更高
@@ -98,7 +94,7 @@ OpenClaw Onboard installs the Gateway daemon (launchd/systemd user service) so i
 
 向导会安装 Gateway 守护进程（launchd/systemd 用户服务），使其持续运行。
 
-### 从源码安装
+Runtime: **Node 24 (recommended) or Node 22.16+**.
 
 如果你更喜欢从源码构建，或需要自定义修改：
 
@@ -548,7 +544,7 @@ Gateway 本身就能提供出色的体验。所有应用都是可选的，提供
 - WebChat + 调试工具。
 - 通过 SSH 远程控制 Gateway。
 
-注意：macOS 权限需要签名构建才能在重新构建后保持有效（参见 `docs/mac/permissions.md`）。
+Note: signed builds required for macOS permissions to stick across rebuilds (see [macOS Permissions](https://docs.openclaw.ai/platforms/mac/permissions)).
 
 ### iOS 节点（可选）
 
@@ -619,8 +615,8 @@ Gateway 本身就能提供出色的体验。所有应用都是可选的，提供
 
 ### [Discord](https://docs.openclaw.ai/channels/discord)
 
-- 设置 `DISCORD_BOT_TOKEN` 或 `channels.discord.token`（环境变量优先）。
-- 可选：设置 `commands.native`、`commands.text` 或 `commands.useAccessGroups`，以及 `channels.discord.allowFrom`、`channels.discord.guilds` 或 `channels.discord.mediaMaxMb`。
+- Set `DISCORD_BOT_TOKEN` or `channels.discord.token`.
+- Optional: set `commands.native`, `commands.text`, or `commands.useAccessGroups`, plus `channels.discord.allowFrom`, `channels.discord.guilds`, or `channels.discord.mediaMaxMb` as needed.
 
 ```json5
 {

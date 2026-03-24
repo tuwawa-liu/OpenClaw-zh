@@ -74,9 +74,13 @@ type PlanEntry = {
 
 ## 失败行为
 
-- 如果条目失败，默认行为是跳过并继续。
-- 严格模式（`--strict`）在首次失败时终止。
-- 失败的条目包含 `reason` 字段用于诊断。
+## Exec provider consent behavior
+
+- `--dry-run` skips exec SecretRef checks by default.
+- Plans containing exec SecretRefs/providers are rejected in write mode unless `--allow-exec` is set.
+- When validating/applying exec-containing plans, pass `--allow-exec` in both dry-run and write commands.
+
+## Runtime and audit scope notes
 
 ## 审计输出
 
@@ -87,4 +91,19 @@ type PlanEntry = {
 - 是否配置了 SecretRef 后端
 - 凭证是否存在于目标中
 
-参见 [CLI 密钥管理](/cli/secrets) 了解 `secrets configure`、`secrets apply` 和 `secrets audit` 的命令用法。
+# Then apply for real
+openclaw secrets apply --from /tmp/openclaw-secrets-plan.json
+
+# For exec-containing plans, opt in explicitly in both modes
+openclaw secrets apply --from /tmp/openclaw-secrets-plan.json --dry-run --allow-exec
+openclaw secrets apply --from /tmp/openclaw-secrets-plan.json --allow-exec
+```
+
+If apply fails with an invalid target path message, regenerate the plan with `openclaw secrets configure` or fix the target path to a supported shape above.
+
+## Related docs
+
+- [Secrets Management](/gateway/secrets)
+- [CLI `secrets`](/cli/secrets)
+- [SecretRef Credential Surface](/reference/secretref-credential-surface)
+- [Configuration Reference](/gateway/configuration-reference)

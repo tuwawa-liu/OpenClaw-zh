@@ -1,17 +1,9 @@
 ---
 read_when:
-  - 在 Raspberry Pi 上设置 OpenClaw 时
-  - 在 ARM 设备上运行 OpenClaw 时
-  - 构建低成本常驻个人 AI 时
-summary: 在 Raspberry Pi 上运行 OpenClaw（低成本自托管设置）
-title: Raspberry Pi
-x-i18n:
-  generated_at: "2026-02-03T07:53:30Z"
-  model: claude-opus-4-5
-  provider: pi
-  source_hash: 6741eaf0115a4fa0efd6599a99e0526a20ceb30eda1d9b04cba9dd5dec84bee2
-  source_path: platforms/raspberry-pi.md
-  workflow: 15
+  - Setting up OpenClaw on a Raspberry Pi
+  - Running OpenClaw on ARM devices
+  - Building a cheap always-on personal AI
+title: "Raspberry Pi (Platform)"
 ---
 
 # 在 Raspberry Pi 上运行 OpenClaw
@@ -40,7 +32,7 @@ x-i18n:
 **最低配置：** 1GB 内存，1 核，500MB 磁盘  
 **推荐：** 2GB+ 内存，64 位系统，16GB+ SD 卡（或 USB SSD）
 
-## 你需要准备
+## What you need
 
 - Raspberry Pi 4 或 5（推荐 2GB+）
 - MicroSD 卡（16GB+）或 USB SSD（性能更好）
@@ -314,7 +306,7 @@ free -h
 - 禁用未使用的服务：`sudo systemctl disable cups bluetooth avahi-daemon`
 - 检查 CPU 降频：`vcgencmd get_throttled`（应返回 `0x0`）
 
-### 服务无法启动
+### Service will not start
 
 ```bash
 # 检查日志

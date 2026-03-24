@@ -25,7 +25,7 @@ import { parseDurationMs } from "../../cli/parse-duration.js";
 import type { OpenClawConfig } from "../../config/config.js";
 import { logConfigUpdated } from "../../config/logging.js";
 import { applyAuthProfileConfig } from "../../plugins/provider-auth-helpers.js";
-import { resolvePluginProviders } from "../../plugins/providers.js";
+import { resolvePluginProviders } from "../../plugins/providers.runtime.js";
 import type {
   ProviderAuthMethod,
   ProviderAuthResult,
@@ -360,6 +360,7 @@ export async function modelsAuthPasteTokenCommand(
   },
   runtime: RuntimeEnv,
 ) {
+  const { agentDir } = await resolveModelsAuthContext();
   const rawProvider = opts.provider?.trim();
   if (!rawProvider) {
     throw new Error(t("modelsAuth.missingProvider"));
@@ -386,6 +387,7 @@ export async function modelsAuthPasteTokenCommand(
       token,
       ...(expires ? { expires } : {}),
     },
+    agentDir,
   });
 
   await updateConfig((cfg) => applyAuthProfileConfig(cfg, { profileId, provider, mode: "token" }));

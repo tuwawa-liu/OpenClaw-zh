@@ -226,7 +226,9 @@ Telegram 通过 `message_thread_id` 支持论坛主题。对于定时任务投�
 `announce` 投递仅对隔离任务有效（`sessionTarget: "isolated"`）。
 `webhook` 投递对主会话和隔离任务均有效。
 
-如果省略 `delivery.channel` 或 `delivery.to`，cron 会回退到主会话的"最后路由"（智能体最后回复的位置）。
+- `delivery.mode`: `announce` (channel delivery), `webhook` (HTTP POST), or `none`.
+- `delivery.channel`: `whatsapp` / `telegram` / `discord` / `slack` / `signal` / `imessage` / `irc` / `googlechat` / `line` / `last`, plus extension channels like `msteams` / `mattermost` (plugins).
+- `delivery.to`: channel-specific recipient target.
 
 目标格式提醒：
 
@@ -464,7 +466,7 @@ openclaw system event --mode now --text "Next heartbeat: check battery."
 
 ## 故障排除
 
-### "没有任何任务运行"
+### "Nothing runs"
 
 - 检查定时任务是否已启用：`cron.enabled` 和 `OPENCLAW_SKIP_CRON`。
 - 检查 Gateway网关是否持续运行（定时任务运行在 Gateway网关进程内部）。

@@ -33,6 +33,7 @@ function inheritedUpdateTimeout(
 }
 
 export function registerUpdateCli(program: Command) {
+  program.enablePositionalOptions();
   const update = program
     .command("update")
     .description(t("cli.update.desc"))

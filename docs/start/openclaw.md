@@ -15,15 +15,15 @@ x-i18n:
 
 # 使用 OpenClaw 构建个人助手
 
-OpenClaw 是 **Pi** 智能体的 WhatsApp + Telegram + Discord + iMessage Gateway 网关。插件可添加 Mattermost。本指南是"个人助手"设置：一个专用的 WhatsApp 号码，表现得像你的常驻智能体。
+OpenClaw is a self-hosted gateway that connects WhatsApp, Telegram, Discord, iMessage, and more to AI agents. This guide covers the "personal assistant" setup: a dedicated WhatsApp number that behaves like your always-on AI assistant.
 
 ## ⚠️ 安全第一
 
 你正在让智能体处于可以：
 
-- 在你的机器上运行命令（取决于你的 Pi 工具设置）
-- 在你的工作区读/写文件
-- 通过 WhatsApp/Telegram/Discord/Mattermost（插件）发送消息
+- run commands on your machine (depending on your tool policy)
+- read/write files in your workspace
+- send messages back out via WhatsApp/Telegram/Discord/Mattermost (plugin)
 
 从保守开始：
 
@@ -37,9 +37,14 @@ OpenClaw 是 **Pi** 智能体的 WhatsApp + Telegram + Discord + iMessage Gatewa
 - OpenClaw 在 PATH 中可用（推荐：全局安装）
 - 助手的第二个手机号码（SIM/eSIM/预付费）
 
-```bash
-npm install -g openclaw@latest
-# 或：pnpm add -g openclaw@latest
+## The two-phone setup (recommended)
+
+You want this:
+
+```mermaid
+flowchart TB
+    A["<b>Your Phone (personal)<br></b><br>Your WhatsApp<br>+1-555-YOU"] -- message --> B["<b>Second Phone (assistant)<br></b><br>Assistant WA<br>+1-555-ASSIST"]
+    B -- linked via QR --> C["<b>Your Mac (openclaw)<br></b><br>AI agent"]
 ```
 
 从源代码（开发）：
@@ -135,7 +140,7 @@ openclaw setup
 }
 ```
 
-## 将其变成"助手"的配置
+## The config that turns it into "an assistant"
 
 OpenClaw 默认为良好的助手设置，但你通常需要调整：
 
@@ -224,7 +229,12 @@ MEDIA:https://example.com/screenshot.png
 
 OpenClaw 会提取这些并将它们作为媒体与文本一起发送。
 
-## 运维检查清单
+For local paths, the default allowlist is intentionally narrow: the OpenClaw temp
+root, the media cache, agent workspace paths, and sandbox-generated files. If you
+need broader local-file attachment roots, configure an explicit channel/plugin
+allowlist instead of relying on arbitrary host paths.
+
+## Operations checklist
 
 ```bash
 openclaw status          # 本地状态（凭证、会话、排队事件）

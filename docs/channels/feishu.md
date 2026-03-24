@@ -189,7 +189,7 @@ openclaw channels add
         main: {
           appId: "cli_xxx",
           appSecret: "xxx",
-          botName: "我的AI助手",
+          name: "My AI assistant",
         },
       },
     },
@@ -498,13 +498,13 @@ openclaw pairing list feishu
         main: {
           appId: "cli_xxx",
           appSecret: "xxx",
-          botName: "主机器人",
+          name: "Primary bot",
         },
         backup: {
           appId: "cli_yyy",
           appSecret: "yyy",
-          botName: "备用机器人",
-          enabled: false, // 暂时禁用
+          name: "Backup bot",
+          enabled: false,
         },
       },
     },

@@ -100,15 +100,19 @@ Gateway 网关是会话、路由和渠道连接的唯一事实来源。
     openclaw onboard --install-daemon
     ```
   </Step>
-  <Step title="配对 WhatsApp 并启动 Gateway 网关">
+  <Step title="Chat">
+    Open the Control UI in your browser and send a message:
+
     ```bash
-    openclaw channels login
-    openclaw gateway --port 18789
+    openclaw dashboard
     ```
+
+    Or connect a channel ([Telegram](/channels/telegram) is fastest) and chat from your phone.
+
   </Step>
 </Steps>
 
-需要完整的安装和开发环境设置？请参阅[快速开始](/start/quickstart)。
+Need the full install and dev setup? See [Getting Started](/start/getting-started).
 
 ## 仪表板
 

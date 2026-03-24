@@ -18,10 +18,13 @@ OpenClaw 将回复**路由回消息来源的渠道**。模型不会选择渠道�
 
 ## 关键术语
 
-- **渠道**：`whatsapp`、`telegram`、`discord`、`slack`、`signal`、`imessage`、`webchat`。
-- **AccountId**：每个渠道的账户实例（在支持的情况下）。
-- **AgentId**：隔离的工作区 + 会话存储（"大脑"）。
-- **SessionKey**：用于存储上下文和控制并发的桶键。
+- **Channel**: `telegram`, `whatsapp`, `discord`, `irc`, `googlechat`, `slack`, `signal`, `imessage`, `line`, plus extension channels. `webchat` is the internal WebChat UI channel and is not a configurable outbound channel.
+- **AccountId**: per‑channel account instance (when supported).
+- Optional channel default account: `channels.<channel>.defaultAccount` chooses
+  which account is used when an outbound path does not specify `accountId`.
+  - In multi-account setups, set an explicit default (`defaultAccount` or `accounts.default`) when two or more accounts are configured. Without it, fallback routing may pick the first normalized account ID.
+- **AgentId**: an isolated workspace + session store (“brain”).
+- **SessionKey**: the bucket key used to store context and control concurrency.
 
 ## 会话键格式（示例）
 

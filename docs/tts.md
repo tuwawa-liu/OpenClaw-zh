@@ -1,17 +1,9 @@
 ---
 read_when:
-  - 为回复启用文本转语音
-  - 配置 TTS 提供商或限制
-  - 使用 /tts 命令
-summary: 出站回复的文本转语音（TTS）
-title: 文本转语音
-x-i18n:
-  generated_at: "2026-02-03T10:13:55Z"
-  model: claude-opus-4-5
-  provider: pi
-  source_hash: 070ff0cc8592f64c6c9e4ddaddc7e8fba82f0692ceded6fe833ec9ba5b61e6fb
-  source_path: tts.md
-  workflow: 15
+  - Enabling text-to-speech for replies
+  - Configuring TTS providers or limits
+  - Using /tts commands
+title: "Text-to-Speech (legacy path)"
 ---
 
 # 文本转语音（TTS）
@@ -380,7 +372,9 @@ Discord 注意：`/tts` 是 Discord 的内置命令，所以 OpenClaw 在那里�
 
 ## 智能体工具
 
-`tts` 工具将文本转换为语音并返回 `MEDIA:` 路径。当结果与 Telegram 兼容时，工具包含 `[[audio_as_voice]]`，以便 Telegram 发送语音气泡。
+The `tts` tool converts text to speech and returns an audio attachment for
+reply delivery. When the result is Telegram-compatible, OpenClaw marks it for
+voice-bubble delivery.
 
 ## Gateway 网关 RPC
 

@@ -58,8 +58,10 @@ IR（示意）：
 
 ## 使用场景
 
-- Slack、Telegram 和 Signal 的出站适配器从 IR 进行渲染。
-- 其他渠道（WhatsApp、iMessage、Microsoft Teams、Discord）仍使用纯文本或各自的格式化规则，启用时会在分块前应用 Markdown 表格转换。
+- Slack, Telegram, and Signal outbound adapters render from the IR.
+- Other channels (WhatsApp, iMessage, Microsoft Teams, Discord) still use plain text or
+  their own formatting rules, with Markdown table conversion applied before
+  chunking when enabled.
 
 ## 表格处理
 

@@ -138,4 +138,4 @@ OpenClaw 可以显示或隐藏模型推理：
 - `messages.responsePrefix`（出站前缀）和 `channels.whatsapp.messagePrefix`（WhatsApp 入站前缀）
 - 通过 `replyToMode` 和单渠道默认值进行回复线程
 
-详情：[配置](/gateway/configuration#messages)和渠道文档。
+Details: [Configuration](/gateway/configuration-reference#messages) and channel docs.

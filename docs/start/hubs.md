@@ -35,7 +35,6 @@ x-i18n:
 
 - [Index](/)
 - [Getting Started](/start/getting-started)
-- [Quick start](/start/quickstart)
 - [Onboarding](/start/onboarding)
 - [Onboarding (CLI)](/start/wizard)
 - [Setup](/start/setup)
@@ -181,7 +180,19 @@ x-i18n:
 - [macOS Skills](/platforms/mac/skills)
 - [macOS Peekaboo](/platforms/mac/peekaboo)
 
-## 工作区 + 模板
+## Extensions + plugins
+
+- [Plugins overview](/tools/plugin)
+- [Building plugins](/plugins/building-plugins)
+- [Plugin manifest](/plugins/manifest)
+- [Agent tools](/plugins/building-plugins#registering-agent-tools)
+- [Plugin bundles](/plugins/bundles)
+- [Community plugins](/plugins/community)
+- [Capability cookbook](/tools/capability-cookbook)
+- [Voice call plugin](/plugins/voice-call)
+- [Zalo user plugin](/plugins/zalouser)
+
+## Workspace + templates
 
 - [Skills](/tools/skills)
 - [ClawHub](/tools/clawhub)
@@ -195,15 +206,7 @@ x-i18n:
 - [模板：TOOLS](/reference/templates/TOOLS)
 - [模板：USER](/reference/templates/USER)
 
-## 实验（探索性）
-
-- [新手引导配置协议](/experiments/onboarding-config-protocol)
-- [定时任务加固笔记](/experiments/plans/cron-add-hardening)
-- [群组策略加固笔记](/experiments/plans/group-policy-hardening)
-- [研究：记忆](/experiments/research/memory)
-- [模型配置探索](/experiments/proposals/model-config)
-
-## 项目
+## Project
 
 - [致谢](/reference/credits)
 

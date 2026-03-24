@@ -1,4 +1,6 @@
 ---
+title: "TOOLS.dev Template"
+summary: "Dev agent tools notes (C-3PO)"
 read_when:
   - 使用开发 gateway 模板
   - 更新默认开发智能体身份

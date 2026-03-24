@@ -31,7 +31,7 @@ OpenClaw 按以下顺序选择模型：
 
 - `agents.defaults.models` is the allowlist/catalog of models OpenClaw can use (plus aliases).
 - `agents.defaults.imageModel` is used **only when** the primary model can’t accept images.
-- `agents.defaults.imageGenerationModel` is used by the shared image-generation capability.
+- `agents.defaults.imageGenerationModel` is used by the shared image-generation capability. If omitted, `image_generate` can still infer a provider default from compatible auth-backed image-generation plugins. If you set a specific provider/model, also configure that provider's auth/API key.
 - Per-agent defaults can override `agents.defaults.model` via `agents.list[].model` plus bindings (see [/concepts/multi-agent](/concepts/multi-agent)).
 
 ## 快速模型推荐（经验之谈）
@@ -59,9 +59,10 @@ openclaw onboard
 
 模型引用会规范化为小写。提供商别名如 `z.ai/*` 会规范化为 `zai/*`。
 
-提供商配置示例（包括 OpenCode）在 [/gateway/configuration](/gateway/configuration#opencode)。
+Provider configuration examples (including OpenCode) live in
+[/providers/opencode](/providers/opencode).
 
-## "Model is not allowed"（以及为什么回复停止）
+## "Model is not allowed" (and why replies stop)
 
 如果设置了 `agents.defaults.models`，它将成为 `/model` 和会话覆盖的**白名单**。当用户选择不在该白名单中的模型时，OpenClaw 返回：
 
@@ -80,10 +81,10 @@ Model "provider/model" is not allowed. Use /model to list available models.
 ```json5
 {
   agent: {
-    model: { primary: "anthropic/claude-sonnet-4-5" },
+    model: { primary: "anthropic/claude-sonnet-4-6" },
     models: {
-      "anthropic/claude-sonnet-4-5": { alias: "Sonnet" },
-      "anthropic/claude-opus-4-5": { alias: "Opus" },
+      "anthropic/claude-sonnet-4-6": { alias: "Sonnet" },
+      "anthropic/claude-opus-4-6": { alias: "Opus" },
     },
   },
 }

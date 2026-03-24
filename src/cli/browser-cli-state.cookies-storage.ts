@@ -37,7 +37,7 @@ async function runMutationRequest(params: {
   try {
     const result = await callBrowserRequest(params.parent, params.request, { timeoutMs: 20000 });
     if (params.parent?.json) {
-      defaultRuntime.log(JSON.stringify(result, null, 2));
+      defaultRuntime.writeJson(result);
       return;
     }
     defaultRuntime.log(params.successMessage);
@@ -67,12 +67,16 @@ export function registerBrowserCookiesAndStorageCommands(
             targetId,
             profile,
           },
-        },
-        { timeoutMs: 20000 },
-      );
-      if (parent?.json) {
-        defaultRuntime.log(JSON.stringify(result, null, 2));
-        return;
+          { timeoutMs: 20000 },
+        );
+        if (parent?.json) {
+          defaultRuntime.writeJson(result);
+          return;
+        }
+        defaultRuntime.writeJson(result.cookies ?? []);
+      } catch (err) {
+        defaultRuntime.error(danger(String(err)));
+        defaultRuntime.exit(1);
       }
       defaultRuntime.log(JSON.stringify(result.cookies ?? [], null, 2));
     } catch (err) {
@@ -166,10 +170,10 @@ export function registerBrowserCookiesAndStorageCommands(
             { timeoutMs: 20000 },
           );
           if (parent?.json) {
-            defaultRuntime.log(JSON.stringify(result, null, 2));
+            defaultRuntime.writeJson(result);
             return;
           }
-          defaultRuntime.log(JSON.stringify(result.values ?? {}, null, 2));
+          defaultRuntime.writeJson(result.values ?? {});
         } catch (err) {
           defaultRuntime.error(danger(String(err)));
           defaultRuntime.exit(1);

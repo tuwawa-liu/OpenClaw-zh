@@ -7,8 +7,7 @@ import {
   type SandboxBrowserInfo,
   type SandboxContainerInfo,
 } from "../agents/sandbox.js";
-import { t } from "../i18n/index.js";
-import type { RuntimeEnv } from "../runtime.js";
+import { type RuntimeEnv, writeRuntimeJson } from "../runtime.js";
 import {
   displayBrowsers,
   displayContainers,
@@ -49,7 +48,7 @@ export async function sandboxListCommand(
   const browsers = opts.browser ? await listSandboxBrowsers().catch(() => []) : [];
 
   if (opts.json) {
-    runtime.log(JSON.stringify({ containers, browsers }, null, 2));
+    writeRuntimeJson(runtime, { containers, browsers });
     return;
   }
 

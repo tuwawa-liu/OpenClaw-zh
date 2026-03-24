@@ -19,7 +19,7 @@ x-i18n:
 
 - WhatsApp（Web 渠道）
 - Discord
-- MS Teams（Adaptive Cards）
+- Microsoft Teams (Adaptive Cards)
 
 ## CLI
 
@@ -36,7 +36,7 @@ openclaw message poll --channel discord --target channel:123456789 \
 openclaw message poll --channel discord --target channel:123456789 \
   --poll-question "Plan?" --poll-option "A" --poll-option "B" --poll-duration-hours 48
 
-# MS Teams
+# Microsoft Teams
 openclaw message poll --channel msteams --target conversation:19:abc@thread.tacv2 \
   --poll-question "Lunch?" --poll-option "Pizza" --poll-option "Sushi"
 ```
@@ -63,9 +63,10 @@ openclaw message poll --channel msteams --target conversation:19:abc@thread.tacv
 
 ## 渠道差异
 
-- WhatsApp：2-12 个选项，`maxSelections` 必须在选项数量范围内，忽略 `durationHours`。
-- Discord：2-10 个选项，`durationHours` 限制在 1-768 小时之间（默认 24）。`maxSelections > 1` 启用多选；Discord 不支持严格的选择数量限制。
-- MS Teams：Adaptive Card 投票（由 OpenClaw 管理）。无原生投票 API；`durationHours` 被忽略。
+- Telegram: 2-10 options. Supports forum topics via `threadId` or `:topic:` targets. Uses `durationSeconds` instead of `durationHours`, limited to 5-600 seconds. Supports anonymous and public polls.
+- WhatsApp: 2-12 options, `maxSelections` must be within option count, ignores `durationHours`.
+- Discord: 2-10 options, `durationHours` clamped to 1-768 hours (default 24). `maxSelections > 1` enables multi-select; Discord does not support a strict selection count.
+- Microsoft Teams: Adaptive Card polls (OpenClaw-managed). No native poll API; `durationHours` is ignored.
 
 ## 智能体工具（Message）
 

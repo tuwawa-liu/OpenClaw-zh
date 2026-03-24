@@ -1,4 +1,12 @@
-# 认证凭证语义
+---
+title: "Auth Credential Semantics"
+summary: "Canonical credential eligibility and resolution semantics for auth profiles"
+read_when:
+  - Working on auth profile resolution or credential routing
+  - Debugging model auth failures or profile order
+---
+
+# Auth Credential Semantics
 
 本文档定义了以下组件使用的规范凭证资格和解析语义：
 

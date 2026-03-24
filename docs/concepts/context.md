@@ -123,7 +123,7 @@ Top tools (schema size):
 
 ## Skills：注入的内容 vs 按需加载的内容
 
-系统提示词包含一个紧凑的 **Skills 列表**（名称 + 描述 + 位置）。此列表有实际开销。
+## Skills: injected vs loaded on-demand
 
 Skill 指令默认*不*包含。模型应该**仅在需要时**`read` Skill 的 `SKILL.md`。
 
@@ -138,7 +138,7 @@ Skill 指令默认*不*包含。模型应该**仅在需要时**`read` Skill 的 
 
 ## 命令、指令和"内联快捷方式"
 
-斜杠命令由 Gateway 网关处理。有几种不同的行为：
+## Commands, directives, and "inline shortcuts"
 
 - **独立命令**：仅为 `/...` 的消息作为命令运行。
 - **指令**：`/think`、`/verbose`、`/reasoning`、`/elevated`、`/model`、`/queue` 在模型看到消息之前被剥离。
@@ -164,7 +164,9 @@ By default, OpenClaw uses the built-in `legacy` context engine for assembly and
 compaction. If you install a plugin that provides `kind: "context-engine"` and
 select it with `plugins.slots.contextEngine`, OpenClaw delegates context
 assembly, `/compact`, and related subagent context lifecycle hooks to that
-engine instead. See [Context Engine](/concepts/context-engine) for the full
+engine instead. `ownsCompaction: false` does not auto-fallback to the legacy
+engine; the active engine must still implement `compact()` correctly. See
+[Context Engine](/concepts/context-engine) for the full
 pluggable interface, lifecycle hooks, and configuration.
 
 - `System prompt (run)` = 从最后一次嵌入式（具有工具能力的）运行中捕获，并持久化在会话存储中。

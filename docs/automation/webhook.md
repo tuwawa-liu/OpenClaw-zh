@@ -40,7 +40,8 @@ Gateway 网关可以暴露一个小型 HTTP webhook 端点用于外部触发。
 
 - `Authorization: Bearer <token>`（推荐）
 - `x-openclaw-token: <token>`
-- `?token=<token>`（已弃用；会记录警告日志，将在未来的主要版本中移除）
+- Query-string tokens are rejected (`?token=...` returns `400`).
+- Treat `hooks.token` holders as full-trust callers for the hook ingress surface on that gateway. Hook payload content is still untrusted, but this is not a separate non-owner auth boundary.
 
 ## 端点
 
@@ -79,16 +80,17 @@ Gateway 网关可以暴露一个小型 HTTP webhook 端点用于外部触发。
 }
 ```
 
-- `message` **必填**（字符串）：智能体要处理的提示或消息。
-- `name` 可选（字符串）：hook 的可读名称（例如"GitHub"），用作会话摘要的前缀。
-- `sessionKey` 可选（字符串）：用于标识智能体会话的键。默认为随机的 `hook:<uuid>`。使用一致的键可以在 hook 上下文中进行多轮对话。
-- `wakeMode` 可选（`now` | `next-heartbeat`）：是否立即触发心跳（默认 `now`）或等待下一次定期检查。
-- `deliver` 可选（布尔值）：如果为 `true`，智能体的响应将发送到消息渠道。默认为 `true`。仅为心跳确认的响应会自动跳过。
-- `channel` 可选（字符串）：用于投递的消息渠道。可选值：`last`、`whatsapp`、`telegram`、`discord`、`slack`、`mattermost`（插件）、`signal`、`imessage`、`msteams`。默认为 `last`。
-- `to` 可选（字符串）：渠道的接收者标识符（例如 WhatsApp/Signal 的电话号码、Telegram 的聊天 ID、Discord/Slack/Mattermost（插件）的频道 ID、MS Teams 的会话 ID）。默认为主会话中的最后一个接收者。
-- `model` 可选（字符串）：模型覆盖（例如 `anthropic/claude-3-5-sonnet` 或别名）。如果有限制，必须在允许的模型列表中。
-- `thinking` 可选（字符串）：思考级别覆盖（例如 `low`、`medium`、`high`）。
-- `timeoutSeconds` 可选（数字）：智能体运行的最大持续时间（秒）。
+- `message` **required** (string): The prompt or message for the agent to process.
+- `name` optional (string): Human-readable name for the hook (e.g., "GitHub"), used as a prefix in session summaries.
+- `agentId` optional (string): Route this hook to a specific agent. Unknown IDs fall back to the default agent. When set, the hook runs using the resolved agent's workspace and configuration.
+- `sessionKey` optional (string): The key used to identify the agent's session. By default this field is rejected unless `hooks.allowRequestSessionKey=true`.
+- `wakeMode` optional (`now` | `next-heartbeat`): Whether to trigger an immediate heartbeat (default `now`) or wait for the next periodic check.
+- `deliver` optional (boolean): If `true`, the agent's response will be sent to the messaging channel. Defaults to `true`. Responses that are only heartbeat acknowledgments are automatically skipped.
+- `channel` optional (string): The messaging channel for delivery. Core channels: `last`, `whatsapp`, `telegram`, `discord`, `slack`, `signal`, `imessage`, `irc`, `googlechat`, `line`. Extension channels (plugins): `msteams`, `mattermost`, and others. Defaults to `last`.
+- `to` optional (string): The recipient identifier for the channel (e.g., phone number for WhatsApp/Signal, chat ID for Telegram, channel ID for Discord/Slack/Mattermost (plugin), conversation ID for Microsoft Teams). Defaults to the last recipient in the main session.
+- `model` optional (string): Model override (e.g., `anthropic/claude-sonnet-4-6` or an alias). Must be in the allowed model list if restricted.
+- `thinking` optional (string): Thinking level override (e.g., `low`, `medium`, `high`).
+- `timeoutSeconds` optional (number): Maximum duration for the agent run in seconds.
 
 效果：
 
@@ -157,7 +159,14 @@ curl -X POST http://127.0.0.1:18789/hooks/gmail \
 
 ## 安全
 
-- 将 hook 端点保持在 loopback、tailnet 或受信任的反向代理之后。
-- 使用专用的 hook 令牌；不要复用 Gateway 网关认证令牌。
-- 避免在 webhook 日志中包含敏感的原始请求体。
-- Hook 请求体默认被视为不受信任并使用安全边界包装。如果你必须为特定 hook 禁用此功能，请在该 hook 的映射中设置 `allowUnsafeExternalContent: true`（危险）。
+- Keep hook endpoints behind loopback, tailnet, or trusted reverse proxy.
+- Use a dedicated hook token; do not reuse gateway auth tokens.
+- Prefer a dedicated hook agent with strict `tools.profile` and sandboxing so hook ingress has a narrower blast radius.
+- Repeated auth failures are rate-limited per client address to slow brute-force attempts.
+- If you use multi-agent routing, set `hooks.allowedAgentIds` to limit explicit `agentId` selection.
+- Keep `hooks.allowRequestSessionKey=false` unless you require caller-selected sessions.
+- If you enable request `sessionKey`, restrict `hooks.allowedSessionKeyPrefixes` (for example, `["hook:"]`).
+- Avoid including sensitive raw payloads in webhook logs.
+- Hook payloads are treated as untrusted and wrapped with safety boundaries by default.
+  If you must disable this for a specific hook, set `allowUnsafeExternalContent: true`
+  in that hook's mapping (dangerous).
