@@ -38,9 +38,9 @@ export async function maybeRepairAnthropicOAuthProfileId(
     return cfg;
   }
 
-  note(repair.changes.map((c) => `- ${c}`).join("\n"), t("commands.doctorAuth.titleAuthProfiles"));
+  note(repair.changes.map((c) => `- ${c}`).join("\n"), "Auth profiles");
   const apply = await prompter.confirm({
-    message: t("commands.doctorAuth.updateOauthProfilePrompt"),
+    message: "Update Anthropic OAuth profile id in config now?",
     initialValue: true,
   });
   if (!apply) {
@@ -151,10 +151,10 @@ export async function maybeRemoveDeprecatedCliAuthProfiles(
       }) ?? formatCliCommand("openclaw configure");
     lines.push(`- ${entry.profileId} (${entry.providerLabel}): use ${authCommand}`);
   }
-  note(lines.join("\n"), t("commands.doctorAuth.titleAuthProfiles"));
+  note(lines.join("\n"), "Auth profiles");
 
-  const shouldRemove = await prompter.confirmRepair({
-    message: t("commands.doctorAuth.removeDeprecatedPrompt"),
+  const shouldRemove = await prompter.confirmAutoFix({
+    message: "Remove deprecated CLI auth profiles now?",
     initialValue: true,
   });
   if (!shouldRemove) {
@@ -205,7 +205,7 @@ export async function maybeRemoveDeprecatedCliAuthProfiles(
       Array.from(deprecated.values())
         .map((id) => `- removed ${id} from config`)
         .join("\n"),
-      t("commands.doctorAuth.titleDoctorChanges"),
+      "Doctor changes",
     );
   }
   return pruned.next;
@@ -225,18 +225,18 @@ export function resolveUnusableProfileHint(params: {
 }): string {
   if (params.kind === "disabled") {
     if (params.reason === "billing") {
-      return t("commands.doctorAuth.topUpCredits");
+      return "Top up credits (provider billing) or switch provider.";
     }
     if (params.reason === "auth_permanent" || params.reason === "auth") {
-      return t("commands.doctorAuth.refreshCredentials");
+      return "Refresh or replace credentials, then retry.";
     }
   }
-  return t("commands.doctorAuth.waitCooldown");
+  return "Wait for cooldown or switch provider.";
 }
 
 function formatAuthIssueHint(issue: AuthIssue): string | null {
   if (issue.reasonCode === "invalid_expires") {
-    return t("commands.doctorAuth.invalidTokenExpires");
+    return "Invalid token expires metadata. Set a future Unix ms timestamp or remove expires.";
   }
   if (issue.provider === "anthropic" && issue.profileId === CLAUDE_CLI_PROFILE_ID) {
     return `Deprecated profile. ${buildProviderAuthRecoveryHint({
@@ -293,7 +293,7 @@ export async function noteAuthProfileHealth(params: {
   })();
 
   if (unusable.length > 0) {
-    note(unusable.join("\n"), t("commands.doctorAuth.titleCooldowns"));
+    note(unusable.join("\n"), "Auth profile cooldowns");
   }
 
   let summary = buildAuthHealthSummary({
@@ -316,8 +316,8 @@ export async function noteAuthProfileHealth(params: {
     return;
   }
 
-  const shouldRefresh = await params.prompter.confirmRepair({
-    message: t("commands.doctorAuth.refreshOAuthPrompt"),
+  const shouldRefresh = await params.prompter.confirmAutoFix({
+    message: "Refresh expiring OAuth tokens now? (static tokens need re-auth)",
     initialValue: true,
   });
 
@@ -339,7 +339,7 @@ export async function noteAuthProfileHealth(params: {
       }
     }
     if (errors.length > 0) {
-      note(errors.join("\n"), t("commands.doctorAuth.titleRefreshErrors"));
+      note(errors.join("\n"), "OAuth refresh errors");
     }
     summary = buildAuthHealthSummary({
       store: ensureAuthProfileStore(undefined, {
@@ -364,7 +364,7 @@ export async function noteAuthProfileHealth(params: {
           }),
         )
         .join("\n"),
-      t("commands.doctorAuth.titleModelAuth"),
+      "Model auth",
     );
   }
 }

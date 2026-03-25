@@ -1,13 +1,6 @@
 import { html, nothing } from "lit";
 import { t } from "../../i18n/index.ts";
 import { extractQueryTerms, filterSessionsByQuery } from "../usage-helpers.ts";
-import {
-  buildAggregatesFromSessions,
-  buildPeakErrorHours,
-  buildUsageInsightStats,
-  formatCost,
-  formatIsoDate,
-  formatTokens,
   getZonedHour,
   renderUsageMosaic,
   setToHourEnd,
@@ -40,7 +33,6 @@ import {
   UsageSessionEntry,
   UsageTotals,
 } from "./usageTypes.ts";
-import { t } from "../../i18n/index.ts";
 
 export type { UsageColumnId, SessionLogEntry, SessionLogRole };
 
@@ -129,7 +121,7 @@ function renderUsageEmptyState(onRefresh: () => void) {
         <span class="usage-empty-state__feature">${t("usage.empty.featureTimeline")}</span>
       </div>
       <div class="usage-empty-state__actions">
-        <button class="btn primary usage-action-btn usage-primary-btn" @click=${onRefresh}>
+        <button class="btn primary" @click=${onRefresh}>
           ${t("common.refresh")}
         </button>
       </div>
@@ -392,7 +384,7 @@ export function renderUsage(props: UsageProps) {
         <div class="usage-filter-popover">
           <div class="usage-filter-actions">
             <button
-              class="btn btn-sm"
+              class="btn btn--sm"
               @click=${(e: Event) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -405,7 +397,7 @@ export function renderUsage(props: UsageProps) {
               ${t("usage.filters.selectAll")}
             </button>
             <button
-              class="btn btn-sm"
+              class="btn btn--sm"
               @click=${(e: Event) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -483,7 +475,7 @@ export function renderUsage(props: UsageProps) {
                 : nothing
             }
             <button
-              class="usage-pin-btn ${display.headerPinned ? "active" : ""}"
+              class="btn btn--sm usage-pin-btn ${display.headerPinned ? "active" : ""}"
               title=${display.headerPinned ? t("usage.filters.unpin") : t("usage.filters.pin")}
               @click=${filterActions.onToggleHeaderPinned}
             >
@@ -506,7 +498,7 @@ export function renderUsage(props: UsageProps) {
                 window.addEventListener("click", onClick, true);
               }}
             >
-              <summary class="usage-export-button">${t("usage.export.label")} ▾</summary>
+              <summary class="btn btn--sm">${t("usage.export.label")} ▾</summary>
               <div class="usage-export-popover">
                 <div class="usage-export-list">
                   <button
@@ -575,7 +567,7 @@ export function renderUsage(props: UsageProps) {
             <div class="usage-presets">
               ${datePresets.map(
                 (preset) => html`
-                  <button class="btn btn-sm" @click=${() => applyPreset(preset.days)}>
+                  <button class="btn btn--sm" @click=${() => applyPreset(preset.days)}>
                     ${preset.label}
                   </button>
                 `,
@@ -587,6 +579,7 @@ export function renderUsage(props: UsageProps) {
                 type="date"
                 .value=${filters.startDate}
                 title=${t("usage.filters.startDate")}
+                aria-label=${t("usage.filters.startDate")}
                 @change=${(e: Event) =>
                   filterActions.onStartDateChange((e.target as HTMLInputElement).value)}
               />
@@ -596,6 +589,7 @@ export function renderUsage(props: UsageProps) {
                 type="date"
                 .value=${filters.endDate}
                 title=${t("usage.filters.endDate")}
+                aria-label=${t("usage.filters.endDate")}
                 @change=${(e: Event) =>
                   filterActions.onEndDateChange((e.target as HTMLInputElement).value)}
               />
@@ -603,6 +597,7 @@ export function renderUsage(props: UsageProps) {
             <select
               class="usage-select"
               title=${t("usage.filters.timeZone")}
+              aria-label=${t("usage.filters.timeZone")}
               .value=${filters.timeZone}
               @change=${(e: Event) =>
                 filterActions.onTimeZoneChange(
@@ -614,20 +609,20 @@ export function renderUsage(props: UsageProps) {
             </select>
             <div class="chart-toggle">
               <button
-                class="toggle-btn ${isTokenMode ? "active" : ""}"
+                class="btn btn--sm toggle-btn ${isTokenMode ? "active" : ""}"
                 @click=${() => displayActions.onChartModeChange("tokens")}
               >
                 ${t("usage.metrics.tokens")}
               </button>
               <button
-                class="toggle-btn ${!isTokenMode ? "active" : ""}"
+                class="btn btn--sm toggle-btn ${!isTokenMode ? "active" : ""}"
                 @click=${() => displayActions.onChartModeChange("cost")}
               >
                 ${t("usage.metrics.cost")}
               </button>
             </div>
             <button
-              class="btn btn-sm usage-action-btn usage-primary-btn"
+              class="btn btn--sm primary"
               @click=${filterActions.onRefresh}
               ?disabled=${data.loading}
             >
@@ -654,7 +649,7 @@ export function renderUsage(props: UsageProps) {
             />
             <div class="usage-query-actions">
               <button
-                class="btn btn-sm usage-action-btn usage-secondary-btn"
+                class="btn btn--sm"
                 @click=${filterActions.onApplyQuery}
                 ?disabled=${data.loading || (!hasDraftQuery && !hasQuery)}
               >
@@ -664,7 +659,7 @@ export function renderUsage(props: UsageProps) {
                 hasDraftQuery || hasQuery
                   ? html`
                       <button
-                        class="btn btn-sm usage-action-btn usage-secondary-btn"
+                        class="btn btn--sm"
                         @click=${filterActions.onClearQuery}
                       >
                         ${t("usage.filters.clear")}

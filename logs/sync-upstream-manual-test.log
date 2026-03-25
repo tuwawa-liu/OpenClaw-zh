@@ -1,0 +1,3 @@
+[0;32m[INFO][0m Starting hourly sync workflow at 2026年 3月25日 星期三 05时53分31秒 CST
+[0;32m[INFO][0m Step 1: Fetching upstream changes...
+fatal: unable to access 'https://github.com/openclaw/openclaw.git/': Empty reply from server

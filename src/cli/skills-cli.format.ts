@@ -1,6 +1,5 @@
 import type { SkillStatusEntry, SkillStatusReport } from "../agents/skills-status.js";
-import { t } from "../i18n/index.js";
-import { stripAnsi } from "../terminal/ansi.js";
+import { sanitizeForLog, stripAnsi } from "../terminal/ansi.js";
 import { getTerminalTableWidth, renderTable } from "../terminal/table.js";
 import { theme } from "../terminal/theme.js";
 import { shortenHomePath } from "../utils.js";
@@ -29,15 +28,15 @@ function appendClawHubHint(output: string, json?: boolean): string {
 
 function formatSkillStatus(skill: SkillStatusEntry): string {
   if (skill.eligible) {
-    return theme.success(t("skillsFormat.readyLower"));
+    return theme.success("✓ ready");
   }
   if (skill.disabled) {
-    return theme.warn(t("skillsFormat.disabledLower"));
+    return theme.warn("⏸ disabled");
   }
   if (skill.blockedByAllowlist) {
-    return theme.warn(t("skillsFormat.blockedLower"));
+    return theme.warn("🚫 blocked");
   }
-  return theme.error(t("skillsFormat.missingLower"));
+  return theme.warn("△ needs setup");
 }
 
 function normalizeSkillEmoji(emoji?: string): string {
@@ -72,7 +71,7 @@ function sanitizeJsonValue(value: unknown): unknown {
 }
 function formatSkillName(skill: SkillStatusEntry): string {
   const emoji = normalizeSkillEmoji(skill.emoji);
-  return `${emoji} ${theme.command(skill.name)}`;
+  return `${emoji} ${theme.command(sanitizeForLog(skill.name))}`;
 }
 
 function formatSkillMissingSummary(skill: SkillStatusEntry): string {
@@ -121,8 +120,8 @@ export function formatSkillsList(report: SkillStatusReport, opts: SkillsListOpti
 
   if (skills.length === 0) {
     const message = opts.eligible
-      ? t("skillsFormat.noEligibleSkills", { command: formatCliCommand("openclaw skills list") })
-      : t("skillsFormat.noSkillsFound");
+      ? `No eligible skills found. Run \`${formatCliCommand("openclaw skills list")}\` to see all skills.`
+      : "No skills found.";
     return appendClawHubHint(message, opts.json);
   }
 
@@ -140,18 +139,18 @@ export function formatSkillsList(report: SkillStatusReport, opts: SkillsListOpti
   });
 
   const columns = [
-    { key: "Status", header: t("skillsFormat.statusHeader"), minWidth: 10 },
-    { key: "Skill", header: t("skillsFormat.skillHeader"), minWidth: 22 },
-    { key: "Description", header: t("skillsFormat.descriptionHeader"), minWidth: 24, flex: true },
-    { key: "Source", header: t("skillsFormat.sourceHeader"), minWidth: 10 },
+    { key: "Status", header: "Status", minWidth: 10 },
+    { key: "Skill", header: "Skill", minWidth: 22 },
+    { key: "Description", header: "Description", minWidth: 24, flex: true },
+    { key: "Source", header: "Source", minWidth: 10 },
   ];
   if (opts.verbose) {
-    columns.push({ key: "Missing", header: t("skillsFormat.missingHeader"), minWidth: 18, flex: true });
+    columns.push({ key: "Missing", header: "Missing", minWidth: 18, flex: true });
   }
 
   const lines: string[] = [];
   lines.push(
-    `${theme.heading(t("skillsFormat.skillsHeading"))} ${theme.muted(`(${t("skillsFormat.readyCount", { eligible: String(eligible.length), total: String(skills.length) })})`)}`,
+    `${theme.heading("Skills")} ${theme.muted(`(${eligible.length}/${skills.length} ready)`)}`,
   );
   lines.push(
     renderTable({
@@ -176,7 +175,7 @@ export function formatSkillInfo(
       return JSON.stringify({ error: "not found", skill: skillName }, null, 2);
     }
     return appendClawHubHint(
-      t("skillsFormat.skillNotFound", { name: skillName, command: formatCliCommand("openclaw skills list") }),
+      `Skill "${skillName}" not found. Run \`${formatCliCommand("openclaw skills list")}\` to see available skills.`,
       opts.json,
     );
   }
@@ -188,26 +187,30 @@ export function formatSkillInfo(
   const lines: string[] = [];
   const emoji = normalizeSkillEmoji(skill.emoji);
   const status = skill.eligible
-    ? theme.success(t("skillsFormat.readyUpper"))
+    ? theme.success("✓ Ready")
     : skill.disabled
-      ? theme.warn(t("skillsFormat.disabledUpper"))
+      ? theme.warn("⏸ Disabled")
       : skill.blockedByAllowlist
-        ? theme.warn(t("skillsFormat.blockedByAllowlistUpper"))
-        : theme.error(t("skillsFormat.missingReqsUpper"));
+        ? theme.warn("🚫 Blocked by allowlist")
+        : theme.warn("△ Needs setup");
 
-  lines.push(`${emoji} ${theme.heading(skill.name)} ${status}`);
+  const safeName = sanitizeForLog(skill.name);
+  const safeHomepage = skill.homepage ? sanitizeForLog(skill.homepage) : undefined;
+  const safeSkillKey = sanitizeForLog(skill.skillKey);
+
+  lines.push(`${emoji} ${theme.heading(safeName)} ${status}`);
   lines.push("");
-  lines.push(skill.description);
+  lines.push(sanitizeForLog(skill.description));
   lines.push("");
 
-  lines.push(theme.heading(t("skillsFormat.detailsHeading")));
-  lines.push(`${theme.muted(t("skillsFormat.sourceLabel"))} ${skill.source}`);
-  lines.push(`${theme.muted(t("skillsFormat.pathLabel"))} ${shortenHomePath(skill.filePath)}`);
-  if (skill.homepage) {
-    lines.push(`${theme.muted(t("skillsFormat.homepageLabel"))} ${skill.homepage}`);
+  lines.push(theme.heading("Details:"));
+  lines.push(`${theme.muted("  Source:")} ${sanitizeForLog(skill.source)}`);
+  lines.push(`${theme.muted("  Path:")} ${shortenHomePath(skill.filePath)}`);
+  if (safeHomepage) {
+    lines.push(`${theme.muted("  Homepage:")} ${safeHomepage}`);
   }
   if (skill.primaryEnv) {
-    lines.push(`${theme.muted(t("skillsFormat.primaryEnvLabel"))} ${skill.primaryEnv}`);
+    lines.push(`${theme.muted("  Primary env:")} ${skill.primaryEnv}`);
   }
 
   const hasRequirements =
@@ -219,13 +222,13 @@ export function formatSkillInfo(
 
   if (hasRequirements) {
     lines.push("");
-    lines.push(theme.heading(t("skillsFormat.requirementsHeading")));
+    lines.push(theme.heading("Requirements:"));
     if (skill.requirements.bins.length > 0) {
       const binsStatus = skill.requirements.bins.map((bin) => {
         const missing = skill.missing.bins.includes(bin);
         return missing ? theme.error(`✗ ${bin}`) : theme.success(`✓ ${bin}`);
       });
-      lines.push(`${theme.muted(t("skillsFormat.binariesLabel"))} ${binsStatus.join(", ")}`);
+      lines.push(`${theme.muted("  Binaries:")} ${binsStatus.join(", ")}`);
     }
     if (skill.requirements.anyBins.length > 0) {
       const anyBinsMissing = skill.missing.anyBins.length > 0;
@@ -233,37 +236,54 @@ export function formatSkillInfo(
         const missing = anyBinsMissing;
         return missing ? theme.error(`✗ ${bin}`) : theme.success(`✓ ${bin}`);
       });
-      lines.push(`${theme.muted(t("skillsFormat.anyBinariesLabel"))} ${anyBinsStatus.join(", ")}`);
+      lines.push(`${theme.muted("  Any binaries:")} ${anyBinsStatus.join(", ")}`);
     }
     if (skill.requirements.env.length > 0) {
       const envStatus = skill.requirements.env.map((env) => {
         const missing = skill.missing.env.includes(env);
         return missing ? theme.error(`✗ ${env}`) : theme.success(`✓ ${env}`);
       });
-      lines.push(`${theme.muted(t("skillsFormat.environmentLabel"))} ${envStatus.join(", ")}`);
+      lines.push(`${theme.muted("  Environment:")} ${envStatus.join(", ")}`);
     }
     if (skill.requirements.config.length > 0) {
       const configStatus = skill.requirements.config.map((cfg) => {
         const missing = skill.missing.config.includes(cfg);
         return missing ? theme.error(`✗ ${cfg}`) : theme.success(`✓ ${cfg}`);
       });
-      lines.push(`${theme.muted(t("skillsFormat.configLabel"))} ${configStatus.join(", ")}`);
+      lines.push(`${theme.muted("  Config:")} ${configStatus.join(", ")}`);
     }
     if (skill.requirements.os.length > 0) {
       const osStatus = skill.requirements.os.map((osName) => {
         const missing = skill.missing.os.includes(osName);
         return missing ? theme.error(`✗ ${osName}`) : theme.success(`✓ ${osName}`);
       });
-      lines.push(`${theme.muted(t("skillsFormat.osLabel"))} ${osStatus.join(", ")}`);
+      lines.push(`${theme.muted("  OS:")} ${osStatus.join(", ")}`);
     }
   }
 
   if (skill.install.length > 0 && !skill.eligible) {
     lines.push("");
-    lines.push(theme.heading(t("skillsFormat.installOptionsHeading")));
+    lines.push(theme.heading("Install options:"));
     for (const inst of skill.install) {
       lines.push(`  ${theme.warn("→")} ${inst.label}`);
     }
+  }
+
+  if (skill.primaryEnv && skill.missing.env.includes(skill.primaryEnv)) {
+    lines.push("");
+    lines.push(theme.heading("API key setup:"));
+    if (safeHomepage) {
+      lines.push(`  Get your key: ${safeHomepage}`);
+    }
+    lines.push(
+      `  Save via UI: ${theme.muted("Control UI → Skills → ")}${safeName}${theme.muted(" → Save key")}`,
+    );
+    lines.push(
+      `  Save via CLI: ${formatCliCommand(`openclaw config set skills.entries.${safeSkillKey}.apiKey YOUR_KEY`)}`,
+    );
+    lines.push(
+      `  Stored in: ${theme.muted("~/.openclaw/openclaw.json")} ${theme.muted(`(skills.entries.${safeSkillKey}.apiKey)`)}`,
+    );
   }
 
   return appendClawHubHint(lines.join("\n"), opts.json);
@@ -302,30 +322,30 @@ export function formatSkillsCheck(report: SkillStatusReport, opts: SkillsCheckOp
   }
 
   const lines: string[] = [];
-  lines.push(theme.heading(t("skillsFormat.statusCheckHeading")));
+  lines.push(theme.heading("Skills Status Check"));
   lines.push("");
-  lines.push(`${theme.muted(t("skillsFormat.totalLabel"))} ${report.skills.length}`);
-  lines.push(`${theme.success("✓")} ${theme.muted(t("skillsFormat.eligibleLabel"))} ${eligible.length}`);
-  lines.push(`${theme.warn("⏸")} ${theme.muted(t("skillsFormat.disabledLabel"))} ${disabled.length}`);
-  lines.push(`${theme.warn("🚫")} ${theme.muted(t("skillsFormat.blockedByAllowlistLabel"))} ${blocked.length}`);
-  lines.push(`${theme.error("✗")} ${theme.muted(t("skillsFormat.missingReqsLabel"))} ${missingReqs.length}`);
+  lines.push(`${theme.muted("Total:")} ${report.skills.length}`);
+  lines.push(`${theme.success("✓")} ${theme.muted("Eligible:")} ${eligible.length}`);
+  lines.push(`${theme.warn("⏸")} ${theme.muted("Disabled:")} ${disabled.length}`);
+  lines.push(`${theme.warn("🚫")} ${theme.muted("Blocked by allowlist:")} ${blocked.length}`);
+  lines.push(`${theme.error("✗")} ${theme.muted("Missing requirements:")} ${missingReqs.length}`);
 
   if (eligible.length > 0) {
     lines.push("");
-    lines.push(theme.heading(t("skillsFormat.readyToUseHeading")));
+    lines.push(theme.heading("Ready to use:"));
     for (const skill of eligible) {
       const emoji = normalizeSkillEmoji(skill.emoji);
-      lines.push(`  ${emoji} ${skill.name}`);
+      lines.push(`  ${emoji} ${sanitizeForLog(skill.name)}`);
     }
   }
 
   if (missingReqs.length > 0) {
     lines.push("");
-    lines.push(theme.heading(t("skillsFormat.missingRequirementsHeading")));
+    lines.push(theme.heading("Missing requirements:"));
     for (const skill of missingReqs) {
       const emoji = normalizeSkillEmoji(skill.emoji);
       const missing = formatSkillMissingSummary(skill);
-      lines.push(`  ${emoji} ${skill.name} ${theme.muted(`(${missing})`)}`);
+      lines.push(`  ${emoji} ${sanitizeForLog(skill.name)} ${theme.muted(`(${missing})`)}`);
     }
   }
 

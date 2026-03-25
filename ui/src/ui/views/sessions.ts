@@ -53,18 +53,18 @@ export type SessionsProps = {
 const THINK_LEVELS = ["", "off", "minimal", "low", "medium", "high", "xhigh"] as const;
 const BINARY_THINK_LEVELS = ["", "off", "on"] as const;
 const VERBOSE_LEVELS = [
-  { value: "", label: "inherit" },
-  { value: "off", label: "offExplicit" },
-  { value: "on", label: "on" },
-  { value: "full", label: "full" },
+  { value: "", label: t("sessions.inherit") },
+  { value: "off", label: t("sessions.offExplicit") },
+  { value: "on", label: t("sessions.on") },
+  { value: "full", label: t("sessions.full") },
 ] as const;
-const FAST_LEVELS = [
-  { value: "", label: "inherit" },
-  { value: "on", label: "on" },
-  { value: "off", label: "off" },
+const _FAST_LEVELS = [
+  { value: "", label: t("sessions.inherit") },
+  { value: "on", label: t("sessions.on") },
+  { value: "off", label: t("sessions.off") },
 ] as const;
-const REASONING_LEVELS = ["", "off", "on", "stream"] as const;
-const PAGE_SIZES = [10, 25, 50, 100] as const;
+const _REASONING_LEVELS = ["", "off", "on", "stream"] as const;
+const _PAGE_SIZES = [10, 25, 50, 100] as const;
 
 const THINK_LEVEL_KEYS: Record<string, string> = {
   off: "thinkLevels.off",
@@ -90,13 +90,13 @@ const SESSION_KIND_KEYS: Record<string, string> = {
 };
 
 function translateThinkLevel(level: string): string {
-  if (!level) return t("sessions.inherit");
+  if (!level) {return t("sessions.inherit");}
   const key = THINK_LEVEL_KEYS[level];
   return key ? t(key) : level;
 }
 
 function translateReasoningLevel(level: string): string {
-  if (!level) return t("sessions.inherit");
+  if (!level) {return t("sessions.inherit");}
   const key = REASONING_LEVEL_KEYS[level];
   return key ? t(key) : level;
 }

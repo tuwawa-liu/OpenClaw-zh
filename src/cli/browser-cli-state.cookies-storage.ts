@@ -67,18 +67,14 @@ export function registerBrowserCookiesAndStorageCommands(
             targetId,
             profile,
           },
-          { timeoutMs: 20000 },
-        );
-        if (parent?.json) {
-          defaultRuntime.writeJson(result);
-          return;
-        }
-        defaultRuntime.writeJson(result.cookies ?? []);
-      } catch (err) {
-        defaultRuntime.error(danger(String(err)));
-        defaultRuntime.exit(1);
+        },
+        { timeoutMs: 20000 },
+      );
+      if (parent?.json) {
+        defaultRuntime.writeJson(result);
+        return;
       }
-      defaultRuntime.log(JSON.stringify(result.cookies ?? [], null, 2));
+      defaultRuntime.writeJson(result.cookies ?? []);
     } catch (err) {
       defaultRuntime.error(danger(String(err)));
       defaultRuntime.exit(1);

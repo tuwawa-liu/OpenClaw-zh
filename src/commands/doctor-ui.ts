@@ -38,24 +38,24 @@ export async function maybeRepairUiProtocolFreshness(
     ]);
 
     if (schemaStats && !uiStats) {
-      note(["- 控制面板 UI 资源缺失。", "- 运行：pnpm ui:build"].join("\n"), "UI");
+      note(["- Control UI assets are missing.", "- Run: pnpm ui:build"].join("\n"), "UI");
 
       // In slim/docker environments we may not have the UI source tree. Trying
       // to build would fail (and spam logs), so skip the interactive repair.
       const uiSourcesPath = path.join(root, "ui/package.json");
       const uiSourcesExist = await fs.stat(uiSourcesPath).catch(() => null);
       if (!uiSourcesExist) {
-        note("跳过 UI 构建：ui/ 源文件不存在。", "UI");
+        note("Skipping UI build: ui/ sources not present.", "UI");
         return;
       }
 
-      const shouldRepair = await prompter.confirmRepair({
-        message: "立即构建控制面板 UI 资源？",
+      const shouldRepair = await prompter.confirmAutoFix({
+        message: "Build Control UI assets now?",
         initialValue: true,
       });
 
       if (shouldRepair) {
-        note("正在构建控制面板 UI 资源...（可能需要一些时间）", "UI");
+        note("Building Control UI assets... (this may take a moment)", "UI");
         const uiScriptPath = path.join(root, "scripts/ui.js");
         const buildResult = await runCommandWithTimeout([process.execPath, uiScriptPath, "build"], {
           cwd: root,
@@ -63,7 +63,7 @@ export async function maybeRepairUiProtocolFreshness(
           env: { ...process.env, FORCE_COLOR: "1" },
         });
         if (buildResult.code === 0) {
-          note("UI 构建完成。", "UI");
+          note("UI build complete.", "UI");
         } else {
           const details = [
             `UI build failed (exit ${buildResult.code ?? "unknown"}).`,
@@ -107,8 +107,8 @@ export async function maybeRepairUiProtocolFreshness(
           "UI Freshness",
         );
 
-        const shouldRepair = await prompter.confirmAggressive({
-          message: "立即重建 UI？（检测到协议不匹配需要更新）",
+        const shouldRepair = await prompter.confirmAggressiveAutoFix({
+          message: "Rebuild UI now? (Detected protocol mismatch requiring update)",
           initialValue: true,
         });
 
@@ -116,11 +116,11 @@ export async function maybeRepairUiProtocolFreshness(
           const uiSourcesPath = path.join(root, "ui/package.json");
           const uiSourcesExist = await fs.stat(uiSourcesPath).catch(() => null);
           if (!uiSourcesExist) {
-            note("跳过 UI 重建：ui/ 源文件不存在。", "UI");
+            note("Skipping UI rebuild: ui/ sources not present.", "UI");
             return;
           }
 
-          note("正在重建过期 UI 资源...（可能需要一些时间）", "UI");
+          note("Rebuilding stale UI assets... (this may take a moment)", "UI");
           // Use scripts/ui.js to build, assuming node is available as we are running in it.
           // We use the same node executable to run the script.
           const uiScriptPath = path.join(root, "scripts/ui.js");
@@ -133,7 +133,7 @@ export async function maybeRepairUiProtocolFreshness(
             },
           );
           if (buildResult.code === 0) {
-            note("UI 重建完成。", "UI");
+            note("UI rebuild complete.", "UI");
           } else {
             const details = [
               `UI rebuild failed (exit ${buildResult.code ?? "unknown"}).`,

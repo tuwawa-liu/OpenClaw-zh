@@ -1,17 +1,14 @@
 import type { Command } from "commander";
 import type { CronJob } from "../../cron/types.js";
-import { t } from "../../i18n/index.js";
 import { sanitizeAgentId } from "../../routing/session-key.js";
 import { defaultRuntime } from "../../runtime.js";
 import type { GatewayRpcOpts } from "../gateway-rpc.js";
 import { addGatewayClientOptions, callGatewayFromCli } from "../gateway-rpc.js";
 import { parsePositiveIntOrUndefined } from "../program/helpers.js";
+import { resolveCronCreateSchedule } from "./schedule-options.js";
 import {
   getCronChannelOptions,
   handleCronCliError,
-  parseAt,
-  parseCronStaggerMs,
-  parseDurationMs,
   printCronJson,
   printCronList,
   warnIfCronSchedulerDisabled,
@@ -21,8 +18,8 @@ export function registerCronStatusCommand(cron: Command) {
   addGatewayClientOptions(
     cron
       .command("status")
-      .description(t("cronCli.statusDescription"))
-      .option("--json", t("cronCli.jsonOpt"), false)
+      .description("Show cron scheduler status")
+      .option("--json", "Output JSON", false)
       .action(async (opts) => {
         try {
           const res = await callGatewayFromCli("cron.status", opts, {});
@@ -38,9 +35,9 @@ export function registerCronListCommand(cron: Command) {
   addGatewayClientOptions(
     cron
       .command("list")
-      .description(t("cronCli.listDescription"))
-      .option("--all", t("cronCli.listAllOpt"), false)
-      .option("--json", t("cronCli.jsonOpt"), false)
+      .description("List cron jobs")
+      .option("--all", "Include disabled jobs", false)
+      .option("--json", "Output JSON", false)
       .action(async (opts) => {
         try {
           const res = await callGatewayFromCli("cron.list", opts, {
@@ -64,82 +61,60 @@ export function registerCronAddCommand(cron: Command) {
     cron
       .command("add")
       .alias("create")
-      .description(t("cronCli.addDescription"))
-      .requiredOption("--name <name>", t("cronCli.addNameOpt"))
-      .option("--description <text>", t("cronCli.addDescriptionOpt"))
-      .option("--disabled", t("cronCli.addDisabledOpt"), false)
-      .option("--delete-after-run", t("cronCli.addDeleteAfterRunOpt"), false)
-      .option("--keep-after-run", t("cronCli.addKeepAfterRunOpt"), false)
-      .option("--agent <id>", t("cronCli.addAgentOpt"))
-      .option("--session <target>", t("cronCli.addSessionOpt"))
-      .option("--session-key <key>", t("cronCli.addSessionKeyOpt"))
-      .option("--wake <mode>", t("cronCli.addWakeOpt"), "now")
-      .option("--at <when>", t("cronCli.addAtOpt"))
-      .option("--every <duration>", t("cronCli.addEveryOpt"))
-      .option("--cron <expr>", t("cronCli.addCronOpt"))
-      .option("--tz <iana>", t("cronCli.addTzOpt"), "")
-      .option("--stagger <duration>", t("cronCli.addStaggerOpt"))
-      .option("--exact", t("cronCli.addExactOpt"), false)
-      .option("--system-event <text>", t("cronCli.addSystemEventOpt"))
-      .option("--message <text>", t("cronCli.addMessageOpt"))
-      .option("--thinking <level>", t("cronCli.addThinkingOpt"))
-      .option("--model <model>", t("cronCli.addModelOpt"))
-      .option("--timeout-seconds <n>", t("cronCli.addTimeoutSecondsOpt"))
-      .option("--light-context", t("cronCli.addLightContextOpt"), false)
-      .option("--announce", t("cronCli.addAnnounceOpt"), false)
-      .option("--deliver", t("cronCli.addDeliverOpt"))
-      .option("--no-deliver", t("cronCli.addNoDeliverOpt"))
-      .option("--channel <channel>", `投递渠道 (${getCronChannelOptions()})`, "last")
-      .option("--to <dest>", t("cronCli.addToOpt"))
-      .option("--account <id>", t("cronCli.addAccountOpt"))
-      .option("--best-effort-deliver", t("cronCli.addBestEffortDeliverOpt"), false)
-      .option("--json", t("cronCli.jsonOpt"), false)
+      .description("Add a cron job")
+      .requiredOption("--name <name>", "Job name")
+      .option("--description <text>", "Optional description")
+      .option("--disabled", "Create job disabled", false)
+      .option("--delete-after-run", "Delete one-shot job after it succeeds", false)
+      .option("--keep-after-run", "Keep one-shot job after it succeeds", false)
+      .option("--agent <id>", "Agent id for this job")
+      .option("--session <target>", "Session target (main|isolated)")
+      .option("--session-key <key>", "Session key for job routing (e.g. agent:my-agent:my-session)")
+      .option("--wake <mode>", "Wake mode (now|next-heartbeat)", "now")
+      .option(
+        "--at <when>",
+        "Run once at time (ISO with offset, or +duration). Use --tz for offset-less datetimes",
+      )
+      .option("--every <duration>", "Run every duration (e.g. 10m, 1h)")
+      .option("--cron <expr>", "Cron expression (5-field or 6-field with seconds)")
+      .option("--tz <iana>", "Timezone for cron expressions (IANA)", "")
+      .option("--stagger <duration>", "Cron stagger window (e.g. 30s, 5m)")
+      .option("--exact", "Disable cron staggering (set stagger to 0)", false)
+      .option("--system-event <text>", "System event payload (main session)")
+      .option("--message <text>", "Agent message payload")
+      .option(
+        "--thinking <level>",
+        "Thinking level for agent jobs (off|minimal|low|medium|high|xhigh)",
+      )
+      .option("--model <model>", "Model override for agent jobs (provider/model or alias)")
+      .option("--timeout-seconds <n>", "Timeout seconds for agent jobs")
+      .option("--light-context", "Use lightweight bootstrap context for agent jobs", false)
+      .option("--announce", "Announce summary to a chat (subagent-style)", false)
+      .option("--deliver", "Deprecated (use --announce). Announces a summary to a chat.")
+      .option("--no-deliver", "Disable announce delivery and skip main-session summary")
+      .option("--channel <channel>", `Delivery channel (${getCronChannelOptions()})`, "last")
+      .option(
+        "--to <dest>",
+        "Delivery destination (E.164, Telegram chatId, or Discord channel/user)",
+      )
+      .option("--account <id>", "Channel account id for delivery (multi-account setups)")
+      .option("--best-effort-deliver", "Do not fail the job if delivery fails", false)
+      .option("--json", "Output JSON", false)
       .action(async (opts: GatewayRpcOpts & Record<string, unknown>, cmd?: Command) => {
         try {
-          const staggerRaw = typeof opts.stagger === "string" ? opts.stagger.trim() : "";
-          const useExact = Boolean(opts.exact);
-          if (staggerRaw && useExact) {
-            throw new Error("请选择 --stagger 或 --exact，不能同时使用");
-          }
-
-          const schedule = (() => {
-            const at = typeof opts.at === "string" ? opts.at : "";
-            const every = typeof opts.every === "string" ? opts.every : "";
-            const cronExpr = typeof opts.cron === "string" ? opts.cron : "";
-            const chosen = [Boolean(at), Boolean(every), Boolean(cronExpr)].filter(Boolean).length;
-            if (chosen !== 1) {
-              throw new Error("请选择一个调度方式：--at、--every 或 --cron");
-            }
-            if ((useExact || staggerRaw) && !cronExpr) {
-              throw new Error("--stagger/--exact 仅在使用 --cron 时有效");
-            }
-            if (at) {
-              const atIso = parseAt(at);
-              if (!atIso) {
-                throw new Error("无效的 --at；请使用 ISO 时间或持续时间如 20m");
-              }
-              return { kind: "at" as const, at: atIso };
-            }
-            if (every) {
-              const everyMs = parseDurationMs(every);
-              if (!everyMs) {
-                throw new Error("无效的 --every；请使用如 10m、1h、1d");
-              }
-              return { kind: "every" as const, everyMs };
-            }
-            const staggerMs = parseCronStaggerMs({ staggerRaw, useExact });
-            return {
-              kind: "cron" as const,
-              expr: cronExpr,
-              tz: typeof opts.tz === "string" && opts.tz.trim() ? opts.tz.trim() : undefined,
-              staggerMs,
-            };
-          })();
+          const schedule = resolveCronCreateSchedule({
+            at: opts.at,
+            cron: opts.cron,
+            every: opts.every,
+            exact: opts.exact,
+            stagger: opts.stagger,
+            tz: opts.tz,
+          });
 
           const wakeModeRaw = typeof opts.wake === "string" ? opts.wake : "now";
           const wakeMode = wakeModeRaw.trim() || "now";
           if (wakeMode !== "now" && wakeMode !== "next-heartbeat") {
-            throw new Error("--wake 必须为 now 或 next-heartbeat");
+            throw new Error("--wake must be now or next-heartbeat");
           }
 
           const agentId =
@@ -151,7 +126,7 @@ export function registerCronAddCommand(cron: Command) {
           const hasNoDeliver = opts.deliver === false;
           const deliveryFlagCount = [hasAnnounce, hasNoDeliver].filter(Boolean).length;
           if (deliveryFlagCount > 1) {
-            throw new Error("请最多选择 --announce 或 --no-deliver 之一");
+            throw new Error("Choose at most one of --announce or --no-deliver");
           }
 
           const payload = (() => {
@@ -159,7 +134,7 @@ export function registerCronAddCommand(cron: Command) {
             const message = typeof opts.message === "string" ? opts.message.trim() : "";
             const chosen = [Boolean(systemEvent), Boolean(message)].filter(Boolean).length;
             if (chosen !== 1) {
-              throw new Error("请选择一个载荷：--system-event 或 --message");
+              throw new Error("Choose exactly one payload: --system-event or --message");
             }
             if (systemEvent) {
               return { kind: "systemEvent" as const, text: systemEvent };
@@ -195,24 +170,24 @@ export function registerCronAddCommand(cron: Command) {
           const isIsolatedLikeSessionTarget =
             sessionTarget === "isolated" || sessionTarget === "current" || isCustomSessionTarget;
           if (sessionTarget !== "main" && !isIsolatedLikeSessionTarget) {
-            throw new Error("--session 必须为 main、isolated、current 或 session:<id>");
+            throw new Error("--session must be main, isolated, current, or session:<id>");
           }
 
           if (opts.deleteAfterRun && opts.keepAfterRun) {
-            throw new Error("请选择 --delete-after-run 或 --keep-after-run，不能同时使用");
+            throw new Error("Choose --delete-after-run or --keep-after-run, not both");
           }
 
           if (sessionTarget === "main" && payload.kind !== "systemEvent") {
-            throw new Error("主任务需要 --system-event (systemEvent)。");
+            throw new Error("Main jobs require --system-event (systemEvent).");
           }
           if (isIsolatedLikeSessionTarget && payload.kind !== "agentTurn") {
-            throw new Error("隔离/当前/自定义会话任务需要 --message (agentTurn)。");
+            throw new Error("Isolated/current/custom-session jobs require --message (agentTurn).");
           }
           if (
             (opts.announce || typeof opts.deliver === "boolean") &&
             (!isIsolatedLikeSessionTarget || payload.kind !== "agentTurn")
           ) {
-            throw new Error("--announce/--no-deliver 需要非 main 的 agentTurn 会话目标。");
+            throw new Error("--announce/--no-deliver require a non-main agentTurn session target.");
           }
 
           const accountId =
@@ -221,7 +196,7 @@ export function registerCronAddCommand(cron: Command) {
               : undefined;
 
           if (accountId && (!isIsolatedLikeSessionTarget || payload.kind !== "agentTurn")) {
-            throw new Error("--account 需要非 main 的带投递功能的 agentTurn 任务。");
+            throw new Error("--account requires a non-main agentTurn job with delivery.");
           }
 
           const deliveryMode =
@@ -236,7 +211,7 @@ export function registerCronAddCommand(cron: Command) {
           const nameRaw = typeof opts.name === "string" ? opts.name : "";
           const name = nameRaw.trim();
           if (!name) {
-            throw new Error("--name 为必填项");
+            throw new Error("--name is required");
           }
 
           const description =

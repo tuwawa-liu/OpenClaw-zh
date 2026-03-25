@@ -34,7 +34,7 @@ export type AgentToolSection = {
 export const FALLBACK_TOOL_SECTIONS: AgentToolSection[] = [
   {
     id: "fs",
-    label: "Files",
+    label: t("agentToolCatalog.filesCategory"),
     tools: [
       { id: "read", label: "read", description: "Read file contents" },
       { id: "write", label: "write", description: "Create or overwrite files" },
@@ -44,7 +44,7 @@ export const FALLBACK_TOOL_SECTIONS: AgentToolSection[] = [
   },
   {
     id: "runtime",
-    label: "Runtime",
+    label: t("agentToolCatalog.runtimeCategory"),
     tools: [
       { id: "exec", label: "exec", description: "Run shell commands" },
       { id: "process", label: "process", description: "Manage background processes" },
@@ -52,7 +52,7 @@ export const FALLBACK_TOOL_SECTIONS: AgentToolSection[] = [
   },
   {
     id: "web",
-    label: "Web",
+    label: t("agentToolCatalog.webCategory"),
     tools: [
       { id: "web_search", label: "web_search", description: "Search the web" },
       { id: "web_fetch", label: "web_fetch", description: "Fetch web content" },
@@ -60,7 +60,7 @@ export const FALLBACK_TOOL_SECTIONS: AgentToolSection[] = [
   },
   {
     id: "memory",
-    label: "Memory",
+    label: t("agentToolCatalog.memoryCategory"),
     tools: [
       { id: "memory_search", label: "memory_search", description: "Semantic search" },
       { id: "memory_get", label: "memory_get", description: "Read memory files" },
@@ -68,7 +68,7 @@ export const FALLBACK_TOOL_SECTIONS: AgentToolSection[] = [
   },
   {
     id: "sessions",
-    label: "Sessions",
+    label: t("agentToolCatalog.sessionsCategory"),
     tools: [
       { id: "sessions_list", label: "sessions_list", description: "List sessions" },
       { id: "sessions_history", label: "sessions_history", description: "Session history" },
@@ -79,7 +79,7 @@ export const FALLBACK_TOOL_SECTIONS: AgentToolSection[] = [
   },
   {
     id: "ui",
-    label: "UI",
+    label: t("agentToolCatalog.uiCategory"),
     tools: [
       { id: "browser", label: "browser", description: "Control web browser" },
       { id: "canvas", label: "canvas", description: "Control canvases" },
@@ -87,12 +87,12 @@ export const FALLBACK_TOOL_SECTIONS: AgentToolSection[] = [
   },
   {
     id: "messaging",
-    label: "Messaging",
+    label: t("agentToolCatalog.messagingCategory"),
     tools: [{ id: "message", label: "message", description: "Send messages" }],
   },
   {
     id: "automation",
-    label: "Automation",
+    label: t("agentToolCatalog.automationCategory"),
     tools: [
       { id: "cron", label: "cron", description: "Schedule tasks" },
       { id: "gateway", label: "gateway", description: "Gateway control" },
@@ -100,26 +100,26 @@ export const FALLBACK_TOOL_SECTIONS: AgentToolSection[] = [
   },
   {
     id: "nodes",
-    label: "Nodes",
+    label: t("agentToolCatalog.nodesCategory"),
     tools: [{ id: "nodes", label: "nodes", description: "Nodes + devices" }],
   },
   {
     id: "agents",
-    label: "Agents",
+    label: t("agentToolCatalog.agentsCategory"),
     tools: [{ id: "agents_list", label: "agents_list", description: "List agents" }],
   },
   {
     id: "media",
-    label: "Media",
+    label: t("agentToolCatalog.mediaCategory"),
     tools: [{ id: "image", label: "image", description: "Image understanding" }],
   },
 ];
 
 export const PROFILE_OPTIONS = [
-  { id: "minimal", label: "Minimal" },
-  { id: "coding", label: "Coding" },
-  { id: "messaging", label: "Messaging" },
-  { id: "full", label: "Full" },
+  { id: "minimal", label: t("agentToolCatalog.minimalPreset") },
+  { id: "coding", label: t("agentToolCatalog.codingPreset") },
+  { id: "messaging", label: t("agentToolCatalog.messagingPreset") },
+  { id: "full", label: t("agentToolCatalog.fullPreset") },
 ] as const;
 
 export function resolveToolSections(
@@ -339,7 +339,7 @@ export function buildAgentContext(
     agent.name?.trim() ||
     config.entry?.name ||
     agent.id;
-  const identityAvatar = resolveAgentAvatarUrl(agent, agentIdentity) ? "custom" : "—";
+  const _identityAvatar = resolveAgentAvatarUrl(agent, agentIdentity) ? "custom" : "—";
   const skillFilter = Array.isArray(config.entry?.skills) ? config.entry?.skills : null;
   const skillCount = skillFilter?.length ?? null;
   return {

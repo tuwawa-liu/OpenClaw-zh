@@ -1,9 +1,10 @@
 import { getSafeLocalStorage } from "../../local-storage.ts";
-import { en } from "../locales/en.ts";
+import { zh_CN } from "../locales/zh-CN.ts";
 import {
   DEFAULT_LOCALE,
   SUPPORTED_LOCALES,
   isSupportedLocale,
+  resolveNavigatorLocale,
 } from "./registry.ts";
 import type { Locale, TranslationMap } from "./types.ts";
 
@@ -69,8 +70,10 @@ class I18nManager {
     return this.locale;
   }
 
-  public async setLocale(_locale: Locale) {
-    // 只有中文，无需切换
+  public async setLocale(locale: Locale) {
+    // 只有中文，无需切换语言，但需要通知订阅者
+    this.locale = locale;
+    this.subscribers.forEach((sub) => sub(locale));
   }
 
   public subscribe(sub: Subscriber) {

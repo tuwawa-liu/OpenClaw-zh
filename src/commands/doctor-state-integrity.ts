@@ -15,17 +15,13 @@ import {
   resolveSessionTranscriptsDirForAgent,
   resolveStorePath,
 } from "../config/sessions.js";
-import { t } from "../i18n/index.js";
 import { resolveRequiredHomeDir } from "../infra/home-dir.js";
 import { parseAgentSessionKey } from "../sessions/session-key-utils.js";
 import { note } from "../terminal/note.js";
 import { shortenHomePath } from "../utils.js";
 
 type DoctorPrompterLike = {
-  confirmSkipInNonInteractive: (params: {
-    message: string;
-    initialValue?: boolean;
-  }) => Promise<boolean>;
+  confirmRuntimeRepair: (params: { message: string; initialValue?: boolean }) => Promise<boolean>;
 };
 
 function countLabel(count: number, singular: string, plural = `${singular}s`): string {
@@ -368,9 +364,9 @@ export function formatLinuxSdBackedStateDirWarning(
   const safeFsType = escapeControlCharsForTerminal(linuxSdBackedStateDir.fsType);
   const safeMountPoint = escapeControlCharsForTerminal(displayMountPoint);
   return [
-    t("commands.doctorStateIntegrity.sdBackedStorage"),
-    t("commands.doctorStateIntegrity.sdStorageSlow"),
-    t("commands.doctorStateIntegrity.preferSsd"),
+    `- State directory appears to be on SD/eMMC storage (${displayStateDir}; device ${safeSource}, fs ${safeFsType}, mount ${safeMountPoint}).`,
+    "- SD/eMMC media can be slower for random I/O and wear faster under session/log churn.",
+    "- For better startup and state durability, prefer SSD/NVMe (or USB SSD on Raspberry Pi) for OPENCLAW_STATE_DIR.",
   ].join("\n");
 }
 
@@ -510,9 +506,9 @@ export async function noteStateIntegrity(
   if (cloudSyncedStateDir) {
     warnings.push(
       [
-        t("commands.doctorStateIntegrity.cloudSynced", { dir: displayStateDir, detail: cloudSyncedStateDir.storage }),
-        t("commands.doctorStateIntegrity.cloudSyncedIo"),
-        t("commands.doctorStateIntegrity.preferLocal"),
+        `- State directory is under macOS cloud-synced storage (${displayStateDir}; ${cloudSyncedStateDir.storage}).`,
+        "- This can cause slow I/O and sync/lock races for sessions and credentials.",
+        "- Prefer a local non-synced state dir (for example: ~/.openclaw).",
         `  Set locally: OPENCLAW_STATE_DIR=~/.openclaw ${formatCliCommand("openclaw doctor")}`,
       ].join("\n"),
     );
@@ -524,15 +520,15 @@ export async function noteStateIntegrity(
   let stateDirExists = existsDir(stateDir);
   if (!stateDirExists) {
     warnings.push(
-      t("commands.doctorStateIntegrity.stateDirMissing", { dir: displayStateDir }),
+      `- CRITICAL: state directory missing (${displayStateDir}). Sessions, credentials, logs, and config are stored there.`,
     );
     if (cfg.gateway?.mode === "remote") {
       warnings.push(
-        t("commands.doctorStateIntegrity.remoteGatewayHint"),
+        "- Gateway is in remote mode; run doctor on the remote host where the gateway runs.",
       );
     }
-    const create = await prompter.confirmSkipInNonInteractive({
-      message: t("commands.doctorStateIntegrity.createStateDirPrompt", { dir: displayStateDir }),
+    const create = await prompter.confirmRuntimeRepair({
+      message: `Create ${displayStateDir} now?`,
       initialValue: false,
     });
     if (create) {
@@ -541,19 +537,19 @@ export async function noteStateIntegrity(
         changes.push(`- Created ${displayStateDir}`);
         stateDirExists = true;
       } else {
-        warnings.push(t("commands.doctorStateIntegrity.failedCreateStateDir", { dir: displayStateDir, error: created.error }));
+        warnings.push(`- Failed to create ${displayStateDir}: ${created.error}`);
       }
     }
   }
 
   if (stateDirExists && !canWriteDir(stateDir)) {
-    warnings.push(t("commands.doctorStateIntegrity.stateDirNotWritable", { dir: displayStateDir }));
+    warnings.push(`- State directory not writable (${displayStateDir}).`);
     const hint = dirPermissionHint(stateDir);
     if (hint) {
       warnings.push(`  ${hint}`);
     }
-    const repair = await prompter.confirmSkipInNonInteractive({
-      message: t("commands.doctorStateIntegrity.repairPermissionsPrompt", { dir: displayStateDir }),
+    const repair = await prompter.confirmRuntimeRepair({
+      message: `Repair permissions on ${displayStateDir}?`,
       initialValue: true,
     });
     if (repair) {
@@ -579,10 +575,10 @@ export async function noteStateIntegrity(
       const isImmutableStore = resolvedDir.startsWith("/nix/store/");
       if (!isImmutableStore && (stat.mode & 0o077) !== 0) {
         warnings.push(
-          t("commands.doctorStateIntegrity.stateDirTooOpen", { dir: displayStateDir }),
+          `- State directory permissions are too open (${displayStateDir}). Recommend chmod 700.`,
         );
-        const tighten = await prompter.confirmSkipInNonInteractive({
-          message: t("commands.doctorStateIntegrity.tightenPermissionsPrompt", { dir: displayStateDir }),
+        const tighten = await prompter.confirmRuntimeRepair({
+          message: `Tighten permissions on ${displayStateDir} to 700?`,
           initialValue: true,
         });
         if (tighten) {
@@ -591,7 +587,7 @@ export async function noteStateIntegrity(
         }
       }
     } catch (err) {
-      warnings.push(t("commands.doctorStateIntegrity.failedReadPermissions", { dir: displayStateDir, error: String(err) }));
+      warnings.push(`- Failed to read ${displayStateDir} permissions: ${String(err)}`);
     }
   }
 
@@ -606,10 +602,10 @@ export async function noteStateIntegrity(
       const isImmutableConfig = resolvedConfig.startsWith("/nix/store/");
       if (!isImmutableConfig && (stat.mode & 0o077) !== 0) {
         warnings.push(
-          t("commands.doctorStateIntegrity.configFileReadable", { path: displayConfigPath ?? configPath }),
+          `- Config file is group/world readable (${displayConfigPath ?? configPath}). Recommend chmod 600.`,
         );
-        const tighten = await prompter.confirmSkipInNonInteractive({
-          message: t("commands.doctorStateIntegrity.tightenConfigPrompt", { path: displayConfigPath ?? configPath }),
+        const tighten = await prompter.confirmRuntimeRepair({
+          message: `Tighten permissions on ${displayConfigPath ?? configPath} to 600?`,
           initialValue: true,
         });
         if (tighten) {
@@ -619,7 +615,7 @@ export async function noteStateIntegrity(
       }
     } catch (err) {
       warnings.push(
-        t("commands.doctorStateIntegrity.failedReadConfig", { path: displayConfigPath ?? configPath, error: String(err) }),
+        `- Failed to read config permissions (${displayConfigPath ?? configPath}): ${String(err)}`,
       );
     }
   }
@@ -632,7 +628,7 @@ export async function noteStateIntegrity(
       dirCandidates.set(oauthDir, "OAuth dir");
     } else if (!existsDir(oauthDir)) {
       warnings.push(
-        t("commands.doctorStateIntegrity.oauthDirSkipped", { dir: displayOauthDir }),
+        `- OAuth dir not present (${displayOauthDir}). Skipping create because no WhatsApp/pairing channel config is active.`,
       );
     }
     const displayDirFor = (dir: string) => {
@@ -651,9 +647,9 @@ export async function noteStateIntegrity(
     for (const [dir, label] of dirCandidates) {
       const displayDir = displayDirFor(dir);
       if (!existsDir(dir)) {
-        warnings.push(t("commands.doctorStateIntegrity.criticalMissing", { label, dir: displayDir }));
-        const create = await prompter.confirmSkipInNonInteractive({
-          message: t("commands.doctorStateIntegrity.createDirPrompt", { label, dir: displayDir }),
+        warnings.push(`- CRITICAL: ${label} missing (${displayDir}).`);
+        const create = await prompter.confirmRuntimeRepair({
+          message: `Create ${label} at ${displayDir}?`,
           initialValue: true,
         });
         if (create) {
@@ -661,19 +657,19 @@ export async function noteStateIntegrity(
           if (created.ok) {
             changes.push(`- Created ${label}: ${displayDir}`);
           } else {
-            warnings.push(t("commands.doctorStateIntegrity.failedCreate", { dir: displayDir, error: created.error }));
+            warnings.push(`- Failed to create ${displayDir}: ${created.error}`);
           }
         }
         continue;
       }
       if (!canWriteDir(dir)) {
-        warnings.push(t("commands.doctorStateIntegrity.notWritable", { label, dir: displayDir }));
+        warnings.push(`- ${label} not writable (${displayDir}).`);
         const hint = dirPermissionHint(dir);
         if (hint) {
           warnings.push(`  ${hint}`);
         }
-        const repair = await prompter.confirmSkipInNonInteractive({
-          message: t("commands.doctorStateIntegrity.repairDirPrompt", { label }),
+        const repair = await prompter.confirmRuntimeRepair({
+          message: `Repair permissions on ${label}?`,
           initialValue: true,
         });
         if (repair) {
@@ -702,9 +698,9 @@ export async function noteStateIntegrity(
   if (extraStateDirs.size > 0) {
     warnings.push(
       [
-        t("commands.doctorStateIntegrity.multipleStateDirs"),
+        "- Multiple state directories detected. This can split session history.",
         ...Array.from(extraStateDirs).map((dir) => `  - ${shortenHomePath(dir)}`),
-        t("commands.doctorStateIntegrity.activeStateDir", { dir: displayStateDir }),
+        `  Active state dir: ${displayStateDir}`,
       ].join("\n"),
     );
   }
@@ -733,7 +729,7 @@ export async function noteStateIntegrity(
     if (missing.length > 0) {
       warnings.push(
         [
-          t("commands.doctorStateIntegrity.missingTranscripts", { missing: missing.length, total: recentTranscriptCandidates.length }),
+          `- ${missing.length}/${recentTranscriptCandidates.length} recent sessions are missing transcripts.`,
           `  Verify sessions in store: ${formatCliCommand(`openclaw sessions --store "${absoluteStorePath}"`)}`,
           `  Preview cleanup impact: ${formatCliCommand(`openclaw sessions cleanup --store "${absoluteStorePath}" --dry-run`)}`,
           `  Prune missing entries: ${formatCliCommand(`openclaw sessions cleanup --store "${absoluteStorePath}" --enforce --fix-missing`)}`,
@@ -751,13 +747,13 @@ export async function noteStateIntegrity(
       );
       if (!existsFile(transcriptPath)) {
         warnings.push(
-          t("commands.doctorStateIntegrity.mainTranscriptMissing", { path: shortenHomePath(transcriptPath) }),
+          `- Main session transcript missing (${shortenHomePath(transcriptPath)}). History will appear to reset.`,
         );
       } else {
         const lineCount = countJsonlLines(transcriptPath);
         if (lineCount <= 1) {
           warnings.push(
-            t("commands.doctorStateIntegrity.mainTranscriptLowLines", { count: lineCount }),
+            `- Main session transcript has only ${lineCount} line. Session history may not be appending.`,
           );
         }
       }
@@ -794,7 +790,7 @@ export async function noteStateIntegrity(
           `  Examples: ${orphanPreview}`,
         ].join("\n"),
       );
-      const archiveOrphans = await prompter.confirmSkipInNonInteractive({
+      const archiveOrphans = await prompter.confirmRuntimeRepair({
         message: `Archive ${orphanCount} in ${displaySessionsDir}? This only renames them to *.deleted.<timestamp>.`,
         initialValue: false,
       });
@@ -808,7 +804,7 @@ export async function noteStateIntegrity(
             archived += 1;
           } catch (err) {
             warnings.push(
-              t("commands.doctorStateIntegrity.failedArchive", { path: shortenHomePath(orphanPath), error: String(err) }),
+              `- Failed to archive orphan transcript ${shortenHomePath(orphanPath)}: ${String(err)}`,
             );
           }
         }
@@ -822,10 +818,10 @@ export async function noteStateIntegrity(
   }
 
   if (warnings.length > 0) {
-    note(warnings.join("\n"), t("commands.doctorStateIntegrity.title"));
+    note(warnings.join("\n"), "State integrity");
   }
   if (changes.length > 0) {
-    note(changes.join("\n"), t("commands.doctorStateIntegrity.titleDoctorChanges"));
+    note(changes.join("\n"), "Doctor changes");
   }
 }
 
@@ -839,10 +835,10 @@ export function noteWorkspaceBackupTip(workspaceDir: string) {
   }
   note(
     [
-      t("commands.doctorStateIntegrity.backupTip"),
-      t("commands.doctorStateIntegrity.keepOutOfGit"),
-      t("commands.doctorStateIntegrity.backupDetails"),
+      "- Tip: back up the workspace in a private git repo (GitHub or GitLab).",
+      "- Keep ~/.openclaw out of git; it contains credentials and session history.",
+      "- Details: /concepts/agent-workspace#git-backup-recommended",
     ].join("\n"),
-    t("commands.doctorStateIntegrity.titleWorkspace"),
+    "Workspace",
   );
 }

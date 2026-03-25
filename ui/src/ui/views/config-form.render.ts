@@ -1,5 +1,4 @@
 import { html, nothing } from "lit";
-import { t } from "../../i18n/index.ts";
 import { icons } from "../icons.ts";
 import type { ConfigUiHints } from "../types.ts";
 import { matchesNodeSearch, parseConfigSearchQuery, renderNode } from "./config-form.node.ts";
@@ -232,6 +231,40 @@ const sectionIcons = {
       <path d="m19.07 10.93-4.24 4.24"></path>
     </svg>
   `,
+  diagnostics: html`
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+    </svg>
+  `,
+  cli: html`
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <polyline points="4 17 10 11 4 5"></polyline>
+      <line x1="12" y1="19" x2="20" y2="19"></line>
+    </svg>
+  `,
+  secrets: html`
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path
+        d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"
+      ></path>
+    </svg>
+  `,
+  acp: html`
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+      <circle cx="9" cy="7" r="4"></circle>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+    </svg>
+  `,
+  mcp: html`
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+      <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+      <line x1="6" y1="6" x2="6.01" y2="6"></line>
+      <line x1="6" y1="18" x2="6.01" y2="18"></line>
+    </svg>
+  `,
   default: html`
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -243,39 +276,50 @@ const sectionIcons = {
 // Section metadata
 export const SECTION_META: Record<string, { label: string; description: string }> = {
   env: {
-    label: "环境变量",
-    description: "传递给网关进程的环境变量",
+    label: "Environment Variables",
+    description: "Environment variables passed to the gateway process",
   },
-  update: { label: "更新", description: "自动更新设置和发布渠道" },
-  agents: { label: "智能体", description: "智能体配置、模型和身份" },
-  auth: { label: "认证", description: "API 密钥和认证配置" },
+  update: { label: "Updates", description: "Auto-update settings and release channel" },
+  agents: { label: "Agents", description: "Agent configurations, models, and identities" },
+  auth: { label: "Authentication", description: "API keys and authentication profiles" },
   channels: {
-    label: "频道",
-    description: "消息频道（Telegram、Discord、Slack 等）",
+    label: "Channels",
+    description: "Messaging channels (Telegram, Discord, Slack, etc.)",
   },
-  messages: { label: "消息", description: "消息处理和路由设置" },
-  commands: { label: "命令", description: "自定义斜杠命令" },
-  hooks: { label: "钩子", description: "Webhook 和事件钩子" },
-  skills: { label: "技能", description: "技能包和能力" },
-  tools: { label: "工具", description: "工具配置（浏览器、搜索等）" },
-  gateway: { label: "网关", description: "网关服务器设置（端口、认证、绑定）" },
-  wizard: { label: "设置向导", description: "设置向导状态和历史" },
+  messages: { label: "Messages", description: "Message handling and routing settings" },
+  commands: { label: "Commands", description: "Custom slash commands" },
+  hooks: { label: "Hooks", description: "Webhooks and event hooks" },
+  skills: { label: "Skills", description: "Skill packs and capabilities" },
+  tools: { label: "Tools", description: "Tool configurations (browser, search, etc.)" },
+  gateway: { label: "Gateway", description: "Gateway server settings (port, auth, binding)" },
+  wizard: { label: "Setup Wizard", description: "Setup wizard state and history" },
   // Additional sections
-  meta: { label: "元数据", description: "网关元数据和版本信息" },
-  logging: { label: "日志", description: "日志级别和输出配置" },
-  browser: { label: "浏览器", description: "浏览器自动化设置" },
-  ui: { label: "界面", description: "用户界面偏好设置" },
-  models: { label: "模型", description: "AI 模型配置和提供商" },
-  bindings: { label: "绑定", description: "按键绑定和快捷键" },
-  broadcast: { label: "广播", description: "广播和通知设置" },
-  audio: { label: "音频", description: "音频输入/输出设置" },
-  session: { label: "会话", description: "会话管理和持久化" },
-  cron: { label: "定时任务", description: "定时任务和自动化" },
-  web: { label: "Web", description: "Web 服务器和 API 设置" },
-  discovery: { label: "服务发现", description: "服务发现和网络" },
-  canvasHost: { label: "画布宿主", description: "画布渲染和显示" },
-  talk: { label: "语音", description: "语音和语音设置" },
-  plugins: { label: "插件", description: "插件管理和扩展" },
+  meta: { label: "Metadata", description: "Gateway metadata and version information" },
+  logging: { label: "Logging", description: "Log levels and output configuration" },
+  browser: { label: "Browser", description: "Browser automation settings" },
+  ui: { label: "UI", description: "User interface preferences" },
+  models: { label: "Models", description: "AI model configurations and providers" },
+  bindings: { label: "Bindings", description: "Key bindings and shortcuts" },
+  broadcast: { label: "Broadcast", description: "Broadcast and notification settings" },
+  audio: { label: "Audio", description: "Audio input/output settings" },
+  session: { label: "Session", description: "Session management and persistence" },
+  cron: { label: "Cron", description: "Scheduled tasks and automation" },
+  web: { label: "Web", description: "Web server and API settings" },
+  discovery: { label: "Discovery", description: "Service discovery and networking" },
+  canvasHost: { label: "Canvas Host", description: "Canvas rendering and display" },
+  talk: { label: "Talk", description: "Voice and speech settings" },
+  plugins: { label: "Plugins", description: "Plugin management and extensions" },
+  diagnostics: {
+    label: "Diagnostics",
+    description: "Instrumentation, OpenTelemetry, and cache-trace settings",
+  },
+  cli: { label: "CLI", description: "CLI banner and startup behavior" },
+  secrets: { label: "Secrets", description: "Secret provider configuration" },
+  acp: {
+    label: "ACP",
+    description: "Agent Communication Protocol runtime and streaming settings",
+  },
+  mcp: { label: "MCP", description: "Model Context Protocol server definitions" },
 };
 
 function getSectionIcon(key: string) {
@@ -317,14 +361,14 @@ function matchesSearch(params: {
 export function renderConfigForm(props: ConfigFormProps) {
   if (!props.schema) {
     return html`
-      <div class="muted">${t("configForm.schemaUnavailable")}</div>
+      <div class="muted">Schema unavailable.</div>
     `;
   }
   const schema = props.schema;
   const value = props.value ?? {};
   if (schemaType(schema) !== "object" || !schema.properties) {
     return html`
-      <div class="callout danger">${t("configForm.unsupportedSchema")}</div>
+      <div class="callout danger">Unsupported schema. Use Raw.</div>
     `;
   }
   const unsupported = new Set(props.unsupportedPaths ?? []);
@@ -385,7 +429,7 @@ export function renderConfigForm(props: ConfigFormProps) {
       <div class="config-empty">
         <div class="config-empty__icon">${icons.search}</div>
         <div class="config-empty__text">
-          ${searchQuery ? `${t("configForm.noSettingsMatch")} "${searchQuery}"` : t("configForm.noSettingsMatch")}
+          ${searchQuery ? `No settings match "${searchQuery}"` : "No settings in this section"}
         </div>
       </div>
     `;
