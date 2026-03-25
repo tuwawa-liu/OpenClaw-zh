@@ -74,7 +74,7 @@ IRC 频道有两个独立的"门控"：
 
 示例（允许 `#tuirc-dev` 中的任何人与机器人对话）：
 
-```json55
+```json5
 {
   channels: {
     irc: {
@@ -95,7 +95,7 @@ IRC 频道有两个独立的"门控"：
 
 要使机器人在 IRC 频道中 **无需提及即可回复**，请为该频道禁用提及门控：
 
-```json55
+```json5
 {
   channels: {
     irc: {
@@ -113,7 +113,7 @@ IRC 频道有两个独立的"门控"：
 
 或者允许 **所有** IRC 频道（不使用按频道白名单）且无需提及即可回复：
 
-```json55
+```json5
 {
   channels: {
     irc: {
@@ -133,7 +133,7 @@ IRC 频道有两个独立的"门控"：
 
 ### 频道中所有人使用相同工具
 
-```json55
+```json5
 {
   channels: {
     irc: {
@@ -141,14 +141,7 @@ IRC 频道有两个独立的"门控"：
         "#tuirc-dev": {
           allowFrom: ["*"],
           tools: {
-            deny: [
-              "group:runtime",
-              "group:fs",
-              "gateway",
-              "nodes",
-              "cron",
-              "browser",
-            ],
+            deny: ["group:runtime", "group:fs", "gateway", "nodes", "cron", "browser"],
           },
         },
       },
@@ -161,7 +154,7 @@ IRC 频道有两个独立的"门控"：
 
 使用 `toolsBySender` 为 `"*"` 应用更严格的策略，为你的昵称应用更宽松的策略：
 
-```json55
+```json5
 {
   channels: {
     irc: {
@@ -170,14 +163,7 @@ IRC 频道有两个独立的"门控"：
           allowFrom: ["*"],
           toolsBySender: {
             "*": {
-              deny: [
-                "group:runtime",
-                "group:fs",
-                "gateway",
-                "nodes",
-                "cron",
-                "browser",
-              ],
+              deny: ["group:runtime", "group:fs", "gateway", "nodes", "cron", "browser"],
             },
             "id:eigen": {
               deny: ["gateway", "nodes", "cron"],

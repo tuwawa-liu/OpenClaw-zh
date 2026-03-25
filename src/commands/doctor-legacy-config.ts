@@ -12,6 +12,7 @@ import {
 } from "../config/discord-preview-streaming.js";
 import { migrateLegacyWebSearchConfig } from "../config/legacy-web-search.js";
 import { DEFAULT_TALK_PROVIDER, normalizeTalkSection } from "../config/talk.js";
+import { DEFAULT_GOOGLE_API_BASE_URL } from "../infra/google-api-base-url.js";
 import { DEFAULT_ACCOUNT_ID } from "../routing/session-key.js";
 
 export function normalizeCompatibilityConfigValues(cfg: OpenClawConfig): {
@@ -64,7 +65,9 @@ export function normalizeCompatibilityConfigValues(cfg: OpenClawConfig): {
         if (dm) {
           delete dm.policy;
           dmChanged = true;
-          changes.push(t("commands.doctorLegacyConfig.removedDmPolicy", { prefix: params.pathPrefix }));
+          changes.push(
+            t("commands.doctorLegacyConfig.removedDmPolicy", { prefix: params.pathPrefix }),
+          );
         }
       }
     }
@@ -78,13 +81,17 @@ export function normalizeCompatibilityConfigValues(cfg: OpenClawConfig): {
         delete dm.allowFrom;
         dmChanged = true;
       }
-      changes.push(t("commands.doctorLegacyConfig.movedDmAllowFrom", { prefix: params.pathPrefix }));
+      changes.push(
+        t("commands.doctorLegacyConfig.movedDmAllowFrom", { prefix: params.pathPrefix }),
+      );
     } else if (topAllowFrom !== undefined && legacyAllowFrom !== undefined) {
       if (allowFromEqual(topAllowFrom, legacyAllowFrom)) {
         if (dm) {
           delete dm.allowFrom;
           dmChanged = true;
-          changes.push(t("commands.doctorLegacyConfig.removedDmAllowFrom", { prefix: params.pathPrefix }));
+          changes.push(
+            t("commands.doctorLegacyConfig.removedDmAllowFrom", { prefix: params.pathPrefix }),
+          );
         }
       }
     }
@@ -96,7 +103,9 @@ export function normalizeCompatibilityConfigValues(cfg: OpenClawConfig): {
           const { dm: _ignored, ...rest } = updated;
           updated = rest;
           changed = true;
-          changes.push(t("commands.doctorLegacyConfig.removedEmptyDm", { prefix: params.pathPrefix }));
+          changes.push(
+            t("commands.doctorLegacyConfig.removedEmptyDm", { prefix: params.pathPrefix }),
+          );
         }
       } else {
         updated = { ...updated, dm };
@@ -138,10 +147,19 @@ export function normalizeCompatibilityConfigValues(cfg: OpenClawConfig): {
       );
     }
     if (typeof beforeStreaming === "boolean") {
-      changes.push(t("commands.doctorLegacyConfig.normalizedStreamingBool", { prefix: params.pathPrefix, resolved }));
+      changes.push(
+        t("commands.doctorLegacyConfig.normalizedStreamingBool", {
+          prefix: params.pathPrefix,
+          resolved,
+        }),
+      );
     } else if (typeof beforeStreaming === "string" && beforeStreaming !== resolved) {
       changes.push(
-        t("commands.doctorLegacyConfig.normalizedStreamingEnum", { prefix: params.pathPrefix, before: beforeStreaming, resolved }),
+        t("commands.doctorLegacyConfig.normalizedStreamingEnum", {
+          prefix: params.pathPrefix,
+          before: beforeStreaming,
+          resolved,
+        }),
       );
     }
     if (
@@ -200,7 +218,11 @@ export function normalizeCompatibilityConfigValues(cfg: OpenClawConfig): {
       );
     } else if (typeof legacyStreaming === "string" && legacyStreaming !== resolvedStreaming) {
       changes.push(
-        t("commands.doctorLegacyConfig.normalizedStreamingEnum", { prefix: params.pathPrefix, before: legacyStreaming, resolved: resolvedStreaming }),
+        t("commands.doctorLegacyConfig.normalizedStreamingEnum", {
+          prefix: params.pathPrefix,
+          before: legacyStreaming,
+          resolved: resolvedStreaming,
+        }),
       );
     }
 
@@ -423,9 +445,7 @@ export function normalizeCompatibilityConfigValues(cfg: OpenClawConfig): {
 
       nextChannels[channelId] = nextChannel;
       channelsChanged = true;
-      changes.push(
-        t("commands.doctorLegacyConfig.movedSingleAccount", { channel: channelId }),
-      );
+      changes.push(t("commands.doctorLegacyConfig.movedSingleAccount", { channel: channelId }));
     }
 
     if (!channelsChanged) {
@@ -487,7 +507,9 @@ export function normalizeCompatibilityConfigValues(cfg: OpenClawConfig): {
       browser: migratedBrowser as OpenClawConfig["browser"],
     };
     changes.push(
-      t("commands.doctorLegacyConfig.movedSsrfPolicy", { value: String(resolvedDangerousAllowPrivateNetwork) }),
+      t("commands.doctorLegacyConfig.movedSsrfPolicy", {
+        value: String(resolvedDangerousAllowPrivateNetwork),
+      }),
     );
   };
 
@@ -579,6 +601,12 @@ export function normalizeCompatibilityConfigValues(cfg: OpenClawConfig): {
     const hasGoogleApiKey = rawGoogle.apiKey !== undefined;
     if (!hasGoogleApiKey && legacyApiKey) {
       rawGoogle.apiKey = legacyApiKey;
+      if (!rawGoogle.baseUrl) {
+        rawGoogle.baseUrl = DEFAULT_GOOGLE_API_BASE_URL;
+      }
+      if (!Array.isArray(rawGoogle.models)) {
+        rawGoogle.models = [];
+      }
       rawProviders.google = rawGoogle;
       rawModels.providers = rawProviders as NonNullable<OpenClawConfig["models"]>["providers"];
       next = {
@@ -928,9 +956,7 @@ export function normalizeCompatibilityConfigValues(cfg: OpenClawConfig): {
           },
         },
       };
-      changes.push(
-        t("commands.doctorLegacyConfig.copiedAckReaction", { scope: legacyScope }),
-      );
+      changes.push(t("commands.doctorLegacyConfig.copiedAckReaction", { scope: legacyScope }));
     }
   }
 

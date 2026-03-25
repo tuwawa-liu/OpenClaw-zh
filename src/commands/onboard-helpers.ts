@@ -1,4 +1,3 @@
-import { t } from "../i18n/index.js";
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -12,7 +11,8 @@ import { resolveSessionTranscriptsDirForAgent } from "../config/sessions.js";
 import { callGateway } from "../gateway/call.js";
 import { normalizeControlUiBasePath } from "../gateway/control-ui-shared.js";
 import { isValidIPv4 } from "../gateway/net.js";
-import { isSafeExecutableValue } from "../infra/exec-safety.js";
+import { t } from "../i18n/index.js";
+import { detectBinary } from "../infra/detect-binary.js";
 import {
   inspectBestEffortPrimaryTailnetIPv4,
   pickBestEffortPrimaryLanIPv4,
@@ -21,20 +21,18 @@ import { isWSL } from "../infra/wsl.js";
 import { runCommandWithTimeout } from "../process/exec.js";
 import type { RuntimeEnv } from "../runtime.js";
 import { stylePromptTitle } from "../terminal/prompt-style.js";
-import {
-  CONFIG_DIR,
-  resolveUserPath,
-  shortenHomeInString,
-  shortenHomePath,
-  sleep,
-} from "../utils.js";
+import { CONFIG_DIR, shortenHomeInString, shortenHomePath, sleep } from "../utils.js";
 import { GATEWAY_CLIENT_MODES, GATEWAY_CLIENT_NAMES } from "../utils/message-channel.js";
 import { VERSION } from "../version.js";
 import type { NodeManagerChoice, OnboardMode, ResetScope } from "./onboard-types.js";
 
+export { detectBinary };
+
 export function guardCancel<T>(value: T | symbol, runtime: RuntimeEnv): T {
   if (isCancel(value)) {
-    cancel(stylePromptTitle(t("onboardHelpers.setupCancelled")) ?? t("onboardHelpers.setupCancelled"));
+    cancel(
+      stylePromptTitle(t("onboardHelpers.setupCancelled")) ?? t("onboardHelpers.setupCancelled"),
+    );
     runtime.exit(0);
     throw new Error("unreachable");
   }
@@ -45,7 +43,9 @@ export function summarizeExistingConfig(config: OpenClawConfig): string {
   const rows: string[] = [];
   const defaults = config.agents?.defaults;
   if (defaults?.workspace) {
-    rows.push(shortenHomeInString(t("onboardHelpers.workspaceLabel", { value: defaults.workspace })));
+    rows.push(
+      shortenHomeInString(t("onboardHelpers.workspaceLabel", { value: defaults.workspace })),
+    );
   }
   if (defaults?.model) {
     const model = resolveAgentModelPrimaryValue(defaults.model);
@@ -54,19 +54,35 @@ export function summarizeExistingConfig(config: OpenClawConfig): string {
     }
   }
   if (config.gateway?.mode) {
-    rows.push(shortenHomeInString(t("onboardHelpers.gatewayModeLabel", { value: config.gateway.mode })));
+    rows.push(
+      shortenHomeInString(t("onboardHelpers.gatewayModeLabel", { value: config.gateway.mode })),
+    );
   }
   if (typeof config.gateway?.port === "number") {
-    rows.push(shortenHomeInString(t("onboardHelpers.gatewayPortLabel", { value: String(config.gateway.port) })));
+    rows.push(
+      shortenHomeInString(
+        t("onboardHelpers.gatewayPortLabel", { value: String(config.gateway.port) }),
+      ),
+    );
   }
   if (config.gateway?.bind) {
-    rows.push(shortenHomeInString(t("onboardHelpers.gatewayBindLabel", { value: config.gateway.bind })));
+    rows.push(
+      shortenHomeInString(t("onboardHelpers.gatewayBindLabel", { value: config.gateway.bind })),
+    );
   }
   if (config.gateway?.remote?.url) {
-    rows.push(shortenHomeInString(t("onboardHelpers.gatewayRemoteUrlLabel", { value: config.gateway.remote.url })));
+    rows.push(
+      shortenHomeInString(
+        t("onboardHelpers.gatewayRemoteUrlLabel", { value: config.gateway.remote.url }),
+      ),
+    );
   }
   if (config.skills?.install?.nodeManager) {
-    rows.push(shortenHomeInString(t("onboardHelpers.skillsNodeManagerLabel", { value: config.skills.install.nodeManager })));
+    rows.push(
+      shortenHomeInString(
+        t("onboardHelpers.skillsNodeManagerLabel", { value: config.skills.install.nodeManager }),
+      ),
+    );
   }
   return rows.length ? rows.join("\n") : t("onboardHelpers.noKeySettings");
 }
@@ -342,37 +358,6 @@ export async function handleReset(scope: ResetScope, workspaceDir: string, runti
   await moveToTrash(resolveSessionTranscriptsDirForAgent(), runtime);
   if (scope === "full") {
     await moveToTrash(workspaceDir, runtime);
-  }
-}
-
-export async function detectBinary(name: string): Promise<boolean> {
-  if (!name?.trim()) {
-    return false;
-  }
-  if (!isSafeExecutableValue(name)) {
-    return false;
-  }
-  const resolved = name.startsWith("~") ? resolveUserPath(name) : name;
-  if (
-    path.isAbsolute(resolved) ||
-    resolved.startsWith(".") ||
-    resolved.includes("/") ||
-    resolved.includes("\\")
-  ) {
-    try {
-      await fs.access(resolved);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  const command = process.platform === "win32" ? ["where", name] : ["/usr/bin/env", "which", name];
-  try {
-    const result = await runCommandWithTimeout(command, { timeoutMs: 2000 });
-    return result.code === 0 && result.stdout.trim().length > 0;
-  } catch {
-    return false;
   }
 }
 
